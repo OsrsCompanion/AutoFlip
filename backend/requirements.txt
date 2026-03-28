@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+mss
+opencv-python
+pytesseract
+pillow
+sqlalchemy
+requests
+python-dotenv
+python-multipart
+pygetwindow
+pywin32
+openai

@@ -1,0 +1,15 @@
+# Ignore runtime data
+data/
+Backup Builds/
+screenshots/
+
+# Python
+__pycache__/
+*.pyc
+
+# Env files
+.env
+
+# OS junk
+.DS_Store
+Thumbs.db
