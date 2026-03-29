@@ -137,8 +137,11 @@ def market_decisions():
 def market_recommendations(
     background_tasks: BackgroundTasks,
     limit: int = Query(default=10, ge=1, le=50),
+    mode: str = Query(default="web_safe"),
 ):
     settings = load_settings()
+    if mode != "plugin_full":
+        limit = min(limit, 5)
     cache = load_market_cache()
     meta = _cache_meta()
 
@@ -148,7 +151,7 @@ def market_recommendations(
 
     if cache.get("items"):
         snapshot = _recommendation_snapshot_from_cache(cache)
-        result = build_recommendations(settings=settings, market_snapshot=snapshot, category_limit=limit)
+        result = build_recommendations(settings=settings, market_snapshot=snapshot, category_limit=limit, mode=mode)
         if isinstance(result, dict):
             result.update(
                 {
@@ -166,7 +169,7 @@ def market_recommendations(
     if items:
         ensure_history_and_cache(items)
 
-    result = build_recommendations(settings=settings, market_snapshot=snapshot, category_limit=limit)
+    result = build_recommendations(settings=settings, market_snapshot=snapshot, category_limit=limit, mode=mode)
     if isinstance(result, dict):
         refreshed_cache = load_market_cache()
         result.update(

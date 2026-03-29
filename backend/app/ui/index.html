@@ -6,34 +6,34 @@
   <title>OSRS Flip Assistant</title>
   <link rel="icon" type="image/png" href="assets/favicon.png" />
   <style>
-    body { margin: 0; font-family: Arial, sans-serif; background: #0f2037 url('assets/background.jpg') no-repeat center center fixed; background-size: cover; color: #f3f4f6; }
+    body { margin: 0; font-family: Arial, sans-serif; background: radial-gradient(circle at top, rgba(96,58,25,0.25), rgba(12,7,4,0.7) 45%, rgba(8,5,3,0.92) 100%), #130d09 url('assets/background.jpg') no-repeat center center fixed; background-size: cover; color: #f5e7c8; }
     .wrap { max-width: 1680px; margin: 0 auto; padding: 20px; margin-left: 272px; }
     body.favorites-collapsed .wrap { margin-left: 272px; }
     .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
-    .tab-btn, button { background: #1d4ed8; color: white; border: 0; border-radius: 10px; padding: 10px 14px; cursor: pointer; }
-    .tab-btn.active, .range-btn.active { background: #2563eb; }
+    .tab-btn, button { background: #b8892d; color: white; border: 0; border-radius: 10px; padding: 10px 14px; cursor: pointer; }
+    .tab-btn.active, .range-btn.active { background: linear-gradient(180deg, #f0c46f, #c89532); color:#23160c; border-color: rgba(255, 236, 197, 0.34); }
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
     .row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
-    .card { background: rgba(9, 23, 42, 0.88); border: 1px solid rgba(99, 179, 237, 0.25); border-radius: 14px; padding: 16px; box-shadow: 0 12px 32px rgba(0,0,0,0.25); }
+    .card { background: linear-gradient(180deg, rgba(35, 22, 14, 0.94), rgba(24, 15, 10, 0.94)); border: 1px solid rgba(184, 137, 45, 0.34); border-radius: 14px; padding: 16px; box-shadow: 0 12px 32px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,231,185,0.04); }
     .grow { flex: 1 1 360px; }
-    .muted { color: #cbd5e1; }
+    .muted { color: #d8c6a1; }
     .success { color: #86efac; }
     .warn { color: #fca5a5; }
-    input, select, textarea { width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 10px; border: 1px solid #31567f; background: #0b1728; color: #f3f4f6; margin: 6px 0 12px; }
+    input, select, textarea { width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 10px; border: 1px solid #6b4a22; background: #1b130d; color: #f5e7c8; margin: 6px 0 12px; }
     textarea { min-height: 120px; resize: vertical; }
     h1, h2, h3 { margin-top: 0; }
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
     .value { font-size: 22px; font-weight: 700; color: #facc15; }
     .mono { font-family: Consolas, Monaco, monospace; white-space: pre-wrap; }
-    .recommendation { background: rgba(17, 34, 57, 0.95); border: 1px solid rgba(96, 165, 250, 0.18); border-radius: 12px; padding: 12px; margin-bottom: 10px; }
+    .recommendation { background: rgba(31, 19, 12, 0.95); border: 1px solid rgba(212, 167, 67, 0.2); border-radius: 12px; padding: 12px; margin-bottom: 10px; }
     .recommendation h3 { margin-bottom: 8px; }
     .recommendation p { margin: 4px 0; }
-    .ge-board { background: #0b1728; border-radius: 14px; padding: 16px; }
+    .ge-board { background: #1b130d; border-radius: 14px; padding: 16px; }
     .ge-grid { display: grid; grid-template-columns: repeat(4, minmax(140px, 1fr)); gap: 12px; }
-    .ge-slot { position: relative; min-height: 132px; background: #17304f; border: 1px solid #31567f; border-radius: 12px; padding: 10px; }
-    .ge-slot.empty { background: #10233b; }
-    .slot-index { font-size: 12px; color: #cbd5e1; margin-bottom: 6px; }
+    .ge-slot { position: relative; min-height: 132px; background: #2a1b11; border: 1px solid #6b4a22; border-radius: 12px; padding: 10px; }
+    .ge-slot.empty { background: #24160e; }
+    .slot-index { font-size: 12px; color: #d8c6a1; margin-bottom: 6px; }
     .slot-head { font-weight: 700; margin-bottom: 6px; }
     .slot-state, .slot-meta, .slot-price, .slot-rec { font-size: 12px; color: #d9c7a4; margin: 2px 0; }
     .slot-decision { position: absolute; right: 8px; top: 8px; font-size: 11px; font-weight: bold; padding: 3px 6px; border-radius: 999px; }
@@ -52,33 +52,33 @@
     .market-results { max-height: 760px; }
     .market-detail-card { min-height: 0; }
     .detail-grid { display:grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap: 10px; margin-top: 10px; }
-    .detail-stat { background: rgba(11,23,40,0.6); border: 1px solid rgba(96,165,250,0.16); border-radius: 12px; padding: 10px 12px; }
-    .detail-label { font-size: 12px; color: #93c5fd; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
-    .detail-value { font-size: 18px; font-weight: 700; color: #f8fafc; }
-    .detail-subvalue { font-size: 13px; color: #cbd5e1; margin-top: 4px; }
+    .detail-stat { background: rgba(27,19,13,0.72); border: 1px solid rgba(177, 132, 45, 0.18); border-radius: 12px; padding: 10px 12px; }
+    .detail-label { font-size: 12px; color: #d7b06a; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+    .detail-value { font-size: 18px; font-weight: 700; color: #f6ead1; }
+    .detail-subvalue { font-size: 13px; color: #d8c6a1; margin-top: 4px; }
     .range-wrap { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
     .chart-card { margin-top: 16px; }
     .chart-card-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
     .chart-title-block h2, .chart-title-block h3, .chart-title-block p { margin: 0; }
     .chart-title-block p { margin-top: 6px; }
-    .chart-wrap { position:relative; background:#081425; border:1px solid #29476b; border-radius:16px; margin-top:12px; padding: 14px; overflow:visible; }
+    .chart-wrap { position:relative; background:linear-gradient(180deg,#1b120d,#140c08); border:1px solid #6b4a22; border-radius:16px; margin-top:12px; padding: 14px; overflow:visible; box-shadow: inset 0 1px 0 rgba(255,226,170,0.04); }
     .chart-frame { width: 100%; height: 860px; display:block; }
-    .chart-legend { display:flex; gap:18px; flex-wrap:wrap; align-items:center; margin-top:12px; color:#cbd5e1; font-size:14px; }
+    .chart-legend { display:flex; gap:18px; flex-wrap:wrap; align-items:center; margin-top:12px; color:#dccba8; font-size:14px; }
     .legend-swatch { width:18px; height:4px; border-radius:999px; display:inline-block; margin-right:8px; vertical-align:middle; }
     .legend-bar { width:18px; height:10px; border-radius:3px; display:inline-block; margin-right:8px; vertical-align:middle; }
     .chart-footnote { margin-top: 8px; }
-    .chart-tooltip { position:absolute; pointer-events:none; min-width:170px; max-width:240px; background:rgba(5,15,28,0.96); border:1px solid rgba(125,211,252,0.45); border-radius:12px; padding:10px 12px; box-shadow:0 12px 28px rgba(0,0,0,0.35); color:#e5eefb; font-size:13px; line-height:1.45; z-index:20; opacity:0; transition:opacity 0.12s ease; }
+    .chart-tooltip { position:absolute; pointer-events:none; min-width:170px; max-width:240px; background:rgba(24,14,8,0.96); border:1px solid rgba(212,167,67,0.42); border-radius:12px; padding:10px 12px; box-shadow:0 12px 28px rgba(0,0,0,0.35); color:#e5eefb; font-size:13px; line-height:1.45; z-index:20; opacity:0; transition:opacity 0.12s ease; }
     .chart-tooltip.visible { opacity:1; }
-    .chart-tooltip .label { color:#93c5fd; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; }
+    .chart-tooltip .label { color:#d7b06a; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; }
     .chart-tooltip .value { color:#f8fafc; font-size:15px; }
     .chart-tooltip .row { margin-top:6px; }
     .market-results .recommendation { padding: 10px 12px; }
 
     .market-results-panel { min-width: 0; }
     .detail-topbar { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:10px; flex-wrap:wrap; }
-    .ghost-btn { background:#0b1728; border:1px solid #31567f; color:#dbeafe; }
+    .ghost-btn { background:linear-gradient(180deg,#2a1a11,#1a110c); border:1px solid #7c5628; color:#f1dfb2; }
 
-    .favorites-sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 248px; background: linear-gradient(180deg, rgba(4, 14, 27, 0.98), rgba(2, 10, 22, 0.98)); border-right: 1px solid rgba(125, 211, 252, 0.18); box-shadow: 8px 0 28px rgba(0,0,0,0.28); padding: 18px 22px 18px 14px; z-index: 40; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; transition: transform 0.24s ease, box-shadow 0.24s ease; }
+    .favorites-sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 248px; background: linear-gradient(180deg, rgba(27, 17, 10, 0.98), rgba(15, 9, 5, 0.99)); border-right: 1px solid rgba(184, 137, 45, 0.28); box-shadow: 8px 0 28px rgba(0,0,0,0.34), inset -1px 0 0 rgba(245,231,200,0.04); padding: 18px 22px 18px 14px; z-index: 40; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; transition: transform 0.24s ease, box-shadow 0.24s ease; }
     body.favorites-collapsed .favorites-sidebar { transform: translateX(calc(-100% + 22px)); box-shadow: 0 0 0 rgba(0,0,0,0); }
     .favorites-edge-hitbox {
       position: absolute;
@@ -90,18 +90,18 @@
       z-index: 3;
       background:
         linear-gradient(270deg,
-          rgba(125, 211, 252, 0.42) 0%,
-          rgba(59, 130, 246, 0.26) 16%,
-          rgba(14, 165, 233, 0.14) 40%,
-          rgba(14, 165, 233, 0.05) 68%,
-          rgba(14, 165, 233, 0.00) 100%);
+          rgba(212, 167, 67, 0.44) 0%,
+          rgba(166, 117, 34, 0.3) 16%,
+          rgba(120, 76, 22, 0.18) 40%,
+          rgba(120, 76, 22, 0.06) 68%,
+          rgba(120, 76, 22, 0.00) 100%);
       opacity: 0.72;
       transition: opacity 0.18s ease, filter 0.18s ease, box-shadow 0.18s ease;
     }
     .favorites-edge-hitbox:hover {
       opacity: 1;
       filter: saturate(1.15);
-      box-shadow: inset -12px 0 28px rgba(125, 211, 252, 0.28);
+      box-shadow: inset -12px 0 28px rgba(212, 167, 67, 0.26);
     }
     .favorites-edge-hitbox::after {
       content: "";
@@ -110,7 +110,7 @@
       right: 0;
       bottom: 0;
       width: 2px;
-      background: linear-gradient(180deg, rgba(191, 219, 254, 0.92), rgba(96, 165, 250, 0.6), rgba(125, 211, 252, 0.86));
+      background: linear-gradient(180deg, rgba(241, 223, 178, 0.92), rgba(184, 137, 45, 0.66), rgba(212, 167, 67, 0.88));
       opacity: 0.95;
     }
     .favorites-toggle-btn {
@@ -120,15 +120,15 @@
       transform: translateY(-50%);
       width: 16px;
       height: 54px;
-      border: 1px solid rgba(125, 211, 252, 0.42);
+      border: 1px solid rgba(212, 167, 67, 0.44);
       border-radius: 999px;
-      background: linear-gradient(180deg, rgba(20, 44, 75, 0.98), rgba(7, 20, 40, 0.98));
+      background: linear-gradient(180deg, rgba(55, 34, 18, 0.98), rgba(24, 15, 9, 0.98));
       box-shadow: 0 8px 18px rgba(0, 0, 0, 0.3);
       z-index: 4;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #dbeafe;
+      color: #f1dfb2;
       font-size: 11px;
       line-height: 1;
       user-select: none;
@@ -136,8 +136,8 @@
       transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
     }
     .favorites-toggle-btn:hover {
-      border-color: rgba(191, 219, 254, 0.75);
-      background: linear-gradient(180deg, rgba(28, 62, 104, 0.98), rgba(10, 29, 55, 0.98));
+      border-color: rgba(241, 223, 178, 0.78);
+      background: linear-gradient(180deg, rgba(78, 50, 27, 0.98), rgba(32, 20, 12, 0.98));
     }
     .favorites-toggle-btn::before { content: "❮"; }
     body.favorites-collapsed .favorites-toggle-btn::before { content: "❯"; }
@@ -145,18 +145,18 @@
       opacity: 0.9;
       background:
         linear-gradient(270deg,
-          rgba(125, 211, 252, 0.5) 0%,
-          rgba(59, 130, 246, 0.28) 28%,
-          rgba(14, 165, 233, 0.00) 100%);
+          rgba(212, 167, 67, 0.5) 0%,
+          rgba(166, 117, 34, 0.28) 28%,
+          rgba(120, 76, 22, 0.00) 100%);
     }
     .favorites-title { margin: 0 0 10px; font-size: 18px; color: #f8fafc; }
-    .favorites-subtitle { margin: 0 0 14px; font-size: 12px; color: #94a3b8; line-height: 1.4; }
+    .favorites-subtitle { margin: 0 0 14px; font-size: 12px; color: #b79a6a; line-height: 1.4; }
     .favorites-list { display: flex; flex-direction: column; gap: 8px; }
-    .favorite-item { background: rgba(17, 34, 57, 0.9); border: 1px solid rgba(96,165,250,0.16); border-radius: 12px; padding: 10px 12px; cursor: pointer; transition: background 0.15s ease, transform 0.15s ease; }
-    .favorite-item:hover { background: rgba(30, 58, 95, 0.95); transform: translateY(-1px); }
+    .favorite-item { background: rgba(31, 19, 12, 0.9); border: 1px solid rgba(177, 132, 45, 0.18); border-radius: 12px; padding: 10px 12px; cursor: pointer; transition: background 0.15s ease, transform 0.15s ease; }
+    .favorite-item:hover { background: rgba(58, 34, 18, 0.95); transform: translateY(-1px); }
     .favorite-item-name { font-weight: 700; color: #f8fafc; }
-    .favorite-item-meta { margin-top: 4px; font-size: 12px; color: #cbd5e1; }
-    .favorite-empty { font-size: 13px; color: #94a3b8; line-height: 1.5; padding: 8px 2px; }
+    .favorite-item-meta { margin-top: 4px; font-size: 12px; color: #d8c6a1; }
+    .favorite-empty { font-size: 13px; color: #b79a6a; line-height: 1.5; padding: 8px 2px; }
     .star-btn { appearance:none; border:0; background:transparent; padding:0; margin:0; cursor:pointer; color:#ffffff; font-size:18px; line-height:1; display:inline-flex; align-items:center; justify-content:center; min-width:22px; min-height:22px; }
     .star-btn:hover { transform: scale(1.08); }
     .star-btn.active { color:#facc15; text-shadow: 0 0 12px rgba(250, 204, 21, 0.28); }
@@ -165,9 +165,9 @@
     .risk-slider-wrap{
       margin: 4px 0 6px;
       padding: 12px 14px 14px;
-      border: 1px solid rgba(96, 165, 250, 0.18);
+      border: 1px solid rgba(212, 167, 67, 0.2);
       border-radius: 14px;
-      background: rgba(7, 20, 40, 0.55);
+      background: rgba(28, 18, 12, 0.62);
     }
     .risk-slider-scale{
       display:flex;
@@ -176,7 +176,7 @@
       gap:12px;
       margin-bottom:10px;
       font-size:12px;
-      color:#bfdbfe;
+      color:#ead39a;
     }
     .risk-slider-scale strong{
       min-width:88px;
@@ -190,14 +190,14 @@
       height:12px;
       border-radius:999px;
       outline:none;
-      border:1px solid rgba(255,255,255,0.08);
+      border:1px solid rgba(255,229,180,0.08);
       background: linear-gradient(90deg,
-        #22c55e 0%,
-        #84cc16 16%,
-        #eab308 38%,
-        #f97316 68%,
-        #ef4444 100%);
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+        #7aa35a 0%,
+        #9c9b3d 16%,
+        #d5aa3f 38%,
+        #c57a31 68%,
+        #a04424 100%);
+      box-shadow: inset 0 0 0 1px rgba(255,229,180,0.05);
     }
     .risk-slider::-webkit-slider-thumb{
       appearance:none;
@@ -228,7 +228,7 @@
       background:rgba(12,29,53,.6);
       font-size:12px;
       font-weight:700;
-      color:#dbeafe;
+      color:#f1dfb2;
     }
     .slot-favorite { position:absolute; left:10px; top:8px; z-index:2; }
 
@@ -240,8 +240,8 @@
       left: 0;
       right: 0;
       z-index: 60;
-      background: #0b1728;
-      border: 1px solid #31567f;
+      background: #1b130d;
+      border: 1px solid #6b4a22;
       border-radius: 12px;
       box-shadow: 0 16px 32px rgba(0,0,0,0.35);
       max-height: 360px;
@@ -262,10 +262,10 @@
     .market-suggestion-item:hover, .market-suggestion-item.active { background: rgba(59,130,246,0.16); }
     .market-suggestion-main { min-width: 0; }
     .market-suggestion-name { font-weight: 700; color: #f8fafc; }
-    .market-suggestion-meta { font-size: 12px; color: #93c5fd; margin-top: 2px; }
+    .market-suggestion-meta { font-size: 12px; color: #d7b06a; margin-top: 2px; }
     .market-suggestion-tag {
       font-size: 11px;
-      color: #cbd5e1;
+      color: #d8c6a1;
       border: 1px solid rgba(148,163,184,0.22);
       border-radius: 999px;
       padding: 3px 8px;
@@ -279,9 +279,9 @@
     .market-results-shell.hidden, .market-detail-shell.hidden, .market-chart-shell.hidden { display:none; }
     .market-results-toolbar { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
     .market-results-toolbar .left, .market-results-toolbar .right { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-    .market-results-toolbar label { color:#cbd5e1; font-size:14px; }
+    .market-results-toolbar label { color:#d8c6a1; font-size:14px; }
     .market-results-toolbar select { width:auto; min-width:78px; margin:0; padding:8px 10px; }
-    .market-table-wrap { overflow:auto; border:1px solid rgba(96,165,250,0.16); border-radius:12px; background:rgba(11,23,40,0.68); }
+    .market-table-wrap { overflow:auto; border:1px solid rgba(177, 132, 45, 0.18); border-radius:12px; background:rgba(11,23,40,0.68); }
     .market-table { width:100%; border-collapse:collapse; min-width:1120px; }
     .market-table th, .market-table td { padding:12px 10px; border-bottom:1px solid rgba(148,163,184,0.14); text-align:left; vertical-align:middle; }
     .market-table th { position:sticky; top:0; background:#0f2542; color:#cfe3ff; font-size:13px; text-transform:uppercase; letter-spacing:0.04em; z-index:1; }
@@ -294,17 +294,35 @@
     .market-pagination { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
     .market-pagination button[disabled] { opacity:0.45; cursor:not-allowed; }
 
-    .trade-plan-card { background:#12294a; }
+    .trade-plan-card { background:#27180f; }
     .trade-plan-grid { display:grid; grid-template-columns: repeat(4, minmax(240px, 1fr)); gap:16px; align-items:stretch; }
     .trade-plan-slot {
       position: relative;
       min-height: 220px;
-      background: rgba(11,23,40,0.82);
-      border: 1px solid rgba(96,165,250,0.18);
+      background: linear-gradient(180deg, rgba(44,24,12,0.90), rgba(28,14,7,0.94));
+      border: 1px solid rgba(212,167,67,0.18);
+      box-shadow: inset 0 1px 0 rgba(255,228,162,0.05), 0 16px 34px rgba(0,0,0,0.22);
       border-radius: 16px;
       padding: 14px;
     }
-    .trade-plan-slot.empty { background: rgba(16,35,59,0.85); }
+    .trade-plan-slot.empty { background: linear-gradient(180deg, rgba(39,21,10,0.92), rgba(23,11,5,0.96)); }
+    .trade-plan-slot.locked-preview {
+      border-color: rgba(212,167,67,0.14);
+      background: linear-gradient(180deg, rgba(34,18,8,0.88), rgba(20,10,5,0.93));
+    }
+    .trade-plan-slot.locked-preview > * {
+      filter: blur(3px);
+      opacity: 0.42;
+      pointer-events: none;
+      user-select: none;
+    }
+    .trade-plan-slot.locked-preview::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(20,10,5,0.18), rgba(20,10,5,0.52));
+      z-index: 2;
+    }
     .trade-plan-slot-head { display:flex; flex-direction:column; align-items:stretch; gap:10px; margin-bottom:10px; }
     .trade-plan-slot-left { min-width:0; }
     .trade-plan-slot-top-controls { display:flex; justify-content:center; align-items:center; gap:8px; margin-bottom:2px; }
@@ -322,9 +340,9 @@
       border-radius: 8px;
       text-align: center;
     }
-    .trade-plan-purpose-label { font-size:11px; color:#93c5fd; text-transform:uppercase; letter-spacing:0.04em; text-align:center; }
+    .trade-plan-purpose-label { font-size:11px; color:#d7b06a; text-transform:uppercase; letter-spacing:0.04em; text-align:center; }
     .trade-plan-clear-btn {
-      background:#0b1728;
+      background:#1b130d;
       border:1px solid rgba(248,113,113,0.35);
       color:#fecaca;
       border-radius:8px;
@@ -348,16 +366,16 @@
       background: rgba(127,29,29,0.35);
     }
     .trade-plan-meta { display:grid; grid-template-columns: repeat(2, minmax(130px, 1fr)); gap:8px; margin-top:10px; }
-    .trade-plan-meta-card { background: rgba(15,37,66,0.82); border:1px solid rgba(96,165,250,0.12); border-radius:10px; padding:8px 10px; }
-    .trade-plan-meta-label { font-size:11px; color:#93c5fd; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px; }
+    .trade-plan-meta-card { background: linear-gradient(180deg, rgba(51,28,13,0.92), rgba(32,17,8,0.94)); border:1px solid rgba(212,167,67,0.16); border-radius:10px; padding:8px 10px; }
+    .trade-plan-meta-label { font-size:11px; color:#d7b06a; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px; }
     .trade-plan-meta-value { font-size:14px; color:#f8fafc; font-weight:700; }
     .trade-plan-comment {
       margin-top:12px;
-      background: rgba(15,37,66,0.72);
-      border-left: 4px solid rgba(125,211,252,0.55);
+      background: linear-gradient(180deg, rgba(62,34,15,0.84), rgba(39,21,10,0.92));
+      border-left: 4px solid rgba(212,167,67,0.55);
       border-radius: 10px;
       padding: 10px 12px;
-      color:#dbeafe;
+      color:#f1dfb2;
       line-height:1.45;
       min-height: 56px;
     }
@@ -377,8 +395,8 @@
       width:40px;
       height:40px;
       border-radius:50%;
-      border:1px solid rgba(125,211,252,0.45);
-      background: radial-gradient(circle at 30% 30%, rgba(37,99,235,0.98), rgba(11,23,40,0.98));
+      border:1px solid rgba(212,167,67,0.42);
+      background: radial-gradient(circle at 30% 30%, rgba(232,191,96,0.98), rgba(88,52,19,0.98));
       display:flex;
       align-items:center;
       justify-content:center;
@@ -396,7 +414,7 @@
     .ghost-swap-btn svg {
       width:18px;
       height:18px;
-      stroke:#e0f2fe;
+      stroke:#f3e7c8;
       stroke-width:2;
       fill:none;
       stroke-linecap:round;
@@ -437,14 +455,14 @@
     }
     .debug-panel-subtitle{
       margin:6px 0 0;
-      color:#93c5fd;
+      color:#d7b06a;
       font-size:13px;
       line-height:1.4;
     }
     .debug-expand-btn{
       background:rgba(10,28,52,.95);
       border:1px solid rgba(125,211,252,.28);
-      color:#dbeafe;
+      color:#f1dfb2;
       border-radius:12px;
       padding:8px 12px;
       font-weight:700;
@@ -462,9 +480,9 @@
     .trade-plan-comment strong.extend{color:#86efac;}
     .trade-plan-meta-value.extend{color:#86efac;}
 .trade-plan-meta-value.resell{color:#86efac;}
-    .trade-plan-meta-value.redeploy{color:#93c5fd;}
+    .trade-plan-meta-value.redeploy{color:#d7b06a;}
     .trade-plan-meta-value.hold{color:#fde68a;}
-    .slot-state.completed-flow{color:#bfdbfe;}
+    .slot-state.completed-flow{color:#ead39a;}
     .debug-log{
       margin:0;
       min-height:160px;
@@ -474,7 +492,7 @@
       border-radius:14px;
       background:rgba(4,14,27,.86);
       border:1px solid rgba(96,165,250,.14);
-      color:#dbeafe;
+      color:#f1dfb2;
       white-space:pre-wrap;
       word-break:break-word;
       line-height:1.45;
@@ -493,8 +511,8 @@
     }
 
     .debug-collapsible {
-      background: rgba(9, 23, 42, 0.88);
-      border: 1px solid rgba(99, 179, 237, 0.25);
+      background: rgba(26, 16, 10, 0.9);
+      border: 1px solid rgba(184, 137, 45, 0.32);
       border-radius: 14px;
       box-shadow: 0 12px 32px rgba(0,0,0,0.25);
       overflow: hidden;
@@ -515,7 +533,7 @@
     .debug-collapsible summary::after {
       content: "▾";
       font-size: 18px;
-      color: #93c5fd;
+      color: #d7b06a;
       transition: transform 0.18s ease;
     }
     .debug-collapsible:not([open]) summary::after {
@@ -583,18 +601,18 @@
       z-index: 3;
       background:
         linear-gradient(90deg,
-          rgba(125, 211, 252, 0.42) 0%,
-          rgba(59, 130, 246, 0.26) 16%,
-          rgba(14, 165, 233, 0.14) 40%,
-          rgba(14, 165, 233, 0.05) 68%,
-          rgba(14, 165, 233, 0.00) 100%);
+          rgba(212, 167, 67, 0.44) 0%,
+          rgba(166, 117, 34, 0.3) 16%,
+          rgba(120, 76, 22, 0.18) 40%,
+          rgba(120, 76, 22, 0.06) 68%,
+          rgba(120, 76, 22, 0.00) 100%);
       opacity: 0.72;
       transition: opacity 0.18s ease, filter 0.18s ease, box-shadow 0.18s ease;
     }
     .ai-edge-hitbox:hover{
       opacity: 1;
       filter: saturate(1.15);
-      box-shadow: inset 12px 0 28px rgba(125, 211, 252, 0.28);
+      box-shadow: inset 12px 0 28px rgba(212, 167, 67, 0.26);
     }
     .ai-edge-hitbox::after{
       content: "";
@@ -603,7 +621,7 @@
       left: 0;
       bottom: 0;
       width: 2px;
-      background: linear-gradient(180deg, rgba(191, 219, 254, 0.92), rgba(96, 165, 250, 0.6), rgba(125, 211, 252, 0.86));
+      background: linear-gradient(180deg, rgba(241, 223, 178, 0.92), rgba(184, 137, 45, 0.66), rgba(212, 167, 67, 0.88));
       opacity: 0.95;
     }
     .ai-toggle-btn{
@@ -613,15 +631,15 @@
       transform: translateY(-50%);
       width: 16px;
       height: 54px;
-      border: 1px solid rgba(125, 211, 252, 0.42);
+      border: 1px solid rgba(212, 167, 67, 0.44);
       border-radius: 999px;
-      background: linear-gradient(180deg, rgba(20, 44, 75, 0.98), rgba(7, 20, 40, 0.98));
+      background: linear-gradient(180deg, rgba(55, 34, 18, 0.98), rgba(24, 15, 9, 0.98));
       box-shadow: 0 8px 18px rgba(0, 0, 0, 0.3);
       z-index: 4;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #dbeafe;
+      color: #f1dfb2;
       font-size: 11px;
       line-height: 1;
       user-select: none;
@@ -629,8 +647,8 @@
       transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
     }
     .ai-toggle-btn:hover{
-      border-color: rgba(191, 219, 254, 0.75);
-      background: linear-gradient(180deg, rgba(28, 62, 104, 0.98), rgba(10, 29, 55, 0.98));
+      border-color: rgba(241, 223, 178, 0.78);
+      background: linear-gradient(180deg, rgba(78, 50, 27, 0.98), rgba(32, 20, 12, 0.98));
     }
     .ai-toggle-btn::before{ content: "❯"; }
     body.ai-copilot-collapsed .ai-toggle-btn::before{ content: "❮"; }
@@ -638,9 +656,9 @@
       opacity: 0.9;
       background:
         linear-gradient(90deg,
-          rgba(125, 211, 252, 0.5) 0%,
-          rgba(59, 130, 246, 0.28) 28%,
-          rgba(14, 165, 233, 0.00) 100%);
+          rgba(212, 167, 67, 0.5) 0%,
+          rgba(166, 117, 34, 0.28) 28%,
+          rgba(120, 76, 22, 0.00) 100%);
     }
     .wrap{
       margin-right: 364px;
@@ -664,7 +682,7 @@
       margin:0;
       display:flex;
       flex-direction:column;
-      overflow:hidden;
+      overflow:visible;
     }
     .ai-chat-header-row{
       display:flex;
@@ -679,27 +697,45 @@
     }
     .ai-chat-messages{
       flex:1 1 auto;
-      min-height:0;
+      min-height:260px;
+      max-height:min(54vh, 560px);
       overflow-y:auto;
+      overflow-x:hidden;
       display:flex;
       flex-direction:column;
-      justify-content:flex-end;
+      justify-content:flex-start;
       gap:10px;
-      padding:8px 4px 14px;
-      border:1px solid rgba(99,179,237,.18);
+      padding:10px 10px 16px 6px;
+      border:1px solid rgba(224, 179, 83, 0.22);
       border-radius:12px;
-      background:rgba(5,14,26,.5);
+      background:linear-gradient(180deg, rgba(32, 17, 8, 0.92), rgba(18, 10, 5, 0.96));
+      scroll-behavior:smooth;
+      overscroll-behavior:contain;
+    }
+    .ai-chat-messages::-webkit-scrollbar{
+      width:10px;
+    }
+    .ai-chat-messages::-webkit-scrollbar-track{
+      background:rgba(34,18,9,0.75);
+      border-radius:999px;
+    }
+    .ai-chat-messages::-webkit-scrollbar-thumb{
+      background:linear-gradient(180deg, rgba(224,179,83,0.9), rgba(142,91,27,0.95));
+      border-radius:999px;
+      border:2px solid rgba(34,18,9,0.95);
     }
     .ai-chat-empty{
-      color:#94a3b8;
+      color:#b79a6a;
       font-size:14px;
     }
     .ai-chat-composer{
       flex:0 0 auto;
       padding-top:12px;
-      border-top:1px solid rgba(99,179,237,.14);
+      border-top:1px solid rgba(224, 179, 83, 0.16);
       margin-top:12px;
-      background:linear-gradient(180deg, rgba(9,23,42,0), rgba(9,23,42,.95) 28%);
+      background:linear-gradient(180deg, rgba(24,13,7,0), rgba(24,13,7,.96) 30%);
+      position:sticky;
+      bottom:0;
     }
     .ai-chat-composer label{
       display:block;
@@ -721,19 +757,544 @@
     }
     .ai-chat-message.user{
       align-self:flex-end;
-      background:rgba(29,78,216,.34);
-      border:1px solid rgba(96,165,250,.32);
+      background:linear-gradient(180deg, rgba(92,54,18,0.96), rgba(56,31,10,0.98));
+      border:1px solid rgba(224,179,83,0.3);
     }
     .ai-chat-message.assistant{
       align-self:flex-start;
-      background:rgba(15,23,42,.92);
-      border:1px solid rgba(148,163,184,.2);
+      background:linear-gradient(180deg, rgba(38,21,10,0.98), rgba(20,11,5,0.98));
+      border:1px solid rgba(178,130,55,0.18);
+    }
+    .ai-chat-message.error{
+      border-color:rgba(214,88,63,0.42);
+      background:linear-gradient(180deg, rgba(71,24,16,0.96), rgba(39,13,9,0.98));
     }
     .ai-chat-message h3,
     .ai-chat-message p{
       margin-top:0;
     }
-</style>
+
+    .overview-shell { margin-bottom: 16px; }
+    .overview-frame-wrap { background: rgba(9, 23, 42, 0.72); border: 1px solid rgba(184, 137, 45, 0.32); border-radius: 18px; overflow: hidden; box-shadow: 0 12px 32px rgba(0,0,0,0.25); }
+    .overview-frame { width: 100%; height: 1780px; border: 0; display: block; background: transparent; }
+
+
+
+    /* Patch 12: brown/gold theme pass */
+    :root {
+      --bg-warm-1: rgba(22, 12, 7, 0.94);
+      --bg-warm-2: rgba(38, 24, 14, 0.90);
+      --bg-warm-3: rgba(58, 36, 19, 0.88);
+      --panel-warm: rgba(22, 14, 9, 0.90);
+      --panel-warm-strong: rgba(30, 19, 11, 0.94);
+      --line-warm: rgba(212, 163, 82, 0.24);
+      --line-warm-strong: rgba(232, 189, 93, 0.42);
+      --gold-soft: #f3d38a;
+      --gold-main: #e0ac47;
+      --gold-strong: #f6c768;
+      --bronze: #8f6530;
+      --ink-warm: #f5ead7;
+      --muted-warm: #d6c2a3;
+      --shadow-warm: 0 18px 42px rgba(0, 0, 0, 0.34);
+    }
+    body {
+      color: var(--ink-warm);
+      background:
+        linear-gradient(180deg, rgba(20, 8, 4, 0.40), rgba(9, 4, 2, 0.56)),
+        #120a06 url('assets/background.jpg') no-repeat center center fixed;
+      background-size: cover;
+    }
+    .tabs {
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(16, 9, 5, 0.86), rgba(28, 16, 9, 0.78));
+      border: 1px solid var(--line-warm);
+      box-shadow: var(--shadow-warm);
+    }
+    .tab-btn, button {
+      background: linear-gradient(180deg, #6b471f 0%, #4b3015 100%);
+      color: #fff6e7;
+      border: 1px solid rgba(233, 192, 104, 0.26);
+      border-radius: 12px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,232,190,0.08);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, filter 0.15s ease;
+    }
+    .tab-btn:hover, button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(245, 201, 108, 0.42);
+      filter: saturate(1.05);
+      box-shadow: 0 10px 18px rgba(0,0,0,0.24), inset 0 1px 0 rgba(255,232,190,0.10);
+    }
+    .tab-btn.active, .range-btn.active {
+      background: linear-gradient(180deg, #f0be62 0%, #b77b22 100%);
+      color: #241307;
+      border-color: rgba(255, 221, 154, 0.58);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.26), inset 0 1px 0 rgba(255,244,214,0.48);
+    }
+    .card,
+    .recommendation,
+    .detail-stat,
+    .favorite-item,
+    .risk-slider-wrap,
+    .chart-wrap,
+    .ge-board {
+      background: linear-gradient(180deg, rgba(19, 11, 7, 0.90), rgba(33, 21, 13, 0.86));
+      border-color: var(--line-warm);
+      box-shadow: var(--shadow-warm);
+    }
+    .card {
+      border-radius: 18px;
+    }
+    .muted,
+    .favorite-item-meta,
+    .detail-subvalue,
+    .chart-legend,
+    .favorites-subtitle,
+    .favorite-empty,
+    .slot-index {
+      color: var(--muted-warm);
+    }
+    .value,
+    .detail-value,
+    .favorites-title,
+    .favorite-item-name,
+    h1, h2, h3,
+    .slot-head {
+      color: #fff2d9;
+    }
+    .value,
+    .detail-label,
+    .star-btn.active {
+      color: var(--gold-strong);
+    }
+    .detail-label,
+    .chart-tooltip .label {
+      color: #d6ae6a;
+    }
+    .chart-wrap,
+    .chart-tooltip,
+    .ghost-btn,
+    input, select, textarea,
+    .ge-slot,
+    .ge-slot.empty,
+    .status-badge,
+    .tag,
+    .slot-decision,
+    .market-search-input {
+      border-color: rgba(216, 171, 86, 0.24) !important;
+    }
+    input, select, textarea,
+    .ghost-btn,
+    .ge-slot,
+    .ge-slot.empty,
+    .chart-wrap {
+      background: rgba(18, 11, 7, 0.88);
+      color: #fff2de;
+    }
+    input::placeholder, textarea::placeholder {
+      color: #bfa98b;
+    }
+    .favorites-sidebar {
+      background: linear-gradient(180deg, rgba(14, 8, 4, 0.98), rgba(28, 15, 9, 0.98));
+      border-right: 1px solid rgba(216, 171, 86, 0.18);
+      box-shadow: 8px 0 28px rgba(0,0,0,0.34);
+    }
+    .favorites-edge-hitbox {
+      background: linear-gradient(270deg,
+        rgba(226, 177, 84, 0.40) 0%,
+        rgba(168, 110, 38, 0.26) 20%,
+        rgba(120, 73, 22, 0.10) 44%,
+        rgba(120, 73, 22, 0.00) 100%);
+    }
+    .favorites-edge-hitbox::after {
+      background: linear-gradient(180deg, rgba(255, 226, 160, 0.95), rgba(214, 156, 70, 0.72), rgba(158, 94, 30, 0.90));
+    }
+    .favorites-toggle-btn {
+      background: linear-gradient(180deg, rgba(90, 58, 24, 0.98), rgba(49, 30, 14, 0.98));
+      border-color: rgba(229, 189, 101, 0.35);
+      color: #ffedc7;
+    }
+    .favorites-toggle-btn:hover {
+      background: linear-gradient(180deg, rgba(122, 77, 30, 0.98), rgba(63, 39, 17, 0.98));
+      border-color: rgba(255, 216, 140, 0.66);
+    }
+    .favorite-item:hover {
+      background: rgba(56, 35, 18, 0.96);
+    }
+    .recommendation,
+    .detail-stat,
+    .favorite-item,
+    .ge-slot,
+    .slot,
+    .rec,
+    .status {
+      border: 1px solid var(--line-warm);
+    }
+    .chart-tooltip {
+      background: rgba(21, 11, 6, 0.97);
+      color: #f7e9d1;
+    }
+    .overlay-cta {
+      background: linear-gradient(135deg, rgba(102, 64, 24, .26), rgba(227, 176, 79, .12));
+      border: 1px solid rgba(227, 176, 79, .22);
+    }
+    .tag,
+    .pill,
+    .status-badge,
+    .slot-decision {
+      background: rgba(109, 71, 31, 0.22);
+      color: #f4ddb1;
+    }
+    .lock,
+    .tag.lock {
+      background: rgba(224, 172, 71, 0.14);
+      color: #ffd88b;
+      border-color: rgba(224, 172, 71, 0.28);
+    }
+    .success { color: #9ce7a7; }
+    .warn { color: #ffb37c; }
+    .ghost-btn { color: #f1e2c6; }
+    .market-layout.selection-active .market-results-panel { display:none; }
+
+  
+    /* Patch 17: premium feel pass */
+    .wrap > h1 {
+      font-size: 34px;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+      text-shadow: 0 6px 18px rgba(0,0,0,0.28);
+    }
+    .wrap > .muted {
+      font-size: 15px;
+      max-width: 980px;
+      line-height: 1.55;
+    }
+    .tabs {
+      position: sticky;
+      top: 12px;
+      z-index: 20;
+      backdrop-filter: blur(12px);
+    }
+    .tab-btn {
+      position: relative;
+      min-width: 132px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+    .tab-btn::after {
+      content: "";
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 8px;
+      height: 2px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(246,199,104,0.00), rgba(255,230,170,0.95), rgba(246,199,104,0.00));
+      opacity: 0;
+      transform: scaleX(0.72);
+      transition: opacity 0.18s ease, transform 0.18s ease;
+    }
+    .tab-btn:hover::after,
+    .tab-btn.active::after {
+      opacity: 1;
+      transform: scaleX(1);
+    }
+    .tab-btn.active {
+      transform: translateY(-1px);
+    }
+    .card,
+    .recommendation,
+    .favorite-item,
+    .detail-stat,
+    .trade-plan-slot,
+    .debug-panel,
+    .debug-collapsible,
+    .overview-frame-wrap {
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    }
+    .card:hover,
+    .recommendation:hover,
+    .favorite-item:hover,
+    .detail-stat:hover,
+    .trade-plan-slot:hover,
+    .debug-panel:hover,
+    .overview-frame-wrap:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 22px 44px rgba(0,0,0,0.34), 0 0 0 1px rgba(246,199,104,0.08);
+      border-color: rgba(246,199,104,0.34);
+    }
+    .card h2,
+    .card h3,
+    .debug-panel-title,
+    .favorites-title {
+      letter-spacing: -0.02em;
+    }
+    button,
+    .ghost-btn,
+    .debug-expand-btn,
+    .trade-plan-clear-btn,
+    .market-pagination button {
+      font-weight: 700;
+    }
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible,
+    .tab-btn:focus-visible,
+    .ghost-btn:focus-visible {
+      outline: 2px solid rgba(246, 199, 104, 0.66);
+      outline-offset: 2px;
+    }
+    .ghost-btn {
+      background: linear-gradient(180deg, rgba(56,35,18,0.98), rgba(25,15,9,0.98));
+    }
+    .ghost-btn:hover {
+      background: linear-gradient(180deg, rgba(85,53,24,0.98), rgba(34,21,11,0.98));
+    }
+    .premium-chip {
+      display: inline-flex;
+      align-items: center;
+      margin-left: 8px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(240,190,98,0.20), rgba(183,123,34,0.16));
+      border: 1px solid rgba(240,190,98,0.26);
+      color: #ffd98c;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      vertical-align: middle;
+    }
+    .trade-plan-slot {
+      box-shadow: 0 14px 28px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,233,190,0.03);
+    }
+    .trade-plan-slot.empty {
+      background: linear-gradient(180deg, rgba(26,16,10,0.84), rgba(16,10,6,0.90));
+    }
+    .trade-plan-slot::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      background: radial-gradient(circle at top right, rgba(246,199,104,0.06), transparent 32%);
+    }
+    .trade-plan-ghost {
+      position: relative;
+      overflow: hidden;
+      border-color: rgba(246,199,104,0.32);
+      background: linear-gradient(180deg, rgba(72,47,17,0.22), rgba(31,21,10,0.16));
+    }
+    .trade-plan-ghost::after {
+      content: "";
+      position: absolute;
+      inset: -30% auto -30% -20%;
+      width: 42%;
+      transform: rotate(18deg);
+      background: linear-gradient(90deg, rgba(255,240,205,0.00), rgba(255,227,163,0.11), rgba(255,240,205,0.00));
+      animation: shimmerGhost 4.2s linear infinite;
+      pointer-events: none;
+    }
+    @keyframes shimmerGhost {
+      0% { transform: translateX(-160%) rotate(18deg); }
+      100% { transform: translateX(420%) rotate(18deg); }
+    }
+    .trade-plan-comment {
+      border-left-color: rgba(240,190,98,0.55);
+      background: linear-gradient(180deg, rgba(40,25,13,0.72), rgba(23,15,10,0.72));
+    }
+    .market-table-wrap,
+    .market-suggestions,
+    .ai-chat-messages,
+    .debug-log {
+      box-shadow: inset 0 1px 0 rgba(255,234,197,0.02);
+    }
+    .market-suggestion-item:hover,
+    .market-suggestion-item.active,
+    .market-table tbody tr:hover,
+    .market-table tbody tr.selected {
+      background: linear-gradient(90deg, rgba(240,190,98,0.08), rgba(143,101,48,0.18));
+    }
+    .market-table-wrap {
+      background: linear-gradient(180deg, rgba(20,12,7,0.92), rgba(30,18,10,0.88));
+      border-color: rgba(246,199,104,0.18);
+    }
+    .market-table th {
+      background: linear-gradient(180deg, rgba(56,35,18,0.98), rgba(31,19,11,0.98));
+      color: #f9e7bf;
+      border-bottom: 1px solid rgba(246,199,104,0.18);
+    }
+    .market-table th,
+    .market-table td {
+      border-bottom-color: rgba(246,199,104,0.10);
+    }
+    .market-suggestions {
+      background: linear-gradient(180deg, rgba(23,14,8,0.98), rgba(34,20,12,0.98));
+      border-color: rgba(246,199,104,0.20);
+    }
+    .market-suggestion-item {
+      border-bottom-color: rgba(246,199,104,0.10);
+    }
+    .market-suggestion-tag {
+      background: rgba(246,199,104,0.08);
+      border-color: rgba(246,199,104,0.16);
+      color: #f1dfb2;
+    }
+    .chart-wrap {
+      background: linear-gradient(180deg, rgba(22,13,8,0.98), rgba(15,9,6,0.98));
+      border-color: rgba(246,199,104,0.20) !important;
+      box-shadow: inset 0 1px 0 rgba(255,236,202,0.04), 0 16px 34px rgba(0,0,0,0.20);
+    }
+    .chart-tooltip {
+      box-shadow: 0 14px 30px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,240,205,0.05);
+    }
+    .favorites-sidebar,
+    .ai-sidebar {
+      backdrop-filter: blur(8px);
+    }
+    .ai-sidebar {
+      border-left: 1px solid rgba(212, 167, 67, .22);
+      background: linear-gradient(180deg, rgba(12,7,4,0.98), rgba(28,15,9,0.98));
+    }
+    .ai-chat-shell,
+    .ai-plan-card {
+      box-shadow: 0 14px 28px rgba(0,0,0,0.24);
+    }
+    .ai-chat-header-row {
+      padding-bottom: 4px;
+      border-bottom: 1px solid rgba(246,199,104,0.10);
+    }
+    .ai-chat-messages {
+      border-color: rgba(246,199,104,0.14);
+      background: linear-gradient(180deg, rgba(17,10,6,0.58), rgba(26,16,9,0.44));
+      padding: 10px 8px 16px;
+    }
+    .ai-chat-composer {
+      border-top-color: rgba(246,199,104,0.12);
+      background: linear-gradient(180deg, rgba(20,11,7,0), rgba(22,12,7,0.96) 32%);
+    }
+    .ai-chat-message {
+      border-radius: 16px;
+    }
+    .ai-chat-message.user {
+      background: linear-gradient(180deg, rgba(98,63,26,0.94), rgba(63,40,18,0.94));
+      border-color: rgba(240,190,98,0.24);
+      color: #fff0d2;
+    }
+    .ai-chat-message.assistant {
+      background: linear-gradient(180deg, rgba(26,16,10,0.98), rgba(18,11,7,0.98));
+      border-color: rgba(246,199,104,0.14);
+    }
+    .ai-chat-empty {
+      padding: 12px;
+      border: 1px dashed rgba(246,199,104,0.14);
+      border-radius: 14px;
+      background: rgba(246,199,104,0.03);
+    }
+    .overview-frame-wrap {
+      border-color: rgba(246,199,104,0.24);
+      background: linear-gradient(180deg, rgba(18,10,6,0.84), rgba(30,18,11,0.74));
+      box-shadow: 0 24px 52px rgba(0,0,0,0.36);
+    }
+    .overview-frame-wrap::before {
+      content: "";
+      display: block;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(255,236,197,0.00), rgba(255,236,197,0.34), rgba(255,236,197,0.00));
+    }
+    .debug-panel,
+    .debug-collapsible {
+      background: linear-gradient(180deg, rgba(22,13,8,.94), rgba(14,8,5,.92));
+      border-color: rgba(246,199,104,.16);
+    }
+    .debug-panel-header,
+    .debug-collapsible summary .debug-panel-header {
+      background: linear-gradient(180deg, rgba(60,37,18,.48), rgba(22,13,8,.22));
+      border-bottom-color: rgba(246,199,104,.10);
+    }
+    .debug-log {
+      background: linear-gradient(180deg, rgba(16,10,6,.94), rgba(10,7,4,.92));
+      border-color: rgba(246,199,104,.12);
+      color: #f1dfb2;
+    }
+    .context-chip {
+      border-color: rgba(240,190,98,.20);
+      background: linear-gradient(180deg, rgba(60,37,18,.36), rgba(22,13,8,.52));
+    }
+    .risk-slider-wrap {
+      box-shadow: inset 0 1px 0 rgba(255,234,197,0.03);
+    }
+    .market-search-row button,
+    #refreshRecommendationsBtn,
+    #refreshBtn,
+    #saveSettingsBtn,
+    #savePersonalBtn,
+    #generateAiPlanBtn,
+    #editMyFlipBtn,
+    #askAiBtn {
+      box-shadow: 0 10px 22px rgba(0,0,0,0.24), inset 0 1px 0 rgba(255,232,190,0.08);
+    }
+    .trade-plan-overlay-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(240,190,98,0.18), rgba(183,123,34,0.14));
+      border: 1px solid rgba(240,190,98,0.22);
+      color: #ffdf9d;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      margin-bottom: 12px;
+    }
+    .trade-plan-grid.preview-limited { position: relative; }
+    .trade-plan-lock-mask {
+      position: absolute;
+      inset: 0;
+      z-index: 6;
+      pointer-events: none;
+      clip-path: polygon(75% 0, 100% 0, 100% 100%, 0 100%, 0 calc(50% + 8px), 75% calc(50% + 8px));
+      background: linear-gradient(180deg, rgba(17,8,4,0.12), rgba(17,8,4,0.36));
+      backdrop-filter: blur(2px);
+    }
+    .trade-plan-lock-callout {
+      position: absolute;
+      right: 18px;
+      bottom: 18px;
+      width: min(520px, calc(100% - 36px));
+      border-radius: 18px;
+      padding: 18px 20px;
+      background: linear-gradient(180deg, rgba(60,33,13,0.94), rgba(30,15,7,0.96));
+      border: 1px solid rgba(212,167,67,0.28);
+      box-shadow: 0 18px 36px rgba(0,0,0,0.34);
+      color: #f5dfb2;
+    }
+    .trade-plan-lock-eyebrow {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #e4ba69;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+    .trade-plan-lock-title {
+      font-size: 22px;
+      line-height: 1.15;
+      color: #fff2d0;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    .trade-plan-lock-copy {
+      color: #f0dbac;
+      line-height: 1.5;
+      max-width: 46ch;
+    }
+    @media (max-width: 1500px) {
+      .trade-plan-lock-mask { display: none; }
+    }
+
+  </style>
 </head>
 <body>
   <aside class="favorites-sidebar" id="favoritesSidebar">
@@ -756,7 +1317,7 @@
   </div>
 
   <div class="card ai-plan-card">
-    <h2>AI Trade Plan</h2>
+    <h2>AI Trade Plan <span class="premium-chip">Preview</span></h2>
     <p class="muted">AI now writes into the same unified 2x4 trade plan board used by detected trades and algorithm recommendations.</p>
     <div class="trade-plan-actions">
       <button id="generateAiPlanBtn" type="button">Generate</button>
@@ -767,7 +1328,7 @@
 
   <div class="card ai-chat-shell">
     <div class="ai-chat-header-row">
-      <h2>Advisor Chat</h2>
+      <h2>Advisor Chat <span class="premium-chip">Preview</span></h2>
       <p id="advisorStatus" class="muted">No AI request yet.</p>
     </div>
     <div id="advisorReply" class="chat ai-chat-messages">
@@ -776,7 +1337,7 @@
     <div class="ai-chat-composer">
       <label for="advisorPrompt">Ask the advisor</label>
       <textarea id="advisorPrompt" placeholder="What should I cancel and what should I replace for 12 hours away?"></textarea>
-      <button id="askAiBtn" type="button">Ask AI</button>
+      <button id="askAiBtn" type="button">Ask Copilot</button>
     </div>
   </div>
 </aside>
@@ -786,13 +1347,495 @@
     <p class="muted">Cached market metrics, month history explorer, ROI-sorted recommendations, and no trade-decision window in Market &amp; Stats.</p>
 
     <div class="tabs">
-      <button class="tab-btn active" data-tab="tradingTab">Auto Flipper</button>
+      <button class="tab-btn active" data-tab="overviewTab">Overview</button>
+      <button class="tab-btn" data-tab="tradingTab">Auto Flipper</button>
       <button class="tab-btn" data-tab="marketTab">Market &amp; Stats</button>
-            <button class="tab-btn" data-tab="personalTab">Personal Settings</button>
+      <button class="tab-btn" data-tab="personalTab">Personal Settings</button>
       <button class="tab-btn" data-tab="debugTab">Debug</button>
     </div>
 
-    <div id="tradingTab" class="tab-panel active">
+    <div id="overviewTab" class="tab-panel active overview-shell">
+      <div class="overview-frame-wrap">
+        <iframe class="overview-frame" title="Overview" srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot; /&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+  &lt;title&gt;OSRS Companion&lt;/title&gt;
+  &lt;style&gt;
+    :root {
+      --bg: #0b1220;
+      --card: rgba(17, 24, 39, 0.88);
+      --card-2: rgba(15, 23, 42, 0.9);
+      --line: rgba(148, 163, 184, 0.18);
+      --text: #e5e7eb;
+      --muted: #b79a6a;
+      --gold: #f0be62;
+      --green: #86d39c;
+      --red: #f39a73;
+      --blue: #d3a85f;
+      --card: rgba(23, 14, 8, 0.88);
+      --card-2: rgba(31, 19, 11, 0.92);
+      --line: rgba(233, 190, 103, 0.22);
+      --muted: #d2c0a1;
+      --text: #fff3df;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, Arial, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at top, #3a2414, #110905 58%);
+    }
+    a { color: inherit; text-decoration: none; }
+    .shell { max-width: 1260px; margin: 0 auto; padding: 24px; }
+    .topbar {
+      position: sticky; top: 0; z-index: 30;
+      backdrop-filter: blur(12px);
+      background: rgba(11, 18, 32, 0.82);
+      border-bottom: 1px solid var(--line);
+    }
+    .topbar-inner { max-width: 1260px; margin: 0 auto; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 700; }
+    .brand-badge { width: 38px; height: 38px; border-radius: 12px; background: linear-gradient(135deg, #f59e0b, #fbbf24); color: #1d120c; display:flex; align-items:center; justify-content:center; font-weight: 900; }
+    .nav-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .btn {
+      border: 1px solid var(--line);
+      color: var(--text);
+      background: rgba(30, 41, 59, 0.88);
+      border-radius: 12px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn.primary { background: linear-gradient(135deg, #e1bb69, #b7862b); border: 0; }
+    .btn.gold { background: linear-gradient(135deg, #d97706, #fbbf24); color: #1d120c; border: 0; }
+    .hero { display: grid; grid-template-columns: 1.3fr .9fr; gap: 18px; padding-top: 28px; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+    }
+    .hero h1 { font-size: 44px; line-height: 1.05; margin: 0 0 12px; }
+    .muted { color: var(--muted); }
+    .hero-copy { font-size: 17px; line-height: 1.6; max-width: 760px; }
+    .pill-row, .plan-pills { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+    .pill {
+      border: 1px solid rgba(251, 191, 36, 0.28);
+      background: rgba(251, 191, 36, 0.08);
+      color: #fde68a;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+    }
+    .panel-title { margin: 0 0 10px; font-size: 20px; }
+    .account-box { display: grid; gap: 12px; }
+    input {
+      width: 100%; padding: 11px 12px; border-radius: 12px;
+      border: 1px solid var(--line); background: rgba(15, 23, 42, 0.95); color: var(--text);
+    }
+    .stack { display: grid; gap: 10px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 18px; }
+    .grid-2 { display: grid; grid-template-columns: 1.2fr .8fr; gap: 18px; margin-top: 18px; }
+    .stat { font-size: 28px; font-weight: 800; color: var(--gold); }
+    .rec-list, .slot-grid { display: grid; gap: 12px; }
+    .rec {
+      background: var(--card-2);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+    }
+    .rec-head, .row { display:flex; justify-content:space-between; align-items:center; gap: 12px; }
+    .rec-name { font-weight: 700; }
+    .tag { font-size: 12px; padding: 6px 9px; border-radius: 999px; background: rgba(212, 167, 67, 0.12); color: #ead39a; border: 1px solid rgba(212, 167, 67, 0.2); }
+    .lock { background: rgba(251, 191, 36, 0.09); color: #fcd34d; border-color: rgba(251, 191, 36, 0.22); }
+    .slot-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .slot {
+      min-height: 146px;
+      background: var(--card-2);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+    .slot.locked::after {
+      content: &quot;Plugin Only&quot;;
+      position: absolute; inset: auto 12px 12px auto;
+      padding: 6px 9px; border-radius: 999px;
+      font-size: 12px; font-weight: 700;
+      background: rgba(251, 191, 36, 0.14); color: #fcd34d; border: 1px solid rgba(251, 191, 36, 0.26);
+    }
+    .blurred { filter: blur(3px); opacity: 0.65; user-select: none; pointer-events: none; }
+    .plan-card { position: relative; }
+    .overlay-cta {
+      margin-top: 14px; padding: 14px; border-radius: 16px;
+      background: linear-gradient(135deg, rgba(115,70,24,.24), rgba(251,191,36,.12));
+      border: 1px solid rgba(96,165,250,.18);
+    }
+    .price-box { display:flex; align-items:baseline; gap: 8px; }
+    .price-main { font-size: 36px; font-weight: 900; }
+    .price-sub { color: var(--muted); }
+    .status {
+      padding: 10px 12px; border-radius: 14px;
+      background: rgba(15, 23, 42, 0.88); border: 1px solid var(--line);
+      color: var(--muted);
+      white-space: pre-wrap;
+    }
+    .footer-note { margin-top: 18px; color: var(--muted); font-size: 13px; }
+    @media (max-width: 980px) {
+      .hero, .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .slot-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .hero h1 { font-size: 34px; }
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;div class=&quot;topbar&quot;&gt;
+    &lt;div class=&quot;topbar-inner&quot;&gt;
+      &lt;div class=&quot;brand&quot;&gt;
+        &lt;div class=&quot;brand-badge&quot;&gt;GE&lt;/div&gt;
+        &lt;div&gt;
+          &lt;div&gt;OSRS Companion&lt;/div&gt;
+          &lt;div class=&quot;muted&quot; style=&quot;font-size:12px;&quot;&gt;Website shows opportunity. Plugin handles execution.&lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;nav-actions&quot;&gt;
+        &lt;span id=&quot;topPlan&quot; class=&quot;tag&quot;&gt;Free Tier&lt;/span&gt;
+        &lt;button class=&quot;btn&quot; onclick=&quot;refreshRecommendations()&quot;&gt;Refresh Preview&lt;/button&gt;
+        &lt;button class=&quot;btn gold&quot; onclick=&quot;subscribeNow()&quot;&gt;Optimize My GE&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;shell&quot;&gt;
+    &lt;section class=&quot;hero&quot;&gt;
+      &lt;div class=&quot;card&quot;&gt;
+        &lt;div class=&quot;pill-row&quot;&gt;
+          &lt;span class=&quot;pill&quot;&gt;Free = market insight&lt;/span&gt;
+          &lt;span class=&quot;pill&quot;&gt;Pro = full 8-slot optimization&lt;/span&gt;
+          &lt;span class=&quot;pill&quot;&gt;RuneLite plugin access&lt;/span&gt;
+        &lt;/div&gt;
+        &lt;h1&gt;Find flips on the site.&lt;br/&gt;Execute them in the plugin.&lt;/h1&gt;
+        &lt;div class=&quot;hero-copy muted&quot;&gt;
+          The website helps you discover profitable items, compare momentum, and preview strategy ideas.
+          The RuneLite plugin takes over when it is time to optimize your GE and turn those ideas into a real slot-by-slot plan.
+        &lt;/div&gt;
+        &lt;div class=&quot;grid-3&quot; style=&quot;margin-top:22px;&quot;&gt;
+          &lt;div class=&quot;card&quot; style=&quot;padding:16px;&quot;&gt;
+            &lt;div class=&quot;muted&quot;&gt;Tracked opportunities&lt;/div&gt;
+            &lt;div id=&quot;opportunityCount&quot; class=&quot;stat&quot;&gt;--&lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;card&quot; style=&quot;padding:16px;&quot;&gt;
+            &lt;div class=&quot;muted&quot;&gt;Website role&lt;/div&gt;
+            &lt;div class=&quot;stat&quot; style=&quot;font-size:22px;&quot;&gt;Discovery&lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;card&quot; style=&quot;padding:16px;&quot;&gt;
+            &lt;div class=&quot;muted&quot;&gt;Plugin role&lt;/div&gt;
+            &lt;div class=&quot;stat&quot; style=&quot;font-size:22px;&quot;&gt;Execution&lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div class=&quot;card&quot;&gt;
+        &lt;h2 class=&quot;panel-title&quot;&gt;Account + Plugin Access&lt;/h2&gt;
+        &lt;div class=&quot;account-box&quot;&gt;
+          &lt;input id=&quot;email&quot; placeholder=&quot;Email&quot; /&gt;
+          &lt;input id=&quot;password&quot; type=&quot;password&quot; placeholder=&quot;Password&quot; /&gt;
+          &lt;div class=&quot;row&quot;&gt;
+            &lt;button class=&quot;btn primary&quot; onclick=&quot;signup()&quot;&gt;Create Account&lt;/button&gt;
+            &lt;button class=&quot;btn&quot; onclick=&quot;login()&quot;&gt;Login&lt;/button&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;row&quot;&gt;
+            &lt;button class=&quot;btn gold&quot; onclick=&quot;subscribeNow()&quot;&gt;Upgrade to Pro&lt;/button&gt;
+            &lt;button class=&quot;btn&quot; onclick=&quot;downloadPlugin()&quot;&gt;Plugin Download&lt;/button&gt;
+          &lt;/div&gt;
+          &lt;div id=&quot;accountStatus&quot; class=&quot;status&quot;&gt;Not logged in.&lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+
+    &lt;section class=&quot;grid-2&quot;&gt;
+      &lt;div class=&quot;card&quot;&gt;
+        &lt;div class=&quot;row&quot;&gt;
+          &lt;div&gt;
+            &lt;h2 class=&quot;panel-title&quot;&gt;Website Recommendations&lt;/h2&gt;
+            &lt;div class=&quot;muted&quot;&gt;Useful enough to build trust. Intentionally incomplete so execution still belongs to the plugin.&lt;/div&gt;
+          &lt;/div&gt;
+          &lt;span class=&quot;tag&quot;&gt;Preview Mode&lt;/span&gt;
+        &lt;/div&gt;
+        &lt;div id=&quot;recommendations&quot; class=&quot;rec-list&quot; style=&quot;margin-top:16px;&quot;&gt;&lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;div class=&quot;card plan-card&quot;&gt;
+        &lt;div class=&quot;row&quot;&gt;
+          &lt;div&gt;
+            &lt;h2 class=&quot;panel-title&quot;&gt;Strategy Preview&lt;/h2&gt;
+            &lt;div class=&quot;muted&quot;&gt;Shows a sample board concept, not a final optimized plan.&lt;/div&gt;
+          &lt;/div&gt;
+          &lt;span class=&quot;tag lock&quot;&gt;Locked Full Plan&lt;/span&gt;
+        &lt;/div&gt;
+        &lt;div id=&quot;slotPreview&quot; class=&quot;slot-grid&quot; style=&quot;margin-top:16px;&quot;&gt;&lt;/div&gt;
+        &lt;div class=&quot;overlay-cta&quot;&gt;
+          &lt;div style=&quot;font-weight:800; font-size:18px;&quot;&gt;Unlock full 8-slot optimization&lt;/div&gt;
+          &lt;div class=&quot;muted&quot; style=&quot;margin-top:6px;&quot;&gt;Get exact quantities, slot allocation, and execution-ready output inside RuneLite.&lt;/div&gt;
+          &lt;div class=&quot;plan-pills&quot;&gt;
+            &lt;span class=&quot;tag&quot;&gt;Optimize your GE in 30 seconds&lt;/span&gt;
+            &lt;span class=&quot;tag&quot;&gt;Plugin login uses same account&lt;/span&gt;
+          &lt;/div&gt;
+          &lt;div style=&quot;margin-top:12px;&quot;&gt;
+            &lt;button class=&quot;btn gold&quot; onclick=&quot;subscribeNow()&quot;&gt;Unlock Plugin&lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+
+    &lt;section class=&quot;grid-3&quot;&gt;
+      &lt;div class=&quot;card&quot;&gt;
+        &lt;h2 class=&quot;panel-title&quot;&gt;Free Tier&lt;/h2&gt;
+        &lt;div class=&quot;price-box&quot;&gt;&lt;div class=&quot;price-main&quot;&gt;$0&lt;/div&gt;&lt;div class=&quot;price-sub&quot;&gt;always available&lt;/div&gt;&lt;/div&gt;
+        &lt;div class=&quot;stack&quot; style=&quot;margin-top:14px;&quot;&gt;
+          &lt;div class=&quot;tag&quot;&gt;Market explorer&lt;/div&gt;
+          &lt;div class=&quot;tag&quot;&gt;Favorites tracking&lt;/div&gt;
+          &lt;div class=&quot;tag&quot;&gt;AI explanations&lt;/div&gt;
+          &lt;div class=&quot;tag&quot;&gt;Strategy preview&lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;card&quot; style=&quot;border-color: rgba(251,191,36,.3);&quot;&gt;
+        &lt;h2 class=&quot;panel-title&quot;&gt;Pro Plugin&lt;/h2&gt;
+        &lt;div class=&quot;price-box&quot;&gt;&lt;div class=&quot;price-main&quot;&gt;$5&lt;/div&gt;&lt;div class=&quot;price-sub&quot;&gt;per month&lt;/div&gt;&lt;/div&gt;
+        &lt;div class=&quot;stack&quot; style=&quot;margin-top:14px;&quot;&gt;
+          &lt;div class=&quot;tag lock&quot;&gt;Full 8-slot optimization&lt;/div&gt;
+          &lt;div class=&quot;tag lock&quot;&gt;Player-aware planning&lt;/div&gt;
+          &lt;div class=&quot;tag lock&quot;&gt;RuneLite plugin access&lt;/div&gt;
+          &lt;div class=&quot;tag lock&quot;&gt;Execution-ready output&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div style=&quot;margin-top:16px;&quot;&gt;&lt;button class=&quot;btn gold&quot; onclick=&quot;subscribeNow()&quot;&gt;Start Pro&lt;/button&gt;&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;card&quot;&gt;
+        &lt;h2 class=&quot;panel-title&quot;&gt;Plugin Access&lt;/h2&gt;
+        &lt;div class=&quot;muted&quot;&gt;Use your website account. Once subscribed, the same backend unlocks plugin recommendations and optimization endpoints.&lt;/div&gt;
+        &lt;div style=&quot;margin-top:16px;&quot;&gt;&lt;button class=&quot;btn primary&quot; onclick=&quot;linkDevice()&quot;&gt;Link RuneLite Device&lt;/button&gt;&lt;/div&gt;
+        &lt;div id=&quot;pluginStatus&quot; class=&quot;status&quot; style=&quot;margin-top:12px;&quot;&gt;Plugin locked.&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/section&gt;
+
+    &lt;div class=&quot;footer-note&quot;&gt;Patch 5 polish layer: locked monetization UI, cleaner plugin advertising, account flow, subscription entry point, and a website-safe strategy preview.&lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;script&gt;
+    const state = {
+      token: localStorage.getItem(&#x27;osrs_token&#x27;) || &#x27;&#x27;,
+      user: null,
+      recommendations: [],
+    };
+
+    async function api(url, options = {}) {
+      const response = await fetch(url, {
+        headers: { &#x27;Content-Type&#x27;: &#x27;application/json&#x27;, ...(options.headers || {}) },
+        ...options,
+      });
+      const data = await response.json().catch(() =&gt; ({}));
+      if (!response.ok) throw new Error(data.detail || &#x27;Request failed&#x27;);
+      return data;
+    }
+
+    function setStatus(id, text) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    }
+
+    function formatNumber(value) {
+      const n = Number(value || 0);
+      return n.toLocaleString();
+    }
+
+    function saveToken(token) {
+      state.token = token || &#x27;&#x27;;
+      localStorage.setItem(&#x27;osrs_token&#x27;, state.token);
+    }
+
+    async function signup() {
+      try {
+        const email = document.getElementById(&#x27;email&#x27;).value.trim();
+        const password = document.getElementById(&#x27;password&#x27;).value;
+        const payload = await api(&#x27;/auth/signup&#x27;, { method: &#x27;POST&#x27;, body: JSON.stringify({ email, password }) });
+        saveToken(payload.token || &#x27;&#x27;);
+        await loadMe();
+      } catch (error) {
+        setStatus(&#x27;accountStatus&#x27;, error.message);
+      }
+    }
+
+    async function login() {
+      try {
+        const email = document.getElementById(&#x27;email&#x27;).value.trim();
+        const password = document.getElementById(&#x27;password&#x27;).value;
+        const payload = await api(&#x27;/auth/login&#x27;, { method: &#x27;POST&#x27;, body: JSON.stringify({ email, password }) });
+        saveToken(payload.token || &#x27;&#x27;);
+        await loadMe();
+      } catch (error) {
+        setStatus(&#x27;accountStatus&#x27;, error.message);
+      }
+    }
+
+    async function loadMe() {
+      if (!state.token) {
+        state.user = null;
+        setStatus(&#x27;accountStatus&#x27;, &#x27;Not logged in.&#x27;);
+        setStatus(&#x27;pluginStatus&#x27;, &#x27;Plugin locked.&#x27;);
+        document.getElementById(&#x27;topPlan&#x27;).textContent = &#x27;Free Tier&#x27;;
+        return;
+      }
+      try {
+        const payload = await api(&#x27;/auth/me?token=&#x27; + encodeURIComponent(state.token));
+        state.user = payload.user || null;
+        const user = state.user || {};
+        document.getElementById(&#x27;topPlan&#x27;).textContent = user.plan_tier === &#x27;pro&#x27; ? &#x27;Pro Active&#x27; : &#x27;Free Tier&#x27;;
+        setStatus(&#x27;accountStatus&#x27;, `Logged in as ${user.email}
+Plan: ${user.plan_tier}
+Plugin access: ${user.plugin_access_enabled ? &#x27;enabled&#x27; : &#x27;locked&#x27;}
+Linked devices: ${user.linked_devices || 0}`);
+        setStatus(&#x27;pluginStatus&#x27;, user.plugin_access_enabled ? `Plugin unlocked
+Download: ${user.plugin_download_url || &#x27;/downloads/osrs-companion-plugin.jar&#x27;}` : &#x27;Plugin locked. Upgrade to Pro to enable optimization.&#x27;);
+      } catch (error) {
+        saveToken(&#x27;&#x27;);
+        state.user = null;
+        setStatus(&#x27;accountStatus&#x27;, error.message);
+      }
+    }
+
+    async function subscribeNow() {
+      if (!state.token) {
+        setStatus(&#x27;accountStatus&#x27;, &#x27;Create an account or log in first.&#x27;);
+        return;
+      }
+      try {
+        await api(&#x27;/auth/subscribe&#x27;, { method: &#x27;POST&#x27;, body: JSON.stringify({ token: state.token, plan_tier: &#x27;pro&#x27; }) });
+        await loadMe();
+      } catch (error) {
+        setStatus(&#x27;accountStatus&#x27;, error.message);
+      }
+    }
+
+    async function linkDevice() {
+      if (!state.token) {
+        setStatus(&#x27;pluginStatus&#x27;, &#x27;Log in first to link RuneLite.&#x27;);
+        return;
+      }
+      try {
+        const payload = await api(&#x27;/auth/plugin/link&#x27;, { method: &#x27;POST&#x27;, body: JSON.stringify({ token: state.token, device_name: &#x27;RuneLite Desktop&#x27; }) });
+        setStatus(&#x27;pluginStatus&#x27;, `Linked device: ${payload.device.device_name}
+Device ID: ${payload.device.device_id}`);
+        await loadMe();
+      } catch (error) {
+        setStatus(&#x27;pluginStatus&#x27;, error.message);
+      }
+    }
+
+    async function downloadPlugin() {
+      if (!state.token) {
+        setStatus(&#x27;pluginStatus&#x27;, &#x27;Log in first to check plugin access.&#x27;);
+        return;
+      }
+      try {
+        const payload = await api(&#x27;/auth/plugin/download?token=&#x27; + encodeURIComponent(state.token));
+        if (payload.plugin_locked) {
+          setStatus(&#x27;pluginStatus&#x27;, &#x27;Plugin locked. Upgrade to Pro first.&#x27;);
+          return;
+        }
+        setStatus(&#x27;pluginStatus&#x27;, `Plugin ready
+Download URL: ${payload.download_url}`);
+      } catch (error) {
+        setStatus(&#x27;pluginStatus&#x27;, error.message);
+      }
+    }
+
+    async function refreshRecommendations() {
+      try {
+        const payload = await api(&#x27;/market/recommendations?limit=4&#x27;);
+        const items = payload.top_candidates || payload.recommendations || [];
+        state.recommendations = items.slice(0, 4);
+        document.getElementById(&#x27;opportunityCount&#x27;).textContent = String(state.recommendations.length);
+        renderRecommendations();
+        renderSlots();
+      } catch (error) {
+        document.getElementById(&#x27;recommendations&#x27;).innerHTML = `&lt;div class=&quot;status&quot;&gt;${error.message}&lt;/div&gt;`;
+      }
+    }
+
+    function renderRecommendations() {
+      const root = document.getElementById(&#x27;recommendations&#x27;);
+      if (!state.recommendations.length) {
+        root.innerHTML = &#x27;&lt;div class=&quot;status&quot;&gt;No preview opportunities yet.&lt;/div&gt;&#x27;;
+        return;
+      }
+      root.innerHTML = state.recommendations.map((item, index) =&gt; `
+        &lt;div class=&quot;rec&quot;&gt;
+          &lt;div class=&quot;rec-head&quot;&gt;
+            &lt;div&gt;
+              &lt;div class=&quot;rec-name&quot;&gt;${index + 1}. ${item.name || &#x27;Unknown item&#x27;}&lt;/div&gt;
+              &lt;div class=&quot;muted&quot;&gt;ROI ${Number(item.roi_pct || 0).toFixed(2)}% · Volume ${formatNumber(item.recent_volume)}&lt;/div&gt;
+            &lt;/div&gt;
+            &lt;span class=&quot;tag&quot;&gt;Preview&lt;/span&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;row&quot; style=&quot;margin-top:12px;&quot;&gt;
+            &lt;div&gt;Buy: ${formatNumber(item.buy_price)}&lt;/div&gt;
+            &lt;div&gt;Sell: ${formatNumber(item.sell_price)}&lt;/div&gt;
+            &lt;div style=&quot;color: var(--green);&quot;&gt;Profit/item: ${formatNumber(item.profit_per_item)}&lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;overlay-cta&quot; style=&quot;margin-top:12px; padding:12px;&quot;&gt;
+            &lt;div style=&quot;font-weight:700;&quot;&gt;Get exact quantities + full plan in plugin&lt;/div&gt;
+            &lt;div class=&quot;muted&quot; style=&quot;margin-top:4px;&quot;&gt;Website stops at discovery. Plugin assembles the board.&lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      `).join(&#x27;&#x27;);
+    }
+
+    function renderSlots() {
+      const root = document.getElementById(&#x27;slotPreview&#x27;);
+      const filled = state.recommendations.slice(0, 3);
+      const slots = [];
+      for (let i = 0; i &lt; 8; i += 1) {
+        const item = filled[i];
+        if (item) {
+          slots.push(`
+            &lt;div class=&quot;slot&quot;&gt;
+              &lt;div class=&quot;muted&quot;&gt;Slot ${i + 1}&lt;/div&gt;
+              &lt;div style=&quot;font-weight:800; margin-top:8px;&quot;&gt;${item.name}&lt;/div&gt;
+              &lt;div class=&quot;muted&quot; style=&quot;margin-top:8px;&quot;&gt;Sample fit only&lt;/div&gt;
+              &lt;div style=&quot;margin-top:8px;&quot;&gt;ROI ${Number(item.roi_pct || 0).toFixed(2)}%&lt;/div&gt;
+              &lt;div style=&quot;margin-top:4px; color: var(--green);&quot;&gt;Potential looks strong&lt;/div&gt;
+            &lt;/div&gt;
+          `);
+        } else {
+          slots.push(`
+            &lt;div class=&quot;slot locked&quot;&gt;
+              &lt;div class=&quot;blurred&quot;&gt;
+                &lt;div class=&quot;muted&quot;&gt;Slot ${i + 1}&lt;/div&gt;
+                &lt;div style=&quot;font-weight:800; margin-top:8px;&quot;&gt;Optimized pick&lt;/div&gt;
+                &lt;div style=&quot;margin-top:8px;&quot;&gt;Quantity planning&lt;/div&gt;
+                &lt;div style=&quot;margin-top:4px;&quot;&gt;Capital allocation&lt;/div&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          `);
+        }
+      }
+      root.innerHTML = slots.join(&#x27;&#x27;);
+    }
+
+    loadMe();
+    refreshRecommendations();
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
+      </div>
+    </div>
+
+    <div id="tradingTab" class="tab-panel">
       <div class="row">
         <div class="card grow">
           <h2>Trading Controls</h2>
@@ -884,7 +1927,7 @@
           </div>
           <p id="marketMeta" class="muted">Type an item name and press Enter to search the cache.</p>
 
-          <div id="marketResultsShell" class="card market-results-shell hidden" style="background:#12294a;">
+          <div id="marketResultsShell" class="card market-results-shell hidden" style="background:#27180f;">
             <div class="market-results-toolbar">
               <div class="left">
                 <h3 style="margin:0;">Search Results</h3>
@@ -910,12 +1953,12 @@
             </div>
           </div>
 
-          <div id="marketDetailShell" class="card market-detail-shell hidden" style="background:#12294a;">
+          <div id="marketDetailShell" class="card market-detail-shell hidden" style="background:#27180f;">
             <div class="detail-topbar"><h3 id="marketDetailTitle">Item Detail</h3></div>
             <div id="marketDetail">Select an item to inspect day / week / month behavior.</div>
           </div>
 
-          <div id="marketChartShell" class="card chart-card market-chart-shell hidden" style="background:#12294a;">
+          <div id="marketChartShell" class="card chart-card market-chart-shell hidden" style="background:#27180f;">
             <div class="chart-card-head">
               <div class="chart-title-block">
                 <h2 id="chartPanelTitle">Market History</h2>
@@ -933,7 +1976,7 @@
               <div id="chartTooltip" class="chart-tooltip" aria-hidden="true"></div>
             </div>
             <div class="chart-legend">
-              <span><span class="legend-swatch" style="background:#7dd3fc;"></span>Buying low</span>
+              <span><span class="legend-swatch" style="background:#c89a41;"></span>Buying low</span>
               <span><span class="legend-swatch" style="background:#fbbf24;"></span>Selling high</span>
               <span><span class="legend-bar" style="background:rgba(148,163,184,0.65);"></span>5m volume</span>
             </div>
@@ -1077,7 +2120,7 @@
     const decisionCountsEl = document.getElementById("decisionCounts");
     const geSlotsEl = document.getElementById("geSlots");
     const tradingTradePlanSlotsEl = document.getElementById("tradingTradePlanSlots");
-    const debugEl = document.getElementById("debug");
+    const debugEl = document.getElementById("debugEl");
     const recommendationDebugEl = document.getElementById("recommendationDebug");
     const explorerDebugEl = document.getElementById("explorerDebug");
     const tradePlanDebugEl = document.getElementById("tradePlanDebug");
@@ -2402,7 +3445,31 @@
         `);
       }
 
-      containerEl.innerHTML = htmlRows.join("");
+      const previewLimited = boardId === "unified";
+      containerEl.classList.toggle("preview-limited", previewLimited);
+      containerEl.innerHTML = htmlRows.join("") + (previewLimited ? `
+        <div class="trade-plan-lock-mask" aria-hidden="true">
+          <div class="trade-plan-lock-callout">
+            <div class="trade-plan-lock-eyebrow">Plugin unlock</div>
+            <div class="trade-plan-lock-title">Preview 3 slots. Unlock slots 4–8 in RuneLite.</div>
+            <div class="trade-plan-lock-copy">The website shows the first part of your board. Full 8-slot optimization, quantity planning, and execution-ready guidance stay inside the plugin.</div>
+          </div>
+        </div>` : "");
+
+      if (previewLimited) {
+        const slotEls = Array.from(containerEl.querySelectorAll('.trade-plan-slot[data-trade-slot]'));
+        slotEls.forEach((slotEl, idx) => {
+          const isLocked = idx >= 3;
+          slotEl.classList.toggle('locked-preview', isLocked);
+          if (isLocked) {
+            slotEl.querySelectorAll('select, button, input, textarea').forEach((control) => {
+              control.disabled = true;
+              control.setAttribute('tabindex', '-1');
+            });
+          }
+        });
+      }
+
       refreshStarButtons();
     }
 
@@ -2767,13 +3834,13 @@
       chartTooltipEl.setAttribute("aria-hidden", "true");
 
       if (!points || points.length === 0) {
-        historyChartSvgEl.innerHTML = `<rect x="0" y="0" width="${width}" height="${height}" fill="#081425" rx="16"></rect><text x="${width/2}" y="${height/2}" fill="#93c5fd" text-anchor="middle" font-size="24" font-family="Arial">No history points yet for this range.</text>`;
+        historyChartSvgEl.innerHTML = `<rect x="0" y="0" width="${width}" height="${height}" fill="#170e08" rx="16"></rect><text x="${width/2}" y="${height/2}" fill="#d7b06a" text-anchor="middle" font-size="24" font-family="Arial">No history points yet for this range.</text>`;
         return;
       }
 
       const pricedPoints = points.filter(p => isRenderablePoint(p));
       if (!pricedPoints.length) {
-        historyChartSvgEl.innerHTML = `<rect x="0" y="0" width="${width}" height="${height}" fill="#081425" rx="16"></rect><text x="${width/2}" y="${height/2}" fill="#93c5fd" text-anchor="middle" font-size="24" font-family="Arial">No captured data exists for this range yet.</text>`;
+        historyChartSvgEl.innerHTML = `<rect x="0" y="0" width="${width}" height="${height}" fill="#170e08" rx="16"></rect><text x="${width/2}" y="${height/2}" fill="#d7b06a" text-anchor="middle" font-size="24" font-family="Arial">No captured data exists for this range yet.</text>`;
         return;
       }
 
@@ -2805,27 +3872,27 @@
       const priceY = value => priceBottom - (((value - minVal) / priceSpan) * (priceBottom - topPad));
       const volumeY = value => volumeBottom - ((value / maxVolume) * (volumeBottom - volumeTop));
 
-      let svg = `<rect x="0" y="0" width="${width}" height="${height}" fill="#081425" rx="16"></rect>`;
+      let svg = `<rect x="0" y="0" width="${width}" height="${height}" fill="#170e08" rx="16"></rect>`;
 
       for (let i = 0; i < 5; i++) {
         const value = minVal + (priceSpan * i / 4);
         const y = priceY(value);
         svg += `<line x1="${leftPad}" y1="${y}" x2="${width-rightPad}" y2="${y}" stroke="rgba(148,163,184,0.18)" stroke-width="1"></line>`;
-        svg += `<text x="${leftPad-12}" y="${y+5}" fill="#cbd5e1" font-size="18" text-anchor="end" font-family="Arial">${formatGpAxis(value)}</text>`;
+        svg += `<text x="${leftPad-12}" y="${y+5}" fill="#d8c6a1" font-size="18" text-anchor="end" font-family="Arial">${formatGpAxis(value)}</text>`;
       }
       for (let i = 0; i < 3; i++) {
         const value = maxVolume * i / 2;
         const y = volumeY(value);
         svg += `<line x1="${leftPad}" y1="${y}" x2="${width-rightPad}" y2="${y}" stroke="rgba(148,163,184,0.12)" stroke-width="1"></line>`;
-        svg += `<text x="${width-rightPad+16}" y="${y+5}" fill="#cbd5e1" font-size="18" text-anchor="start" font-family="Arial">${formatShortNumber(value)}</text>`;
+        svg += `<text x="${width-rightPad+16}" y="${y+5}" fill="#d8c6a1" font-size="18" text-anchor="start" font-family="Arial">${formatShortNumber(value)}</text>`;
       }
 
       svg += `<line x1="${leftPad}" y1="${topPad}" x2="${leftPad}" y2="${priceBottom}" stroke="rgba(191,219,254,0.55)" stroke-width="2"></line>`;
       svg += `<line x1="${leftPad}" y1="${priceBottom}" x2="${width-rightPad}" y2="${priceBottom}" stroke="rgba(191,219,254,0.55)" stroke-width="2"></line>`;
       svg += `<line x1="${leftPad}" y1="${volumeTop}" x2="${leftPad}" y2="${volumeBottom}" stroke="rgba(148,163,184,0.45)" stroke-width="2"></line>`;
       svg += `<line x1="${leftPad}" y1="${volumeBottom}" x2="${width-rightPad}" y2="${volumeBottom}" stroke="rgba(148,163,184,0.45)" stroke-width="2"></line>`;
-      svg += `<text x="26" y="${(topPad+priceBottom)/2}" fill="#cbd5e1" font-size="20" transform="rotate(-90 26 ${(topPad+priceBottom)/2})" font-family="Arial">Price (gp)</text>`;
-      svg += `<text x="${width-18}" y="${(volumeTop+volumeBottom)/2}" fill="#cbd5e1" font-size="20" transform="rotate(-90 ${width-18} ${(volumeTop+volumeBottom)/2})" font-family="Arial">5m volume</text>`;
+      svg += `<text x="26" y="${(topPad+priceBottom)/2}" fill="#d8c6a1" font-size="20" transform="rotate(-90 26 ${(topPad+priceBottom)/2})" font-family="Arial">Price (gp)</text>`;
+      svg += `<text x="${width-18}" y="${(volumeTop+volumeBottom)/2}" fill="#d8c6a1" font-size="20" transform="rotate(-90 ${width-18} ${(volumeTop+volumeBottom)/2})" font-family="Arial">5m volume</text>`;
 
       const barWidth = Math.max(innerWidth / Math.max(points.length * 1.35, 24), 2.2);
       points.forEach((point, i) => {
@@ -2837,14 +3904,14 @@
       });
 
       buildPolylineSegments(points, xForIndex, priceY, point => point.low).forEach(segment => {
-        svg += `<polyline points="${segment}" fill="none" stroke="#7dd3fc" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"></polyline>`;
+        svg += `<polyline points="${segment}" fill="none" stroke="#c89a41" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"></polyline>`;
       });
       buildPolylineSegments(points, xForIndex, priceY, point => point.high).forEach(segment => {
         svg += `<polyline points="${segment}" fill="none" stroke="#fbbf24" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"></polyline>`;
       });
 
       buildGapBridgeSegments(points, xForIndex, priceY, point => point.low).forEach(segment => {
-        svg += `<line x1="${segment.x1.toFixed(2)}" y1="${segment.y1.toFixed(2)}" x2="${segment.x2.toFixed(2)}" y2="${segment.y2.toFixed(2)}" stroke="#7dd3fc" stroke-width="3" stroke-linecap="round" opacity="0.9"></line>`;
+        svg += `<line x1="${segment.x1.toFixed(2)}" y1="${segment.y1.toFixed(2)}" x2="${segment.x2.toFixed(2)}" y2="${segment.y2.toFixed(2)}" stroke="#c89a41" stroke-width="3" stroke-linecap="round" opacity="0.9"></line>`;
       });
       buildGapBridgeSegments(points, xForIndex, priceY, point => point.high).forEach(segment => {
         svg += `<line x1="${segment.x1.toFixed(2)}" y1="${segment.y1.toFixed(2)}" x2="${segment.x2.toFixed(2)}" y2="${segment.y2.toFixed(2)}" stroke="#fbbf24" stroke-width="3" stroke-linecap="round" opacity="0.9"></line>`;
@@ -2865,7 +3932,7 @@
         const lowY = priceY(low);
         const highY = priceY(high);
         const isLatest = i === lastRealIndex;
-        svg += `<circle cx="${x}" cy="${lowY}" r="${isLatest ? 7 : 4.5}" fill="#7dd3fc" stroke="${isLatest ? '#e0f2fe' : 'none'}" stroke-width="${isLatest ? 2 : 0}"></circle>`;
+        svg += `<circle cx="${x}" cy="${lowY}" r="${isLatest ? 7 : 4.5}" fill="#c89a41" stroke="${isLatest ? '#f3e7c8' : 'none'}" stroke-width="${isLatest ? 2 : 0}"></circle>`;
         svg += `<circle cx="${x}" cy="${highY}" r="${isLatest ? 7 : 4.5}" fill="#fbbf24" stroke="${isLatest ? '#fef3c7' : 'none'}" stroke-width="${isLatest ? 2 : 0}"></circle>`;
       });
 
@@ -2897,7 +3964,7 @@
       labelIndexes.forEach(i => {
         const x = xForIndex(i);
         const p = points[i];
-        svg += `<text x="${x}" y="${volumeBottom + 28}" fill="#cbd5e1" font-size="18" text-anchor="middle" font-family="Arial">${formatTimeLabel(p.snapshot_ts || p.ts || p.timestamp || p.bucket, range)}</text>`;
+        svg += `<text x="${x}" y="${volumeBottom + 28}" fill="#d8c6a1" font-size="18" text-anchor="middle" font-family="Arial">${formatTimeLabel(p.snapshot_ts || p.ts || p.timestamp || p.bucket, range)}</text>`;
       });
 
       svg += `<g id="chartCrosshair" visibility="hidden">
@@ -2916,7 +3983,7 @@
           if (eventSide === "buy" && isRenderablePrice(eventPrice)) {
             const eventY = priceY(eventPrice);
             svg += `<line x1="${x}" y1="${highY}" x2="${x}" y2="${lowY}" stroke="rgba(125,211,252,0.22)" stroke-width="2"></line>`;
-            svg += `<circle cx="${x}" cy="${eventY}" r="5" fill="#7dd3fc" stroke="#e0f2fe" stroke-width="1.5"></circle>`;
+            svg += `<circle cx="${x}" cy="${eventY}" r="5" fill="#c89a41" stroke="#f3e7c8" stroke-width="1.5"></circle>`;
           } else if (eventSide === "sell" && isRenderablePrice(eventPrice)) {
             const eventY = priceY(eventPrice);
             svg += `<line x1="${x}" y1="${highY}" x2="${x}" y2="${lowY}" stroke="rgba(251,191,36,0.22)" stroke-width="2"></line>`;
@@ -3100,9 +4167,9 @@
         renderFavoritesSidebar();
         hydrateFavoritesSidebarData();
         explorerDebugEl.textContent = JSON.stringify(data, null, 2);
-        debugEl.textContent = JSON.stringify(data, null, 2);
+        if (debugEl) debugEl.textContent = JSON.stringify(data, null, 2);
       } catch (error) {
-        debugEl.textContent = String(error);
+        if (debugEl) debugEl.textContent = String(error);
         if (autoFlipperDebugEl) autoFlipperDebugEl.textContent = `Patch 2 error\n${String(error)}`;
       }
     }
@@ -3143,7 +4210,7 @@
         debugEl.textContent = JSON.stringify({ context: ctx, allocation_plan: plan, recommendations: data }, null, 2);
         if (autoFlipperDebugEl) autoFlipperDebugEl.textContent = JSON.stringify({ context: ctx, allocation_plan: plan }, null, 2);
       } catch (error) {
-        debugEl.textContent = String(error);
+        if (debugEl) debugEl.textContent = String(error);
       }
     }
 
@@ -3501,7 +4568,7 @@
           clearMarketSelection();
         }
       } catch (error) {
-        debugEl.textContent = String(error);
+        if (debugEl) debugEl.textContent = String(error);
       }
     }
 
@@ -3763,12 +4830,12 @@
         const data = await fetchJsonWithTimeout(`/market/explorer/bootstrap?limit=100&refresh=1`);
         persistMarketBootstrapSnapshot(data);
         renderMarketFromPayload(data, "server-cached");
-        debugEl.textContent = JSON.stringify(data, null, 2);
+        if (debugEl) debugEl.textContent = JSON.stringify(data, null, 2);
       } catch (error) {
         if (!persisted) {
           marketMetaEl.textContent = "Type an item name and press Enter to search the cache.";
         }
-        debugEl.textContent = String(error);
+        if (debugEl) debugEl.textContent = String(error);
       }
     }
 
@@ -3822,10 +4889,10 @@
         const exact = latestExplorerItems.find(item => String(item.name || "").toLowerCase() === rawQuery.toLowerCase());
         if (exact) saveRecentMarketSearch(exact);
 
-        debugEl.textContent = JSON.stringify(data, null, 2);
+        if (debugEl) debugEl.textContent = JSON.stringify(data, null, 2);
       } catch (error) {
         marketMetaEl.textContent = "Search failed";
-        debugEl.textContent = String(error);
+        if (debugEl) debugEl.textContent = String(error);
       } finally {
         marketSearchBtn.disabled = false;
       }
@@ -3868,20 +4935,22 @@
         explorerDebugEl.textContent = JSON.stringify(data, null, 2);
       } catch (error) {
         explorerDebugEl.textContent = String(error);
-        debugEl.textContent = String(error);
+        if (debugEl) debugEl.textContent = String(error);
       }
     }
 
 
-    function appendAdvisorMessage(role, htmlContent) {
+    function appendAdvisorMessage(role, htmlContent, variant = "") {
       if (!advisorReplyEl) return;
       const empty = advisorReplyEl.querySelector(".ai-chat-empty");
       if (empty) empty.remove();
       const bubble = document.createElement("div");
-      bubble.className = `ai-chat-message ${role}`;
+      bubble.className = `ai-chat-message ${role}${variant ? ` ${variant}` : ""}`;
       bubble.innerHTML = htmlContent;
       advisorReplyEl.appendChild(bubble);
-      advisorReplyEl.scrollTop = advisorReplyEl.scrollHeight;
+      requestAnimationFrame(() => {
+        advisorReplyEl.scrollTop = advisorReplyEl.scrollHeight;
+      });
     }
 
     
@@ -4000,7 +5069,7 @@
       } catch (error) {
         statusEl.textContent = "Refresh failed";
         statusEl.className = "warn";
-        debugEl.textContent = String(error);
+        if (debugEl) debugEl.textContent = String(error);
       } finally {
         refreshBtn.disabled = false;
       }
@@ -4032,12 +5101,12 @@
           advisorStatusEl.className = "success";
           renderAdvisorReply(data);
           if (advisorPromptEl) advisorPromptEl.value = "";
-          debugEl.textContent = JSON.stringify(data, null, 2);
+          if (debugEl) debugEl.textContent = JSON.stringify(data, null, 2);
         }
       } catch (error) {
         advisorStatusEl.textContent = "AI request failed";
         advisorStatusEl.className = "warn";
-        appendAdvisorMessage("assistant", `<p>${escapeHtml(String(error))}</p>`);
+        appendAdvisorMessage("assistant", `<p>${escapeHtml(String(error))}</p>`, "error");
       } finally {
         askAiBtn.disabled = false;
       }

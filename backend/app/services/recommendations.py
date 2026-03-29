@@ -58,15 +58,12 @@ def _to_float(value: Any, default: float = 0.0) -> float:
 def _parse_budget(value: Any) -> int:
     if isinstance(value, (int, float)):
         return int(value)
-
     text = str(value or "").strip().lower().replace(",", "")
     if not text:
         return 0
-
     match = re.fullmatch(r"(\d+(?:\.\d+)?)([kmb]?)", text)
     if not match:
         return _to_int(value, 0)
-
     number = float(match.group(1))
     suffix = match.group(2)
     multiplier = 1
@@ -76,7 +73,6 @@ def _parse_budget(value: Any) -> int:
         multiplier = 1_000_000
     elif suffix == "b":
         multiplier = 1_000_000_000
-
     return int(number * multiplier)
 
 
@@ -97,16 +93,11 @@ def _sort_items(items: list[dict[str, Any]], limit: int) -> list[dict[str, Any]]
     )[:limit]
 
 
-def _candidate_from_cache_item(
-    cache_item: dict[str, Any],
-    allocation_budget: int,
-    total_budget: int,
-) -> dict[str, Any] | None:
+def _candidate_from_cache_item(cache_item: dict[str, Any], allocation_budget: int, total_budget: int) -> dict[str, Any] | None:
     buy_price = _to_int(cache_item.get("buy_price"))
     sell_price = _to_int(cache_item.get("sell_price"))
     recent_volume = _to_int(cache_item.get("recent_volume"))
     buy_limit = _to_int(cache_item.get("buy_limit"))
-
     if buy_price <= 0 or sell_price <= 0 or sell_price <= buy_price:
         return None
     if recent_volume < MIN_VOLUME:
@@ -122,18 +113,9 @@ def _candidate_from_cache_item(
     if quantity <= 0:
         return None
 
-    potential_profit = quantity * profit_per_item
     spread = sell_price - buy_price
     roi_pct = round((profit_per_item / buy_price) * 100, 3) if buy_price > 0 else 0.0
-
-    day_low = _to_int(cache_item.get("day_low"), buy_price)
-    day_high = _to_int(cache_item.get("day_high"), sell_price)
-    week_low = _to_int(cache_item.get("week_low"), buy_price)
-    week_high = _to_int(cache_item.get("week_high"), sell_price)
-    month_low = _to_int(cache_item.get("month_low"), buy_price)
-    month_high = _to_int(cache_item.get("month_high"), sell_price)
-
-    item = {
+    return {
         "id": _to_int(cache_item.get("id")),
         "name": str(cache_item.get("name") or "Unknown item"),
         "buy_price": buy_price,
@@ -142,20 +124,17 @@ def _candidate_from_cache_item(
         "recent_volume": recent_volume,
         "suggested_quantity": quantity,
         "capital_required": quantity * buy_price,
-        "potential_profit": potential_profit,
+        "potential_profit": quantity * profit_per_item,
         "spread": spread,
         "spread_pct": round((spread / buy_price) * 100, 3) if buy_price > 0 else 0.0,
         "roi_pct": roi_pct,
         "buy_limit": buy_limit,
-        "day_low": day_low,
-        "day_high": day_high,
-        "week_low": week_low,
-        "week_high": week_high,
-        "month_low": month_low,
-        "month_high": month_high,
-        "avg_day_low": _to_float(cache_item.get("avg_day_low"), float(buy_price)),
-        "avg_week_low": _to_float(cache_item.get("avg_week_low"), float(buy_price)),
-        "avg_month_low": _to_float(cache_item.get("avg_month_low"), float(buy_price)),
+        "day_low": _to_int(cache_item.get("day_low"), buy_price),
+        "day_high": _to_int(cache_item.get("day_high"), sell_price),
+        "week_low": _to_int(cache_item.get("week_low"), buy_price),
+        "week_high": _to_int(cache_item.get("week_high"), sell_price),
+        "month_low": _to_int(cache_item.get("month_low"), buy_price),
+        "month_high": _to_int(cache_item.get("month_high"), sell_price),
         "dip_vs_day_pct": _to_float(cache_item.get("dip_vs_day_pct")),
         "dip_vs_week_pct": _to_float(cache_item.get("dip_vs_week_pct")),
         "dip_vs_month_pct": _to_float(cache_item.get("dip_vs_month_pct")),
@@ -165,7 +144,86 @@ def _candidate_from_cache_item(
         "history_points": _to_int(cache_item.get("history_points")),
         "updated_at": cache_item.get("updated_at"),
     }
-    return item
+
+
+def _snapshot_candidates(market_snapshot: dict[str, Any], allocation_budget: int, total_budget: int) -> list[dict[str, Any]]:
+    out: list[dict[str, Any]] = []
+    if not isinstance(market_snapshot, dict):
+        return out
+    for raw_item in market_snapshot.get("items", []):
+        low = _to_int(raw_item.get("low", raw_item.get("buy_price")))
+        high = _to_int(raw_item.get("high", raw_item.get("sell_price")))
+        recent_volume = _to_int(raw_item.get("recent_volume", raw_item.get("volume", 0)))
+        buy_limit = _to_int(raw_item.get("limit", raw_item.get("buy_limit")))
+        if low <= 0 or high <= 0 or high <= low or recent_volume < MIN_VOLUME:
+            continue
+        if total_budget > 0 and low > total_budget:
+            continue
+        profit_per_item = _profit(low, high)
+        if profit_per_item <= 0:
+            continue
+        quantity = _affordable_quantity(allocation_budget, low, buy_limit)
+        if quantity <= 0:
+            continue
+        roi_pct = round((profit_per_item / low) * 100, 3) if low > 0 else 0.0
+        out.append(
+            {
+                "id": _to_int(raw_item.get("id")),
+                "name": str(raw_item.get("name") or "Unknown item"),
+                "buy_price": low,
+                "sell_price": high,
+                "profit_per_item": profit_per_item,
+                "recent_volume": recent_volume,
+                "suggested_quantity": quantity,
+                "capital_required": quantity * low,
+                "potential_profit": quantity * profit_per_item,
+                "spread": high - low,
+                "spread_pct": round(((high - low) / low) * 100, 3) if low > 0 else 0.0,
+                "roi_pct": roi_pct,
+                "buy_limit": buy_limit,
+                "day_low": low,
+                "day_high": high,
+                "week_low": low,
+                "week_high": high,
+                "month_low": low,
+                "month_high": high,
+                "dip_vs_day_pct": 0.0,
+                "dip_vs_week_pct": 0.0,
+                "dip_vs_month_pct": 0.0,
+                "stability_day_pct": 0.0,
+                "stability_week_pct": 0.0,
+                "stability_month_pct": 0.0,
+                "history_points": 0,
+                "updated_at": None,
+            }
+        )
+    return out
+
+
+def _web_safe(item: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "id": item.get("id"),
+        "name": item.get("name"),
+        "buy_price": item.get("buy_price"),
+        "sell_price": item.get("sell_price"),
+        "profit_per_item": item.get("profit_per_item"),
+        "recent_volume": item.get("recent_volume"),
+        "spread": item.get("spread"),
+        "spread_pct": item.get("spread_pct"),
+        "roi_pct": item.get("roi_pct"),
+        "reason_tags": [
+            "high-roi" if _to_float(item.get("roi_pct")) >= 2.0 else "steady",
+            "liquid" if _to_int(item.get("recent_volume")) >= 5000 else "selective",
+        ],
+    }
+
+
+def _plugin_full(item: dict[str, Any], slot_index: int) -> dict[str, Any]:
+    row = dict(item)
+    row["slot_index"] = slot_index
+    row["action"] = "buy_then_list"
+    row["target_profit"] = row.get("potential_profit", 0)
+    return row
 
 
 def build_recommendations(
@@ -173,11 +231,11 @@ def build_recommendations(
     market_snapshot: dict[str, Any] | None = None,
     current_scan: dict[str, Any] | None = None,
     category_limit: int = DEFAULT_CATEGORY_SIZE,
+    mode: str = "web_safe",
 ) -> dict[str, Any]:
-    del current_scan  # compatibility with ai_advisor baseline caller
-
+    del current_scan
     budget = _parse_budget(settings.get("budget", 0))
-    available_slots = max(_to_int(settings.get("available_slots", 1), 1), 1)
+    available_slots = max(_to_int(settings.get("available_slots", settings.get("slots_available", 1)), 1), 1)
     remaining_slots = available_slots
     per_slot_budget = budget // remaining_slots if budget > 0 and remaining_slots > 0 else budget
     allocation_budget = per_slot_budget if per_slot_budget > 0 else budget
@@ -185,108 +243,58 @@ def build_recommendations(
 
     cache = load_market_cache()
     cache_items = cache.get("items", []) if isinstance(cache, dict) else []
-
-    candidate_pool: list[dict[str, Any]] = []
-    for cache_item in cache_items:
-        candidate = _candidate_from_cache_item(
-            cache_item=cache_item,
-            allocation_budget=allocation_budget,
-            total_budget=budget,
-        )
-        if candidate is not None:
-            candidate_pool.append(candidate)
-
-    # Fallback only if cache is empty and a live snapshot was supplied.
-    if not candidate_pool and isinstance(market_snapshot, dict):
-        for raw_item in market_snapshot.get("items", []):
-            low = _to_int(raw_item.get("low"))
-            high = _to_int(raw_item.get("high"))
-            recent_volume = _to_int(raw_item.get("recent_volume", raw_item.get("volume", 0)))
-            buy_limit = _to_int(raw_item.get("limit"))
-            if low <= 0 or high <= 0 or high <= low or recent_volume < MIN_VOLUME:
-                continue
-            if budget > 0 and low > budget:
-                continue
-            profit_per_item = _profit(low, high)
-            if profit_per_item <= 0:
-                continue
-            quantity = _affordable_quantity(allocation_budget, low, buy_limit)
-            if quantity <= 0:
-                continue
-            roi_pct = round((profit_per_item / low) * 100, 3) if low > 0 else 0.0
-            candidate_pool.append(
-                {
-                    "id": _to_int(raw_item.get("id")),
-                    "name": str(raw_item.get("name") or "Unknown item"),
-                    "buy_price": low,
-                    "sell_price": high,
-                    "profit_per_item": profit_per_item,
-                    "recent_volume": recent_volume,
-                    "suggested_quantity": quantity,
-                    "capital_required": quantity * low,
-                    "potential_profit": quantity * profit_per_item,
-                    "spread": high - low,
-                    "spread_pct": round(((high - low) / low) * 100, 3) if low > 0 else 0.0,
-                    "roi_pct": roi_pct,
-                    "buy_limit": buy_limit,
-                    "day_low": low,
-                    "day_high": high,
-                    "week_low": low,
-                    "week_high": high,
-                    "month_low": low,
-                    "month_high": high,
-                    "avg_day_low": float(low),
-                    "avg_week_low": float(low),
-                    "avg_month_low": float(low),
-                    "dip_vs_day_pct": 0.0,
-                    "dip_vs_week_pct": 0.0,
-                    "dip_vs_month_pct": 0.0,
-                    "stability_day_pct": 0.0,
-                    "stability_week_pct": 0.0,
-                    "stability_month_pct": 0.0,
-                    "history_points": 0,
-                    "updated_at": None,
-                }
-            )
-
-    recommendations = _sort_items(candidate_pool, limit=min(20, max(category_limit, 10)))
-    top_candidates = recommendations[:10]
-
-    high_value_pool = [
-        item
-        for item in candidate_pool
-        if item["spread_pct"] >= 2.0 or item["profit_per_item"] >= 1_000 or item["buy_price"] >= max(1, int(budget * 0.15))
+    candidate_pool = [
+        candidate
+        for cache_item in cache_items
+        if (candidate := _candidate_from_cache_item(cache_item, allocation_budget, budget)) is not None
     ]
-    high_value = _sort_items(high_value_pool or candidate_pool, limit=category_limit)
+    if not candidate_pool and market_snapshot:
+        candidate_pool = _snapshot_candidates(market_snapshot, allocation_budget, budget)
 
-    overnight_pool = [
-        item
-        for item in candidate_pool
-        if item["dip_vs_week_pct"] >= 0.5 and item["stability_week_pct"] <= 12.0 and item["recent_volume"] >= MIN_VOLUME
-    ]
-    overnight = _sort_items(overnight_pool or candidate_pool, limit=category_limit)
+    top_all = _sort_items(candidate_pool, limit=min(40, max(category_limit * 2, 10)))
+    recommendations = top_all[:category_limit]
+    high_value = _sort_items(
+        [i for i in candidate_pool if i["spread_pct"] >= 2.0 or i["profit_per_item"] >= 1_000],
+        category_limit,
+    ) or recommendations
+    overnight = _sort_items(
+        [i for i in candidate_pool if i["dip_vs_week_pct"] >= 0.5 and i["stability_week_pct"] <= 12.0],
+        category_limit,
+    ) or recommendations
+    anchors = _sort_items([i for i in candidate_pool if _anchor_match(i["name"])], category_limit)
+    dump = _sort_items([i for i in candidate_pool if i["dip_vs_day_pct"] >= 0.5 or i["dip_vs_week_pct"] >= 1.0], category_limit) or recommendations
 
-    anchors_pool = [item for item in candidate_pool if _anchor_match(item["name"])]
-    anchors = _sort_items(anchors_pool, limit=category_limit)
+    if mode == "plugin_full":
+        mapper = _plugin_full
+        mapped_recommendations = [mapper(item, idx + 1) for idx, item in enumerate(recommendations)]
+        mapped_top = [mapper(item, idx + 1) for idx, item in enumerate(top_all[: min(available_slots, len(top_all))])]
+        return {
+            "mode": mode,
+            "recommendations": mapped_recommendations,
+            "top_candidates": mapped_top,
+            "high_value": [mapper(item, idx + 1) for idx, item in enumerate(high_value)],
+            "overnight": [mapper(item, idx + 1) for idx, item in enumerate(overnight)],
+            "anchors": [mapper(item, idx + 1) for idx, item in enumerate(anchors)],
+            "dump": [mapper(item, idx + 1) for idx, item in enumerate(dump)],
+            "remaining_slots": remaining_slots,
+            "per_slot_budget": per_slot_budget,
+            "snapshot_bucket": cache.get("snapshot_bucket") if isinstance(cache, dict) else None,
+            "cache_updated_at": cache.get("updated_at") if isinstance(cache, dict) else None,
+            "candidate_count": len(candidate_pool),
+        }
 
-    dump_pool = [
-        item
-        for item in candidate_pool
-        if item["dip_vs_day_pct"] >= 0.5 or item["dip_vs_week_pct"] >= 1.0
-    ]
-    dump = _sort_items(dump_pool or candidate_pool, limit=category_limit)
-
+    preview_limit = min(category_limit, 5)
     return {
-        "recommendations": recommendations,
-        "top_candidates": top_candidates,
-        "high_value": high_value,
-        "overnight": overnight,
-        "anchors": anchors,
-        "dump": dump,
+        "mode": "web_safe",
+        "recommendations": [_web_safe(item) for item in recommendations[:preview_limit]],
+        "top_candidates": [_web_safe(item) for item in top_all[: min(3, len(top_all))]],
+        "high_value": [_web_safe(item) for item in high_value[:preview_limit]],
+        "overnight": [_web_safe(item) for item in overnight[:preview_limit]],
+        "anchors": [_web_safe(item) for item in anchors[:preview_limit]],
+        "dump": [_web_safe(item) for item in dump[:preview_limit]],
         "remaining_slots": remaining_slots,
         "per_slot_budget": per_slot_budget,
         "snapshot_bucket": cache.get("snapshot_bucket") if isinstance(cache, dict) else None,
         "cache_updated_at": cache.get("updated_at") if isinstance(cache, dict) else None,
-        "cache_item_count": len(cache_items),
         "candidate_count": len(candidate_pool),
     }

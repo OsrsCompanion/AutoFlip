@@ -5,8 +5,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.routes import ai, market, player, screen, settings
+from app.routes.auth import router as auth_router
+from app.routes.plugin import router as plugin_router
 
-app = FastAPI()
+app = FastAPI(title="OSRS Companion")
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,6 +23,8 @@ app.include_router(settings.router)
 app.include_router(screen.router)
 app.include_router(ai.router)
 app.include_router(player.router)
+app.include_router(auth_router)
+app.include_router(plugin_router)
 
 UI_DIR = Path(__file__).resolve().parent / "ui"
 app.mount("/", StaticFiles(directory=str(UI_DIR), html=True), name="ui")

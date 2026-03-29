@@ -247,6 +247,72 @@ def _derive_alerts(player: dict[str, Any]) -> list[dict[str, Any]]:
     return alerts[:10]
 
 
+def summarize_player_state(player_id: str) -> dict[str, Any]:
+    state = get_player_state(player_id)
+    session = state.get("session", {})
+    ge_slots = state.get("ge_slots", [])
+    holdings = state.get("holdings", [])
+    preferences = state.get("preferences", {})
+    filled_slots = sum(1 for slot in ge_slots if _safe_int(slot.get("quantity_filled", 0), 0) > 0)
+    active_slots = sum(1 for slot in ge_slots if _safe_str(slot.get("state")).lower() not in {"", "empty"})
+    total_exposure = sum(_safe_int(slot.get("spent_or_received", 0), 0) for slot in ge_slots)
+    holdings_value = sum(_safe_int(holding.get("quantity", 0), 0) * _safe_int(holding.get("avg_cost", 0), 0) for holding in holdings)
+    return {
+        "player_id": player_id,
+        "display_name": state.get("profile", {}).get("display_name", ""),
+        "status": session.get("status", "offline"),
+        "last_sync": state.get("last_sync", ""),
+        "active_slots": active_slots,
+        "filled_slots": filled_slots,
+        "open_slots": max(0, 8 - active_slots),
+        "holdings_count": len(holdings),
+        "cash_stack": _safe_int(session.get("cash_stack", 0), 0),
+        "bank_value": _safe_int(session.get("bank_value", 0), 0),
+        "inventory_value": _safe_int(session.get("inventory_value", 0), 0),
+        "ge_exposure": total_exposure,
+        "holdings_value": holdings_value,
+        "budget": _safe_int(preferences.get("budget", 0), 0),
+        "slots_available": _safe_int(preferences.get("slots_available", 0), 0),
+        "hours_away": _safe_int(preferences.get("hours_away", 0), 0),
+        "risk_profile": _safe_str(preferences.get("risk_profile"), "medium"),
+        "watch_count": len(preferences.get("watch_item_ids", [])),
+        "favorite_count": len(preferences.get("favorite_item_ids", [])),
+        "alert_count": len(state.get("alerts", [])),
+    }
+
+
+def build_player_settings_overlay(player_id: str, fallback: dict[str, Any] | None = None) -> dict[str, Any]:
+    fallback = dict(fallback or {})
+    state = get_player_state(player_id)
+    preferences = state.get("preferences", {})
+    session = state.get("session", {})
+    ge_slots = state.get("ge_slots", [])
+
+    effective_slots = _safe_int(preferences.get("slots_available", 0), 0)
+    if effective_slots <= 0:
+        used_slots = sum(1 for slot in ge_slots if _safe_str(slot.get("state")).lower() not in {"", "empty"})
+        effective_slots = max(1, 8 - used_slots) if ge_slots else max(_safe_int(fallback.get("available_slots", 1), 1), 1)
+
+    effective_budget = _safe_int(preferences.get("budget", 0), 0)
+    if effective_budget <= 0:
+        effective_budget = _safe_int(session.get("cash_stack", 0), 0) or _safe_int(fallback.get("budget", 0), 0)
+
+    overlay = dict(fallback)
+    overlay.update(
+        {
+            "available_slots": effective_slots,
+            "slots_available": effective_slots,
+            "budget": effective_budget,
+            "hours_away": _safe_int(preferences.get("hours_away", fallback.get("hours_away", 0)), 0),
+            "risk_profile": _safe_str(preferences.get("risk_profile"), _safe_str(fallback.get("risk_profile"), "medium")),
+            "play_style": _safe_str(preferences.get("play_style"), _safe_str(fallback.get("play_style"), "manual")),
+            "favorite_item_ids": preferences.get("favorite_item_ids", []),
+            "watch_item_ids": preferences.get("watch_item_ids", []),
+        }
+    )
+    return overlay
+
+
 def upsert_player_session(payload: dict[str, Any]) -> dict[str, Any]:
     session = _normalize_session(payload)
     player_id = session.get("player_id")
