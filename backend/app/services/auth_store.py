@@ -26,6 +26,62 @@ def _default_store() -> dict[str, Any]:
     }
 
 
+def _coerce_mapping(value: Any) -> dict[str, Any]:
+    return value if isinstance(value, dict) else {}
+
+
+def _coerce_user_record(email: str, user: Any) -> dict[str, Any] | None:
+    if not isinstance(user, dict):
+        return None
+
+    normalized_email = _normalize_email(user.get("email") or email)
+    if not normalized_email:
+        return None
+
+    plugin_links = user.get("plugin_links")
+    if not isinstance(plugin_links, list):
+        plugin_links = []
+
+    return {
+        **user,
+        "email": normalized_email,
+        "plugin_links": plugin_links,
+    }
+
+
+def _normalize_store(data: Any) -> dict[str, Any]:
+    base = _default_store()
+    if not isinstance(data, dict):
+        return base
+
+    users_raw = data.get("users")
+    users: dict[str, Any] = {}
+    if isinstance(users_raw, dict):
+        for email, user in users_raw.items():
+            coerced_user = _coerce_user_record(str(email), user)
+            if coerced_user:
+                users[coerced_user["email"]] = coerced_user
+    elif isinstance(users_raw, list):
+        for user in users_raw:
+            coerced_user = _coerce_user_record("", user)
+            if coerced_user:
+                users[coerced_user["email"]] = coerced_user
+
+    plugin_links = _coerce_mapping(data.get("plugin_links"))
+    sessions = _coerce_mapping(data.get("sessions"))
+    subscriptions = _coerce_mapping(data.get("subscriptions"))
+
+    normalized = {
+        **base,
+        **data,
+        "users": users,
+        "sessions": sessions,
+        "subscriptions": subscriptions,
+        "plugin_links": plugin_links,
+    }
+    return normalized
+
+
 def _ensure_store() -> dict[str, Any]:
     os.makedirs(DATA_DIR, exist_ok=True)
     if not os.path.exists(STORE_PATH):
@@ -33,10 +89,7 @@ def _ensure_store() -> dict[str, Any]:
     try:
         with open(STORE_PATH, "r", encoding="utf-8") as handle:
             data = json.load(handle)
-        if isinstance(data, dict):
-            base = _default_store()
-            base.update(data)
-            return base
+        return _normalize_store(data)
     except Exception:
         pass
     return _default_store()

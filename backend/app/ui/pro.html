@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OSRS Flip Assistant Pro</title>
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
+  <style>
+    :root{--bg:#120905;--card:rgba(28,16,9,.86);--card2:rgba(22,13,8,.9);--line:rgba(230,184,92,.22);--text:#fff2dd;--muted:#d8c3a0;--gold:#e4b55f;--gold2:#c6862a;--blue:#6ea5c9}
+    *{box-sizing:border-box} body{margin:0;font-family:Arial,sans-serif;color:var(--text);background:radial-gradient(circle at top, rgba(111,66,25,.22), transparent 38%), #120905 url('assets/background.jpg') center/cover fixed no-repeat;min-height:100vh}
+    .topbar{position:sticky;top:0;z-index:20;display:flex;justify-content:space-between;align-items:center;padding:18px 28px;border-bottom:1px solid var(--line);background:rgba(24,13,7,.82);backdrop-filter:blur(14px)}
+    .brand{display:flex;align-items:center;gap:12px;font-weight:800}.brand-badge{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#f0be62,#b7862b);display:flex;align-items:center;justify-content:center;color:#24170d}
+    .nav{display:flex;gap:12px;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;justify-content:center;padding:11px 16px;border-radius:12px;border:1px solid rgba(233,190,103,.22);background:linear-gradient(180deg,rgba(66,42,23,.96),rgba(38,24,15,.96));color:var(--text);text-decoration:none;font-weight:700}.btn.gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#24170d;border:0}
+    .shell{max-width:1240px;margin:0 auto;padding:36px 24px 54px}
+    .hero{display:grid;grid-template-columns:1.15fr .85fr;gap:22px;align-items:start}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:26px;box-shadow:0 22px 60px rgba(0,0,0,.34)}
+    .eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#ddb064;font-weight:800}.headline{font-size:52px;line-height:.98;margin:12px 0 16px}.copy{color:var(--muted);font-size:18px;line-height:1.65}
+    .pill-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.pill{padding:8px 12px;border-radius:999px;background:rgba(240,190,98,.08);border:1px solid rgba(240,190,98,.2);color:#f1ddad;font-size:13px;font-weight:700}
+    .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:18px}.mini{padding:16px;border-radius:18px;background:var(--card2);border:1px solid rgba(233,190,103,.12)} .mini-label{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)} .mini-value{margin-top:8px;font-size:22px;font-weight:800}
+    .section{margin-top:22px}.section h2{margin:0 0 12px;font-size:28px}
+    .feature-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.feature{padding:18px;border-radius:18px;background:var(--card2);border:1px solid rgba(233,190,103,.12)} .feature h3{margin:0 0 8px;font-size:18px}.feature p{margin:0;color:var(--muted);line-height:1.55}
+    .compare{display:grid;grid-template-columns:1fr 1fr;gap:14px}.compare .col{padding:20px;border-radius:20px;border:1px solid rgba(233,190,103,.14);background:rgba(21,13,8,.78)} .compare ul{margin:12px 0 0;padding-left:18px;color:var(--muted);line-height:1.7}
+    .right-cta{position:sticky;top:92px}.price{font-size:36px;font-weight:900;color:#f6e0ab}.sub{color:var(--muted);line-height:1.6}.cta-stack{display:grid;gap:10px;margin-top:18px}.trust{margin-top:16px;padding:14px;border-radius:16px;background:rgba(14,28,44,.38);border:1px solid rgba(110,165,201,.22);color:#deedf8}
+    .footnote{margin-top:14px;color:var(--muted);font-size:13px;line-height:1.55}
+    @media (max-width:980px){.hero,.feature-grid,.compare,.grid{grid-template-columns:1fr}.headline{font-size:40px}.right-cta{position:static}}
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand"><div class="brand-badge">GE</div><div><div>OSRS Flip Assistant</div><div style="font-size:12px;color:var(--muted);font-weight:400">Website for discovery. Plugin for execution.</div></div></div>
+    <div class="nav"><a class="btn" href="index.html">Home</a><a class="btn" href="app/index.html">Enter App</a><a class="btn" href="login.html?next=/app/">Login</a><a class="btn gold" href="register.html?next=/app/">Create Account</a></div>
+  </div>
+  <div class="shell">
+    <div class="hero">
+      <div class="card">
+        <div class="eyebrow">Pro unlock page</div>
+        <div class="headline">See the full plan.<br/>Execute with confidence.</div>
+        <div class="copy">The website is built to help you discover strong flips, compare trends, and build trust in the data. Pro is where that research becomes a full GE deployment plan inside RuneLite.</div>
+        <div class="pill-row"><span class="pill">Full 8-slot optimization</span><span class="pill">Exact quantities</span><span class="pill">Budget deployment</span><span class="pill">Guided execution</span></div>
+        <div class="grid">
+          <div class="mini"><div class="mini-label">Website</div><div class="mini-value">Discovery</div></div>
+          <div class="mini"><div class="mini-label">Plugin</div><div class="mini-value">Execution</div></div>
+          <div class="mini"><div class="mini-label">Visible plan</div><div class="mini-value">8 / 8 slots</div></div>
+        </div>
+        <div class="section">
+          <h2>What Pro adds</h2>
+          <div class="feature-grid">
+            <div class="feature"><h3>Full 8-slot optimization</h3><p>Instead of a partial preview, Pro allocates your full GE board so you can act on a complete plan.</p></div>
+            <div class="feature"><h3>Exact quantities</h3><p>Get slot-by-slot quantity guidance rather than rough discovery-only insight.</p></div>
+            <div class="feature"><h3>Budget deployment</h3><p>Your configured budget, time horizon, and risk profile are used to assemble a better execution mix.</p></div>
+            <div class="feature"><h3>Guided execution in RuneLite</h3><p>The plugin is built for action: it turns strategy into a practical board you can follow inside the game workflow.</p></div>
+          </div>
+        </div>
+        <div class="section">
+          <h2>Free vs Pro</h2>
+          <div class="compare">
+            <div class="col"><strong>Free website</strong><ul><li>Market explorer and charting</li><li>ROI, spread, volume, trend signals</li><li>Favorites and watchlist workflow</li><li>Preview-only AI help</li><li>Partial trade-plan preview</li></ul></div>
+            <div class="col"><strong>Pro plugin</strong><ul><li>Full optimization across all 8 slots</li><li>Exact buy/sell quantities</li><li>Full budget deployment logic</li><li>Execution-ready guidance</li><li>Stronger account + device workflow</li></ul></div>
+          </div>
+        </div>
+      </div>
+      <div class="card right-cta">
+        <div class="eyebrow">Upgrade path</div>
+        <div class="price">Finish the job in Pro</div>
+        <div class="sub" style="margin-top:10px">Use the free site to find opportunities. Upgrade when you want the plugin that turns those opportunities into a real GE plan.</div>
+        <div class="cta-stack">
+          <a class="btn gold" href="register.html?next=/app/">Create account and continue</a>
+          <a class="btn" href="login.html?next=/app/">Already have an account? Log in</a>
+          <a class="btn" href="app/index.html">Keep exploring the free app</a>
+        </div>
+        <div class="trust"><strong>Intentional product split:</strong> the website should feel polished and useful, but intentionally incomplete. The plugin owns exact planning and execution.</div>
+        <div class="footnote">This page is the destination for “Upgrade to Pro”, “Optimize My GE”, locked-slot prompts, and other premium CTAs across the site.</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
