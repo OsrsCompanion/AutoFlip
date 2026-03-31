@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Personal Settings · Auto Flip Web</title>
+  <link rel="icon" type="image/png" href="../assets/favicon.png" />
+  <style>
+    :root {
+      --paper-light: #e8d5ad;
+      --paper-mid: #d6b57d;
+      --paper-deep: #b88752;
+      --paper-edge: #8f6338;
+      --ink: #432811;
+      --ink-soft: #6f4c25;
+      --line: rgba(103, 71, 36, 0.30);
+      --gold: #c58b35;
+      --gold-bright: #efca77;
+      --shell-muted: #dbc8a3;
+      --chip: rgba(46, 28, 16, 0.76);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      color: #f6ead1;
+      background:
+        linear-gradient(180deg, rgba(11, 6, 3, 0.72), rgba(11, 6, 3, 0.84)),
+        url('../assets/background.jpg') center/cover fixed no-repeat;
+      padding: 24px 18px 56px;
+    }
+    .page-wrap { width:min(100%, 1180px); margin:0 auto; }
+    .topbar { display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:18px; }
+    .back-link, .topbar-actions a, .topbar-actions button {
+      color:#f0ddb1; text-decoration:none; font-weight:700; background:rgba(37,22,13,0.86); border:1px solid rgba(184,137,45,0.24);
+      border-radius:999px; min-height:40px; padding:0 14px; display:inline-flex; align-items:center; cursor:pointer;
+      box-shadow:inset 0 1px 0 rgba(255,231,185,0.06);
+    }
+    .topbar-actions { display:flex; gap:10px; flex-wrap:wrap; }
+    .topbar-actions .primary { background:linear-gradient(135deg,var(--gold-bright),var(--gold)); color:#2a1a0f; border:0; }
+    .topbar-actions .ghost { background:rgba(43,26,15,0.62); }
+    .hero { display:grid; gap:24px; justify-items:center; }
+    .hero.two-col { grid-template-columns:minmax(280px,390px) minmax(420px,1fr); align-items:start; }
+    .hero.single { grid-template-columns:minmax(320px,780px); }
+    .side-copy { padding:18px 6px; max-width: 380px; }
+    .eyebrow { color:#e7be72; text-transform:uppercase; letter-spacing:.16em; font-size:11px; font-weight:700; margin-bottom:12px; }
+    h1.page-title { margin:0; font-size:clamp(34px,4.5vw,64px); line-height:.98; color:#fff1d0; }
+    .side-copy p { margin-top:16px; color:var(--shell-muted); line-height:1.75; }
+    .chip-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:18px; }
+    .chip { display:inline-flex; align-items:center; min-height:36px; padding:0 12px; border-radius:999px; border:1px solid rgba(233,190,103,0.22); background:var(--chip); color:#f1ddb3; font-weight:700; font-size:13px; }
+    .scroll-shell {
+      position: relative;
+      width: min(100%, var(--scroll-max, 760px));
+      padding-top: 22px;
+      padding-bottom: 18px;
+      filter: drop-shadow(0 26px 36px rgba(0,0,0,0.45));
+    }
+    .scroll-shell.short { --scroll-max: 660px; }
+    .scroll-shell.medium { --scroll-max: 760px; }
+    .scroll-shell.long { --scroll-max: 860px; }
+    .scroll-shell::before {
+      content:""; position:absolute; left:44px; right:44px; top:28px; height:18px;
+      background: linear-gradient(180deg, rgba(77,48,24,0.24), rgba(77,48,24,0));
+      z-index:3; pointer-events:none;
+    }
+    .scroll-roller, .scroll-footer {
+      position:absolute; left:26px; right:26px; height:38px; border-radius:999px;
+      background:
+        linear-gradient(180deg, rgba(255,236,192,0.34), rgba(255,236,192,0.05) 25%, rgba(76,46,22,0.18) 26%, rgba(76,46,22,0.06) 40%, rgba(255,236,192,0.10) 58%, rgba(76,46,22,0.20) 100%),
+        linear-gradient(90deg, #a97a46, #d2aa72 16%, #c79963 32%, #e3c18c 48%, #bf8d59 68%, #d3ac76 84%, #a46f3d);
+      box-shadow: inset 0 2px 4px rgba(255,245,214,0.26), inset 0 -6px 8px rgba(89,53,24,0.22), 0 8px 14px rgba(0,0,0,0.24);
+      z-index:4;
+    }
+    .scroll-roller { top:0; }
+    .scroll-footer { bottom:0; height:34px; }
+    .scroll-roller::before, .scroll-roller::after, .scroll-footer::before, .scroll-footer::after {
+      content:""; position:absolute; top:50%; transform:translateY(-50%); width:36px; height:36px; border-radius:50%;
+      background: radial-gradient(circle at 30% 30%, #f0d5a3 0, #c48d49 38%, #9e693a 68%, #70421f 100%);
+      box-shadow: inset 0 1px 2px rgba(255,246,218,0.36), 0 4px 10px rgba(0,0,0,0.22);
+    }
+    .scroll-roller::before, .scroll-footer::before { left:-18px; }
+    .scroll-roller::after, .scroll-footer::after { right:-18px; }
+    .scroll-paper {
+      position: relative;
+      margin: 0 34px;
+      top: 10px;
+      min-height: 260px;
+      padding: 34px 34px 42px;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 16% 11%, rgba(255,252,240,0.56), rgba(255,252,240,0) 22%),
+        radial-gradient(circle at 80% 22%, rgba(125,79,40,0.14), rgba(125,79,40,0) 18%),
+        radial-gradient(circle at 30% 68%, rgba(255,246,226,0.18), rgba(255,246,226,0) 25%),
+        linear-gradient(180deg, rgba(96,62,30,0.10), rgba(255,251,238,0) 12%, rgba(255,251,238,0) 84%, rgba(112,73,37,0.12) 100%),
+        linear-gradient(90deg, rgba(101,64,32,0.10), rgba(255,251,240,0) 8%, rgba(255,251,240,0) 92%, rgba(101,64,32,0.12)),
+        linear-gradient(180deg, #ecdcb5 0%, #e1c48f 48%, #d2a96f 100%);
+      border-left: 1px solid rgba(98,65,34,0.25);
+      border-right: 1px solid rgba(98,65,34,0.25);
+      box-shadow: inset 0 1px 0 rgba(255,250,238,0.74), inset 0 -1px 0 rgba(120,76,37,0.20);
+      overflow: hidden;
+    }
+    .scroll-paper::before {
+      content:""; position:absolute; inset:0;
+      background:
+        radial-gradient(circle at 18% 24%, rgba(255,255,255,0.18), transparent 17%),
+        radial-gradient(circle at 76% 36%, rgba(123,86,51,0.12), transparent 18%),
+        radial-gradient(circle at 52% 62%, rgba(255,255,255,0.10), transparent 22%),
+        radial-gradient(circle at 84% 74%, rgba(118,82,48,0.10), transparent 20%),
+        repeating-linear-gradient(92deg, rgba(117,82,47,0.020) 0 2px, rgba(255,250,240,0) 2px 7px),
+        repeating-linear-gradient(177deg, rgba(117,82,47,0.018) 0 1px, rgba(255,250,240,0) 1px 10px);
+      opacity:.95; pointer-events:none;
+    }
+    .scroll-paper::after {
+      content:""; position:absolute; inset:0;
+      background:
+        linear-gradient(180deg, rgba(0,0,0,0.10), rgba(0,0,0,0) 18%, rgba(0,0,0,0) 86%, rgba(0,0,0,0.10)),
+        linear-gradient(90deg, rgba(0,0,0,0.11), rgba(0,0,0,0) 7%, rgba(0,0,0,0) 93%, rgba(0,0,0,0.12));
+      mix-blend-mode:multiply; opacity:.72; pointer-events:none;
+    }
+    .scroll-paper-inner { position:relative; z-index:1; }
+    .scroll-ornament {
+      position:absolute; top:28px; bottom:22px; width:16px; pointer-events:none; opacity:.46;
+      background:
+        radial-gradient(circle at 50% 8px, rgba(87,51,25,0.48) 0 1.4px, transparent 1.6px),
+        linear-gradient(180deg, transparent 0 14px, rgba(99,60,32,0.34) 14px calc(100% - 14px), transparent calc(100% - 14px));
+      background-size: 16px 22px, 2px 100%; background-position:center top, center center; background-repeat:repeat-y, no-repeat;
+    }
+    .scroll-ornament.left { left:14px; }
+    .scroll-ornament.right { right:14px; }
+    .scroll-kicker { color:#7f5a2c; text-transform:uppercase; letter-spacing:.17em; font-size:11px; font-weight:800; }
+    .scroll-title { margin:10px 0 0; font-size:clamp(32px,5vw,62px); line-height:.96; color:#3b2410; font-weight:900; }
+    .scroll-copy { margin-top:12px; color:var(--ink-soft); line-height:1.72; max-width:60ch; }
+    .scroll-nav { display:flex; gap:10px; flex-wrap:wrap; margin-top:18px; }
+    .scroll-nav a, .scroll-nav span {
+      display:inline-flex; align-items:center; min-height:36px; padding:0 12px; border-radius:999px; text-decoration:none; font-weight:800;
+      color:#6c461d; background:rgba(255,244,215,0.42); border:1px solid rgba(111,76,38,0.16);
+    }
+    .scroll-grid { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:14px; margin-top:22px; }
+    .scroll-card {
+      background: rgba(255,248,226,0.42); border:1px solid rgba(111,76,38,0.14); border-radius:18px; padding:18px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.34);
+    }
+    .scroll-card h2 { margin:0 0 10px; font-size:22px; color:#412913; }
+    .scroll-card p, .scroll-card li { margin:0; color:#674523; line-height:1.65; }
+    .scroll-card ul { margin:0; padding-left:20px; display:grid; gap:8px; }
+    .stat-grid { display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap:12px; margin-top:18px; }
+    .stat {
+      background: rgba(255,249,235,0.34); border:1px solid rgba(111,76,38,0.14); border-radius:16px; padding:14px;
+    }
+    .stat-label { color:#7f5a2c; font-size:11px; text-transform:uppercase; letter-spacing:.14em; font-weight:800; }
+    .stat-value { margin-top:8px; font-size:18px; font-weight:900; color:#412913; line-height:1.25; word-break:break-word; }
+    .list { display:grid; gap:10px; margin-top:16px; }
+    .list-item {
+      display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding:12px 14px; border-radius:14px; border:1px solid rgba(111,76,38,0.12);
+      background: rgba(255,249,235,0.34); color:#56381b;
+    }
+    .list-item strong { display:block; color:#412913; margin-bottom:4px; }
+    .action-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:20px; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; min-height:46px; padding:0 16px; border-radius:14px; border:1px solid rgba(108,73,31,0.18); background: rgba(255,247,225,0.58); color:#4a2e15; text-decoration:none; font-weight:800; cursor:pointer; }
+    .btn.primary { background:linear-gradient(135deg,var(--gold-bright),var(--gold)); color:#29190d; border:0; box-shadow: inset 0 1px 0 rgba(255,243,211,0.6); }
+    label { display:block; margin:16px 0 6px; color:#62411e; font-weight:800; }
+    input { width:100%; min-height:48px; border-radius:14px; border:1px solid rgba(108,73,31,0.24); background: rgba(255,249,235,0.7); color:#301d0d; padding:0 14px; font-size:15px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.55); }
+    input:focus { outline:2px solid rgba(196,139,54,0.28); border-color: rgba(196,139,54,0.42); }
+    .helper-row { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-top:16px; }
+    .helper-link { color:#734a1f; font-weight:700; text-decoration:none; }
+    .status, .notice { margin-top:16px; padding:12px 14px; border-radius:14px; background: rgba(255,247,223,0.58); border:1px solid rgba(108,73,31,0.18); color:#5c3b1c; white-space:pre-wrap; line-height:1.55; }
+    .status.error, .notice.error { background: rgba(121,36,19,0.12); color:#6c2418; border-color: rgba(121,36,19,0.24); }
+    .status.success, .notice.success { background: rgba(44,104,54,0.12); color:#224f29; border-color: rgba(44,104,54,0.24); }
+    @media (max-width: 980px) { .hero.two-col { grid-template-columns:1fr; } .side-copy { max-width:none; } .scroll-grid, .stat-grid { grid-template-columns:1fr; } .scroll-paper { margin:0 14px; padding:30px 22px 38px; } .scroll-roller, .scroll-footer { left:10px; right:10px; } }
+</style>
+</head>
+<body>
+<div class="page-wrap"><div class="topbar"><a class="back-link" href="/app/">← Back to Auto Flip Web</a><div class="topbar-actions"><a href="profile.html">Profile Hub</a><a href="membership.html">Membership</a></div></div><div class="hero single"><main class="scroll-shell long"><div class="scroll-roller"></div><section class="scroll-paper"><div class="scroll-ornament left"></div><div class="scroll-ornament right"></div><div class="scroll-paper-inner"><div class="scroll-kicker">Merchant ledger</div><h1 class="scroll-title">Personal settings</h1><div class="scroll-copy">The gear now lands directly here. Personal controls have their own long-form scroll so the main dashboard can stay focused on trading, AI, and market exploration.</div><div class="scroll-grid"><div class="scroll-card"><h2>Workspace controls</h2><ul><li>Budget and time-away planning belong here.</li><li>AI key and personal preferences stay out of the main top tabs.</li><li>This surface can grow independently without bloating the dashboard.</li></ul></div><div class="scroll-card"><h2>Account routing</h2><ul><li>Gear icon goes straight to Personal Settings.</li><li>Profile menu routes each account area to its own page.</li><li>Auto Flip Web remains the discovery workspace.</li></ul></div></div><div class="stat-grid"><div class="stat"><div class="stat-label">Budget</div><div class="stat-value">Managed in app</div></div><div class="stat"><div class="stat-label">Hours away</div><div class="stat-value">Managed in app</div></div><div class="stat"><div class="stat-label">AI key</div><div class="stat-value">Managed in app</div></div></div><div class="notice">This page is the focused settings destination. Keep detailed form controls in the app workspace, but route account-level settings here so the shell stays clean.</div></div></section><div class="scroll-footer"></div></main></div></div>
+<script>
+    async function api(url, options = {}) {
+      const response = await fetch(url, { headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }, ...options });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.detail || 'Request failed');
+      return data;
+    }
+    function getToken() { return localStorage.getItem('osrs_token') || ''; }
+    async function loadSession() {
+      const token = getToken();
+      if (!token) return null;
+      try { return await api('/auth/me?token=' + encodeURIComponent(token)); } catch (_) { return null; }
+    }
+    async function logoutNow(next = '/app/') {
+      const token = getToken();
+      try { if (token) await api('/auth/logout?token=' + encodeURIComponent(token), { method: 'POST' }); } catch (_) {}
+      localStorage.removeItem('osrs_token');
+      window.location.href = next;
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+🧠 HANDOFF MODE (MANDATORY)
+
+You are now in HANDOFF MODE.
+
+DO NOT:
+
+generate patches
+modify code
+redesign anything
+
+ONLY:
+
+summarize
+organize
+prepare next steps
+🎯 GOAL
+
+Create a clean, copy-pasteable bootstrap for the next chat that includes:
+
+What was accomplished
+What is currently working
+What is broken or regressed
+What must be preserved
+Exact next steps (in correct order)
+Target files
+Known pitfalls / do-not-break rules
+📦 OUTPUT FORMAT (STRICT)
+SECTION 1 — CURRENT STATE
+Describe current system state clearly
+SECTION 2 — COMPLETED WORK
+Bullet list of what was successfully implemented
+SECTION 3 — WORKING SYSTEMS
+What is confirmed stable and must not regress
+SECTION 4 — REGRESSIONS / ISSUES
+What is broken, missing, or incorrect
+SECTION 5 — PRESERVATION RULES
+What must NOT change in future patches
+SECTION 6 — NEXT PATCH PLAN (ORDERED)
+
+Provide exact order of work:
+1.
+2.
+3.
+
+Each step must be:
+
+small
+surgical
+clearly scoped
+SECTION 7 — TARGET FILES
+
+List exact files to be modified or created
+
+SECTION 8 — CRITICAL WARNINGS
+
+List things that previously caused regressions
+
+SECTION 9 — RECOMMENDED NEXT PROMPT
+
+Give the exact next prompt to use in the new chat
+
+🔒 RULES
+Be concise but complete
+No fluff
+No assumptions
+No missing context
+Must be copy-paste ready
+🔁 FINAL RULE
+
+This output will be used as the starting context for the next chat
+It must be accurate, minimal, and complete

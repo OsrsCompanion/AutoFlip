@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OSRS Flip Assistant</title>
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
+  <style>
+    :root{--bg:#120905;--card:rgba(28,16,9,.82);--line:rgba(230,184,92,.22);--text:#fff2dd;--muted:#d8c3a0;--gold:#e4b55f;--gold2:#c6862a;--blue:#6b8fb5}
+    *{box-sizing:border-box;scroll-behavior:smooth}
+    body{margin:0;font-family:Arial,sans-serif;color:var(--text);background:#120905 url('assets/background.jpg') center/cover fixed no-repeat;min-height:100vh;overflow-x:hidden}
+    .bg-blur{position:fixed;inset:0;background:linear-gradient(180deg,rgba(16,8,4,.58),rgba(16,8,4,.78)),radial-gradient(circle at top,rgba(111,66,25,.28),transparent 44%);backdrop-filter:blur(10px);pointer-events:none}
+    .app-ghost{position:fixed;inset:88px 64px 40px 64px;border:1px solid var(--line);border-radius:28px;background:rgba(16,9,5,.34);box-shadow:0 30px 80px rgba(0,0,0,.42);overflow:hidden}
+    .app-ghost iframe{width:100%;height:100%;border:0;filter:blur(2px) saturate(.88) brightness(.72);transform:scale(1.015);transform-origin:center top;pointer-events:none;display:block}
+    .veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,7,4,.16),rgba(15,7,4,.64))}
+    .topbar{position:relative;z-index:3;display:flex;justify-content:space-between;align-items:center;padding:18px 28px;border-bottom:1px solid var(--line);background:rgba(24,13,7,.72);backdrop-filter:blur(14px)}
+    .brand{display:flex;align-items:center;gap:12px;font-weight:800}.brand-badge{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#f0be62,#b7862b);display:flex;align-items:center;justify-content:center;color:#24170d}
+    .nav{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;justify-content:center;padding:11px 16px;border-radius:12px;border:1px solid rgba(233,190,103,.22);background:linear-gradient(180deg,rgba(66,42,23,.96),rgba(38,24,15,.96));color:var(--text);text-decoration:none;font-weight:700;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}.btn:hover{transform:translateY(-1px);border-color:rgba(246,207,125,.36);box-shadow:0 10px 24px rgba(0,0,0,.24)} .btn.gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#24170d;border:0}.btn.subtle{background:rgba(57,34,18,.72)}
+    .hero{position:relative;z-index:3;max-width:1160px;margin:52px auto 0;padding:0 24px 36px;display:grid;grid-template-columns:minmax(0,1.08fr) minmax(340px,.92fr);gap:20px;align-items:start}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:26px;box-shadow:0 22px 60px rgba(0,0,0,.34)}
+    .eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#ddb064;font-weight:800}.headline{font-size:54px;line-height:.98;margin:12px 0 16px}.copy{color:var(--muted);font-size:18px;line-height:1.65;max-width:700px}.row{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}.pill-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}.pill{padding:8px 12px;border-radius:999px;background:rgba(240,190,98,.08);border:1px solid rgba(240,190,98,.2);color:#f1ddad;font-size:13px;font-weight:700}
+    .mini{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}.mini-card{padding:14px;border-radius:16px;background:rgba(24,14,8,.72);border:1px solid rgba(233,190,103,.12)}.mini-label{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em}.mini-value{margin-top:6px;font-size:22px;font-weight:800}
+    .demo-shell{margin-top:22px;border-radius:22px;border:1px solid rgba(233,190,103,.16);overflow:hidden;background:linear-gradient(180deg,rgba(26,15,9,.96),rgba(18,10,6,.96));box-shadow:inset 0 1px 0 rgba(255,230,170,.06)}
+    .demo-top{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid rgba(233,190,103,.12)}
+    .demo-label{display:flex;align-items:center;gap:10px;font-weight:800}.demo-dot{width:10px;height:10px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 4px rgba(228,181,95,.12)}
+    .demo-frame{position:relative;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;padding:22px;background:radial-gradient(circle at top,rgba(107,143,181,.18),transparent 30%),linear-gradient(180deg,rgba(47,25,14,.82),rgba(18,10,6,.98))}
+    .demo-grid{position:absolute;inset:0;background:linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);background-size:28px 28px;opacity:.22}
+    .demo-panel{position:relative;z-index:1;max-width:520px;width:100%;padding:28px;border-radius:22px;border:1px solid rgba(233,190,103,.16);background:rgba(23,13,8,.88);box-shadow:0 24px 46px rgba(0,0,0,.34)}
+    .play-ring{width:70px;height:70px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#24170d;font-size:28px;font-weight:900;margin-bottom:16px;box-shadow:0 14px 30px rgba(0,0,0,.28)}
+    .demo-title{font-size:24px;font-weight:800;margin:0 0 10px}.demo-copy{color:var(--muted);line-height:1.6;margin:0}.demo-pills{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+    .side-title{font-size:24px;margin:0 0 8px}.side-copy{color:var(--muted);line-height:1.6}.feature-list{display:grid;gap:10px;margin:18px 0 0;padding:0;list-style:none}.feature-list li{padding:12px 14px;border-radius:14px;background:rgba(24,14,8,.68);border:1px solid rgba(233,190,103,.1)}
+    .foot{position:relative;z-index:3;max-width:1160px;margin:6px auto 0;padding:0 24px 28px;color:var(--muted)}
+    @media (max-width: 980px){body{overflow:auto}.app-ghost{inset:96px 18px 18px 18px}.hero{grid-template-columns:1fr;margin-top:34px}.headline{font-size:40px}.mini{grid-template-columns:1fr}.topbar{padding:16px 18px}.nav{gap:8px}}
+  </style>
+</head>
+<body>
+  <div class="bg-blur"></div>
+  <div class="app-ghost"><iframe id="appPreview" src="app/index.html" title="App preview"></iframe><div class="veil"></div></div>
+  <div class="topbar">
+    <div class="brand"><div class="brand-badge">GE</div><div><div>OSRS Flip Assistant</div><div style="font-size:12px;color:var(--muted);font-weight:400">Discovery on web. Execution in RuneLite.</div></div></div>
+    <div class="nav"><a class="btn subtle" href="app/index.html">Preview App</a><a class="btn subtle" href="login.html?next=/app/">Login</a><a class="btn" href="register.html?next=/app/">Register</a><a class="btn gold" href="pro.html">Unlock Plugin</a></div>
+  </div>
+  <section class="hero">
+    <div class="card">
+      <div class="eyebrow">OSRS market discovery</div>
+      <div class="headline">Find good flips fast.<br/>Finish the plan in RuneLite.</div>
+      <div class="copy">Use the website to search items, compare spreads, watch momentum, and preview partial trade ideas. When you want full 8-slot optimization, exact quantities, and execution-ready guidance, the plugin takes over.</div>
+      <div class="row"><a class="btn gold" href="app/index.html">Enter Free App</a><a class="btn" href="register.html?next=/app/">Create Account</a></div>
+      <div class="pill-row"><span class="pill">Charts + explorer</span><span class="pill">Favorites + watchlist</span><span class="pill">Preview-only AI help</span><span class="pill">Plugin owns full optimization</span></div>
+      <div class="mini"><div class="mini-card"><div class="mini-label">Website role</div><div class="mini-value">Discovery</div></div><div class="mini-card"><div class="mini-label">Plugin role</div><div class="mini-value">Execution</div></div><div class="mini-card"><div class="mini-label">Visible plan</div><div class="mini-value">3 / 8 slots</div></div></div>
+      <div class="demo-shell">
+        <div class="demo-top"><div class="demo-label"><span class="demo-dot"></span> Demo walkthrough preview</div><div class="pill">YouTube slot</div></div>
+        <div class="demo-frame">
+          <div class="demo-grid"></div>
+          <div class="demo-panel">
+            <div class="play-ring">▶</div>
+            <h3 class="demo-title">Put your demo video here</h3>
+            <p class="demo-copy">This placeholder sits in the hero where the dead space used to be. Swap this block for a YouTube embed later to show real flipping workflow, plugin handoff, and premium value.</p>
+            <div class="demo-pills"><span class="pill">Discovery → plugin flow</span><span class="pill">3-slot preview</span><span class="pill">Upgrade path</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h2 class="side-title">Why this split works</h2>
+      <div class="side-copy">The website should feel polished, useful, and trustworthy — but intentionally incomplete. You can discover opportunities here. You upgrade when you want the tool that actually deploys your GE.</div>
+      <ul class="feature-list">
+        <li><strong>Free website:</strong> market explorer, trends, watchlist, preview planning</li>
+        <li><strong>Pro plugin:</strong> full board allocation, quantity logic, guided execution</li>
+        <li><strong>Same account:</strong> login once on web, use the same access inside RuneLite</li>
+      </ul>
+      <div class="row"><a class="btn gold" href="register.html?next=/app/">Start Free</a><a class="btn subtle" href="login.html?next=/app/">Already have an account?</a></div>
+    </div>
+  </section>
+  <div class="foot">Landing page stays at <strong>/</strong>, app stays at <strong>/app/</strong>, and premium CTAs can route into your full Pro benefits page.</div>
+  <script>
+    (function(){
+      var frame = document.getElementById('appPreview');
+      if(!frame) return;
+      function suppressNestedScroll(){
+        try {
+          var doc = frame.contentDocument || (frame.contentWindow && frame.contentWindow.document);
+          if(!doc) return;
+          var html = doc.documentElement;
+          var body = doc.body;
+          if(html){ html.style.overflow = 'hidden'; html.style.scrollbarWidth = 'none'; }
+          if(body){ body.style.overflow = 'hidden'; body.style.scrollbarWidth = 'none'; }
+          var style = doc.getElementById('landing-preview-scroll-kill');
+          if(!style){
+            style = doc.createElement('style');
+            style.id = 'landing-preview-scroll-kill';
+            style.textContent = 'html::-webkit-scrollbar, body::-webkit-scrollbar { width: 0 !important; height: 0 !important; }';
+            doc.head && doc.head.appendChild(style);
+          }
+        } catch (e) {}
+      }
+      frame.addEventListener('load', function(){
+        suppressNestedScroll();
+        setTimeout(suppressNestedScroll, 400);
+      });
+      setTimeout(suppressNestedScroll, 1200);
+    })();
+  </script>
+</body>
+</html>

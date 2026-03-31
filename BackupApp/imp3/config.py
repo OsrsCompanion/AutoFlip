@@ -1,0 +1,4 @@
+"""
+Configuration loader.
+Placeholder only.
+"""

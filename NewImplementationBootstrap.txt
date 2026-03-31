@@ -1,0 +1,175 @@
+🧠 AI DEVELOPMENT OPERATING SYSTEM (STRICT)
+🎯 CORE PRINCIPLE
+
+Separate thinking (creative) from execution (surgical) at all times.
+
+Creative = ideas, exploration, design
+Surgical = precise, minimal, safe implementation
+
+❌ NEVER mix them in the same response
+
+🔁 REQUIRED WORKFLOW (ENFORCED)
+STEP 1 — EXPLORE (CREATIVE)
+
+User:
+
+creative -> [idea or problem]
+
+AI:
+
+Generates multiple ideas
+Does NOT write final code
+Does NOT generate patches
+STEP 2 — SELECT (USER DECISION)
+
+User chooses:
+
+Use option 2
+
+OR:
+
+surgical -> implement option 2
+STEP 3 — EXECUTE (SURGICAL)
+
+AI:
+
+Implements ONLY the selected idea
+Generates patch (zip format)
+Does NOT redesign or expand scope
+🚨 MODE SYSTEM (MANDATORY)
+
+All requests MUST be one of:
+
+creative ->
+surgical ->
+❗ IF MODE IS MISSING
+
+AI MUST respond with:
+
+Did you want this as:
+
+1) CREATIVE (ideas / exploration)
+2) SURGICAL (implementation / patch)
+
+Reply with:
+creative -> [your request]
+or
+surgical -> [your request]
+
+❌ DO NOT proceed until clarified
+
+🎨 CREATIVE MODE RULES
+
+When user uses:
+
+creative -> ...
+Behavior:
+Generate ideas ONLY
+No zip files
+No full file rewrites
+No assumptions about exact code unless provided
+Output format:
+IDEAS:
+1) ...
+2) ...
+3) ...
+
+RECOMMENDED:
+- Best option and why
+
+IMPLEMENTATION NOTES:
+- How it would be implemented later (high-level)
+🔧 SURGICAL MODE RULES
+
+When user uses:
+
+surgical -> ...
+Behavior:
+Modify ONLY what is requested
+Preserve everything else
+Do NOT redesign unless explicitly told
+REQUIRED STRUCTURE:
+What is changing
+What is NOT changing
+Patch output (zip)
+🔒 PATCH DELIVERY SYSTEM (STRICT – ENFORCED)
+
+ALL patches MUST:
+
+Be delivered as a .zip file
+
+Contain full path starting from:
+
+backend/app/...
+
+Be directly copyable into:
+
+C:\osrs-flip-assistant\backend
+🚫 NEVER DO THIS
+❌ Do NOT send loose files
+❌ Do NOT send app/...
+❌ Do NOT guess paths
+❌ Do NOT truncate structure
+✅ REQUIRED FORMAT
+
+Inside zip:
+
+backend/app/ui/index.html
+backend/app/ui/app/index.html
+backend/app/ui/pro.html
+backend/app/ui/app/profile.html
+
+Even for ONE file:
+
+backend/app/ui/index.html
+🧠 SURGICAL SAFETY RULES
+
+Every surgical patch MUST:
+
+Target exact file(s)
+Avoid touching unrelated code
+Preserve:
+layout
+structure
+existing logic
+working systems
+🧩 ANTI-REGRESSION RULE
+
+AI must behave like a patch system, NOT a rewrite system.
+
+No large rewrites
+No silent improvements
+No “cleanup” unless asked
+⚠️ SCOPE CONTROL
+
+If request is vague like:
+
+make this better
+
+AI MUST NOT proceed.
+
+Instead respond with:
+
+Please specify:
+
+- creative -> for design ideas
+OR
+- surgical -> for implementation
+
+And describe the exact change
+🎯 EXAMPLES
+Creative:
+creative -> improve profile dropdown UX
+Surgical:
+surgical -> add dropdown to profile avatar without changing layout
+🔥 FINAL RULE
+
+If mode is not specified → STOP and ask
+If scope is unclear → STOP and ask
+If patch is not backend/app zip → INVALID
+
+This gives you:
+
+🎨 AI creativity when you want it
+🔧 Zero-regression patches when you build
+🧠 Clean thinking → execution pipeline

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>OSRS Flip Assistant</title>
+  <title>Auto Flip Web</title>
   <link rel="icon" type="image/png" href="../assets/favicon.png" />
   <style>
     :root { --left-rail-width: 248px; --right-rail-width: 340px; --rail-gap: 24px; --center-safe-side: 300px; --wrap-max-width: 1280px; --bg-wash: rgba(12, 7, 4, 0.84); --bg-wash-strong: rgba(10, 6, 3, 0.94); --bg-edge: rgba(44, 18, 8, 0.46); }
@@ -12,6 +12,36 @@
     body::before { content: ""; position: fixed; inset: 0; background: linear-gradient(180deg, rgba(9,5,3,0.56), rgba(9,5,3,0.76)), url('../assets/osrs-og-background.jpg') no-repeat center center fixed; background-size: cover; filter: brightness(0.72) saturate(0.88); transform: scale(1.02); z-index: -2; pointer-events: none; }
     body::after { content: ""; position: fixed; inset: 0; background: radial-gradient(circle at 50% 34%, rgba(124, 86, 44, 0.08) 0%, rgba(36, 18, 10, 0.26) 40%, rgba(10, 6, 3, 0.84) 100%), linear-gradient(90deg, rgba(18, 9, 5, 0.86) 0%, rgba(18, 9, 5, 0.18) 18%, rgba(18, 9, 5, 0.10) 82%, rgba(18, 9, 5, 0.90) 100%); z-index: -1; pointer-events: none; }
     .wrap { width: min(var(--wrap-max-width), calc(100vw - (var(--center-safe-side) * 2) - 40px)); max-width: var(--wrap-max-width); margin: 0 auto; padding: 20px 24px 56px; position: relative; z-index: 1; }
+    .shell-header { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; margin-bottom:14px; }
+    .shell-header-copy { min-width:0; }
+    .shell-header-copy h1 { margin:0; }
+    .shell-header-copy p { margin:12px 0 0; }
+    .shell-account-actions { display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end; position:relative; }
+    .shell-account-link,
+    .shell-account-trigger { display:inline-flex; align-items:center; gap:10px; min-height:52px; padding:8px 16px; border-radius:16px; text-decoration:none; color:#f5e7c8; background:linear-gradient(180deg, rgba(52,31,17,0.98), rgba(26,16,10,0.98)); border:1px solid rgba(184,137,45,0.36); box-shadow:0 10px 24px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,231,185,0.05); transition:transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease; }
+    .shell-account-link:hover,
+    .shell-account-trigger:hover { transform:translateY(-1px); border-color:rgba(240,196,111,0.65); box-shadow:0 14px 28px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,231,185,0.08); }
+    .shell-account-trigger { cursor:pointer; list-style:none; user-select:none; }
+    .shell-account-trigger::-webkit-details-marker,
+    .shell-account-trigger::marker { display:none; content:''; }
+    .shell-account-menu { position:relative; }
+    .shell-account-menu[open] .shell-account-trigger { border-color:rgba(240,196,111,0.72); box-shadow:0 14px 30px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,231,185,0.1); }
+    .shell-account-dropdown { position:absolute; top:calc(100% + 10px); right:0; min-width:240px; padding:10px; border-radius:18px; background:linear-gradient(180deg, rgba(39,23,13,0.99), rgba(20,12,8,0.99)); border:1px solid rgba(184,137,45,0.36); box-shadow:0 22px 48px rgba(0,0,0,0.38); z-index:50; }
+    .shell-account-dropdown a { display:block; padding:11px 13px; border-radius:12px; color:#f5e7c8; text-decoration:none; font-weight:700; }
+    .shell-account-dropdown a:hover { background:rgba(240,196,111,0.12); }
+    .shell-account-dropdown .menu-sep { height:1px; margin:8px 2px; background:rgba(240,196,111,0.14); }
+    .shell-account-caret { font-size:11px; color:#d8c6a1; }
+    .shell-avatar-badge { width:34px; height:34px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; background:linear-gradient(180deg, #f0c46f, #c89532); color:#23160c; font-weight:900; font-size:15px; box-shadow:inset 0 1px 0 rgba(255,245,220,0.42); flex:0 0 auto; }
+    .shell-account-meta { display:flex; flex-direction:column; min-width:0; }
+    .shell-account-title { font-size:15px; font-weight:800; color:#fff3df; white-space:nowrap; }
+    .shell-account-subtitle { font-size:12px; color:#d8c6a1; white-space:nowrap; }
+    .shell-settings-link { width:52px; justify-content:center; padding:0; }
+    .shell-settings-link .shell-account-title { font-size:20px; line-height:1; }
+    @media (max-width: 700px) { .shell-account-dropdown { left:0; right:auto; min-width:min(240px, calc(100vw - 48px)); } }
+    @media (max-width: 900px) {
+      .shell-header { flex-direction:column; align-items:stretch; }
+      .shell-account-actions { justify-content:flex-start; }
+    }
     body.favorites-collapsed .wrap { margin: 0 auto; }
     .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
     .tab-btn, button { background: #b8892d; color: white; border: 0; border-radius: 10px; padding: 10px 14px; cursor: pointer; }
@@ -326,15 +356,15 @@
     .market-pagination button[disabled] { opacity:0.45; cursor:not-allowed; }
 
     .trade-plan-card { background:#27180f; }
-    .trade-plan-grid { display:grid; grid-template-columns: repeat(4, minmax(240px, 1fr)); gap:16px; align-items:stretch; }
+    .trade-plan-grid { display:grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap:14px; align-items:stretch; }
     .trade-plan-slot {
       position: relative;
-      min-height: 220px;
+      min-height: 208px;
       background: linear-gradient(180deg, rgba(44,24,12,0.90), rgba(28,14,7,0.94));
       border: 1px solid rgba(212,167,67,0.18);
       box-shadow: inset 0 1px 0 rgba(255,228,162,0.05), 0 16px 34px rgba(0,0,0,0.22);
       border-radius: 16px;
-      padding: 14px;
+      padding: 12px;
     }
     .trade-plan-slot.empty { background: linear-gradient(180deg, rgba(39,21,10,0.92), rgba(23,11,5,0.96)); }
     .trade-plan-slot.locked-preview {
@@ -573,7 +603,7 @@
     .debug-collapsible-body {
       padding: 0 16px 16px;
     }
-    @media (max-width: 1500px) { .trade-plan-grid { grid-template-columns: repeat(2, minmax(280px, 1fr)); } }
+    @media (max-width: 1180px) { .trade-plan-grid { grid-template-columns: repeat(2, minmax(260px, 1fr)); } }
     @media (max-width: 900px) { .trade-plan-grid { grid-template-columns: 1fr; } }
 
     @media (max-width: 1100px) { .market-layout, .market-layout.selection-active { grid-template-columns: 1fr; } .chart-frame { height: 620px; } .favorites-sidebar, .ai-sidebar { position: static !important; width: auto !important; height: auto !important; border-right: 0; border-left: 0; border-bottom: 1px solid rgba(184,137,45,0.18); box-shadow:none; transform:none !important; padding-right:14px; } .favorites-edge-hitbox, .favorites-toggle-btn, .ai-edge-hitbox, .ai-toggle-btn { display:none; } .wrap, body.favorites-collapsed .wrap, body.ai-copilot-collapsed .wrap { margin: 0 auto; } body { padding-bottom: 0; } }
@@ -1395,12 +1425,39 @@
 </aside>
 
 <div class="wrap">
-    <h1>OSRS Flip Assistant</h1>
-    <p class="muted">Cached market metrics, month history explorer, ROI-sorted recommendations, and no trade-decision window in Market &amp; Stats.</p>
+    <div class="shell-header">
+      <div class="shell-header-copy">
+        <h1>Auto Flip Web</h1>
+        <p class="muted">Cached market metrics, month history explorer, ROI-sorted recommendations, and no trade-decision window in Market &amp; Stats.</p>
+      </div>
+      <div class="shell-account-actions">
+        <details class="shell-account-menu">
+          <summary class="shell-account-trigger" aria-label="Open profile menu">
+            <span class="shell-avatar-badge">A</span>
+            <span class="shell-account-meta">
+              <span class="shell-account-title">Profile hub</span>
+              <span class="shell-account-subtitle">Open account pages</span>
+            </span>
+            <span class="shell-account-caret">▾</span>
+          </summary>
+          <div class="shell-account-dropdown">
+            <a href="profile.html">Profile hub</a>
+            <a href="membership.html">Membership</a>
+            <a href="favorites.html">Favorites</a>
+            <a href="security.html">Security</a>
+            <div class="menu-sep"></div>
+            <a href="settings.html">Personal Settings</a>
+          </div>
+        </details>
+        <a class="shell-account-link shell-settings-link" href="settings.html" aria-label="Open personal settings" title="Personal Settings">
+          <span class="shell-account-title">⚙</span>
+        </a>
+      </div>
+    </div>
 
     <div class="tabs">
       <button class="tab-btn active" data-tab="overviewTab">Overview</button>
-      <button class="tab-btn" data-tab="tradingTab">Auto Flipper</button>
+      <button class="tab-btn" data-tab="tradingTab">Auto Flip</button>
       <button class="tab-btn" data-tab="marketTab">Market &amp; Stats</button>
       <button class="tab-btn" data-tab="personalTab">Personal Settings</button>
       <button class="tab-btn" data-tab="debugTab">Debug</button>
@@ -1413,7 +1470,7 @@
 &lt;head&gt;
   &lt;meta charset=&quot;UTF-8&quot; /&gt;
   &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
-  &lt;title&gt;OSRS Companion&lt;/title&gt;
+  &lt;title&gt;Auto Flip Web&lt;/title&gt;
   &lt;style&gt;
     :root {
       --bg: #120a06;
@@ -1646,7 +1703,7 @@
       &lt;div class=&quot;brand&quot;&gt;
         &lt;div class=&quot;brand-badge&quot;&gt;GE&lt;/div&gt;
         &lt;div&gt;
-          &lt;div&gt;OSRS Companion&lt;/div&gt;
+          &lt;div&gt;Auto Flip Web&lt;/div&gt;
           &lt;div class=&quot;muted&quot; style=&quot;font-size:12px;&quot;&gt;Website shows opportunity. Plugin handles execution.&lt;/div&gt;
         &lt;/div&gt;
       &lt;/div&gt;
@@ -1856,7 +1913,7 @@
       &lt;/div&gt;
     &lt;/section&gt;
 
-    &lt;div class=&quot;footer-note&quot;&gt;Patch 20 polish layer: stronger account state, clearer Free vs Pro access, plugin download + device linking trust signals, and better login/upgrade feedback.&lt;/div&gt;
+    &lt;div class=&quot;footer-note&quot;&gt;Patch 20 polish layer: stronger account state, clearer Free vs Pro access, Plugin Hub + device-linking trust signals, and better login/upgrade feedback.&lt;/div&gt;
   &lt;/div&gt;
 
   &lt;script&gt;
@@ -2038,7 +2095,7 @@
       updateAccountSummary(null);
       renderDevices();
       setStatus(&#x27;accountStatus&#x27;, &#x27;Logged out. Website preview remains available.&#x27;, &#x27;info&#x27;);
-      setStatus(&#x27;pluginStatus&#x27;, &#x27;Plugin locked. Upgrade to Pro to enable download and linking.&#x27;, &#x27;info&#x27;);
+      setStatus(&#x27;pluginStatus&#x27;, &#x27;Plugin locked. Upgrade to Pro to enable Plugin Hub access guidance and device linking.&#x27;, &#x27;info&#x27;);
       document.getElementById(&#x27;email&#x27;).value = &#x27;&#x27;;
       document.getElementById(&#x27;password&#x27;).value = &#x27;&#x27;;
     }
@@ -2050,7 +2107,7 @@
         updateAccountSummary(null);
         renderDevices();
         setStatus(&#x27;accountStatus&#x27;, &#x27;Not logged in. Create an account or log in to store access state.&#x27;, &#x27;info&#x27;);
-        setStatus(&#x27;pluginStatus&#x27;, &#x27;Plugin locked. Upgrade to Pro to enable download and linking.&#x27;, &#x27;info&#x27;);
+        setStatus(&#x27;pluginStatus&#x27;, &#x27;Plugin locked. Upgrade to Pro to enable Plugin Hub access guidance and device linking.&#x27;, &#x27;info&#x27;);
         return;
       }
       try {
@@ -2063,7 +2120,7 @@
         setStatus(&#x27;accountStatus&#x27;, `${planLabel}. ${user.plugin_access_enabled ? &#x27;Plugin access enabled.&#x27; : &#x27;Plugin still locked.&#x27;} Linked devices: ${user.linked_devices || 0}.`, &#x27;success&#x27;);
         setStatus(&#x27;pluginStatus&#x27;, user.plugin_access_enabled
           ? `Plugin unlocked. Download is available and linked devices can sync into your account.`
-          : &#x27;Plugin locked. Upgrade to Pro to enable download and linking.&#x27;, user.plugin_access_enabled ? &#x27;success&#x27; : &#x27;info&#x27;);
+          : &#x27;Plugin locked. Upgrade to Pro to enable Plugin Hub access guidance and device linking.&#x27;, user.plugin_access_enabled ? &#x27;success&#x27; : &#x27;info&#x27;);
       } catch (error) {
         saveToken(&#x27;&#x27;);
         state.user = null;
@@ -2071,7 +2128,7 @@
         updateAccountSummary(null);
         renderDevices();
         setStatus(&#x27;accountStatus&#x27;, error.message, &#x27;error&#x27;);
-        setStatus(&#x27;pluginStatus&#x27;, &#x27;Plugin locked. Upgrade to Pro to enable download and linking.&#x27;, &#x27;info&#x27;);
+        setStatus(&#x27;pluginStatus&#x27;, &#x27;Plugin locked. Upgrade to Pro to enable Plugin Hub access guidance and device linking.&#x27;, &#x27;info&#x27;);
       }
     }
 
@@ -2083,7 +2140,7 @@
       try {
         await api(&#x27;/auth/subscribe&#x27;, { method: &#x27;POST&#x27;, body: JSON.stringify({ token: state.token, plan_tier: &#x27;pro&#x27; }) });
         setStatus(&#x27;accountStatus&#x27;, &#x27;Pro activated. Plugin access has been enabled for this account.&#x27;, &#x27;success&#x27;);
-        setStatus(&#x27;pluginStatus&#x27;, &#x27;Pro active. Check download or link your RuneLite device next.&#x27;, &#x27;success&#x27;);
+        setStatus(&#x27;pluginStatus&#x27;, &#x27;Pro active. Check the Plugin Hub steps or link your RuneLite device next.&#x27;, &#x27;success&#x27;);
         await loadMe();
       } catch (error) {
         setStatus(&#x27;accountStatus&#x27;, error.message, &#x27;error&#x27;);
@@ -2115,7 +2172,7 @@
           setStatus(&#x27;pluginStatus&#x27;, &#x27;Plugin locked. Upgrade to Pro first.&#x27;, &#x27;error&#x27;);
           return;
         }
-        setStatus(&#x27;pluginStatus&#x27;, `Plugin ready. Open RuneLite → Plugin Hub → search “Auto Flip”, then return here and link your RuneLite device.`, &#x27;success&#x27;);
+        setStatus(&#x27;pluginStatus&#x27;, `Plugin access confirmed. Open RuneLite → Plugin Hub → search “Auto Flip”, then return here and link your RuneLite device.`, &#x27;success&#x27;);
       } catch (error) {
         setStatus(&#x27;pluginStatus&#x27;, error.message, &#x27;error&#x27;);
       }
@@ -2257,9 +2314,9 @@
 
       <div class="row">
         <div class="card grow trade-plan-card">
-          <h2>Unified Trade Plan</h2>
+          <h2>GE Trade Grid</h2>
           <div id="tradePlanOverlayBadge" class="trade-plan-overlay-badge">Overlay: Algorithm</div>
-          <p class="muted">One shared 2x4 workspace. Live detected trades stay in place, while empty slots can show algorithm or AI ghost recommendations depending on the last action you triggered.</p>
+          <p class="muted">GE-style 2x4 workspace. Live detected trades stay in place, while empty slots can show algorithm or AI ghost recommendations depending on the last action you triggered.</p>
           <div id="tradingTradePlanSlots" class="trade-plan-grid"></div>
         </div>
       </div>
