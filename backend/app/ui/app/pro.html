@@ -28,7 +28,7 @@
 <body>
   <div class="topbar">
     <div class="brand"><div class="brand-badge">GE</div><div><div>Auto Flip</div><div style="font-size:12px;color:var(--muted);font-weight:400">Auto Flip Web for discovery. Auto Flip for execution.</div></div></div>
-    <div class="nav"><a class="btn" href="../index.html">Home</a><a class="btn" href="index.html">Enter App</a><a class="btn" href="../login.html?next=/app/">Login</a><a class="btn gold" href="../register.html?next=/app/">Create Account</a></div>
+    <div class="nav" id="topNav"><a class="btn" href="../index.html">Home</a><a class="btn" href="index.html">Enter App</a><a class="btn" href="../login.html?next=/app/">Login</a><a class="btn gold" href="../register.html?next=/app/">Create Account</a></div>
   </div>
   <div class="shell">
     <div class="hero">
@@ -63,7 +63,7 @@
         <div class="eyebrow">Upgrade path</div>
         <div class="price">Finish the job in Pro</div>
         <div class="sub" style="margin-top:10px">Use the free site to find opportunities. Upgrade when you want the plugin that turns those opportunities into a real GE plan.</div>
-        <div class="cta-stack">
+        <div class="cta-stack" id="proCtaStack">
           <a class="btn gold" href="register.html?next=/app/">Create account and continue</a>
           <a class="btn" href="login.html?next=/app/">Already have an account? Log in</a>
           <a class="btn" href="app/index.html">Keep exploring the free app</a>
@@ -73,5 +73,129 @@
       </div>
     </div>
   </div>
+
+  <script>
+    (function() {
+      const HOME_HREF = '../index.html';
+      const ENTER_HREF = 'index.html';
+      const LOGIN_HREF = '../login.html?next=/app/';
+      const REGISTER_HREF = '../register.html?next=/app/';
+      const BACK_HREF = 'index.html';
+      const HOW_HREF = 'index.html';
+
+      function getToken() {
+        return localStorage.getItem('osrs_token') || '';
+      }
+
+      async function api(url, options = {}) {
+        const response = await fetch(url, {
+          headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+          ...options,
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.detail || 'Request failed');
+        return data;
+      }
+
+      async function getSession() {
+        const token = getToken();
+        if (!token) return null;
+        try {
+          return await api('/auth/me?token=' + encodeURIComponent(token));
+        } catch (_) {
+          return null;
+        }
+      }
+
+      async function logoutNow() {
+        const token = getToken();
+        try {
+          if (token) await api('/auth/logout?token=' + encodeURIComponent(token), { method: 'POST' });
+        } catch (_) {}
+        localStorage.removeItem('osrs_token');
+        window.location.reload();
+      }
+
+      async function upgradeNow() {
+        const token = getToken();
+        if (!token) {
+          window.location.href = LOGIN_HREF;
+          return;
+        }
+        const button = document.getElementById('upgradeNowBtn');
+        if (button) {
+          button.textContent = 'Upgrading...';
+          button.style.pointerEvents = 'none';
+        }
+        try {
+          await api('/auth/subscribe', {
+            method: 'POST',
+            body: JSON.stringify({ token, plan_tier: 'pro' }),
+          });
+          window.location.href = BACK_HREF;
+        } catch (error) {
+          if (button) {
+            button.textContent = error.message || 'Upgrade failed';
+            button.style.pointerEvents = '';
+          }
+        }
+      }
+
+      function renderLoggedOut() {
+        const nav = document.getElementById('topNav');
+        if (nav) {
+          nav.innerHTML = `
+            <a class="btn" href="${HOME_HREF}">Home</a>
+            <a class="btn" href="${ENTER_HREF}">Enter App</a>
+            <a class="btn" href="${LOGIN_HREF}">Login</a>
+            <a class="btn gold" href="${REGISTER_HREF}">Create Account</a>`;
+        }
+        const cta = document.getElementById('proCtaStack');
+        if (cta) {
+          cta.innerHTML = `
+            <a class="btn gold" href="${REGISTER_HREF}">Create account and continue</a>
+            <a class="btn" href="${LOGIN_HREF}">Already have an account? Log in</a>
+            <a class="btn" href="${HOW_HREF}">$Keep exploring the free app</a>`;
+        }
+      }
+
+      function renderLoggedIn(session) {
+        const user = (session && session.user) || {};
+        const email = user.email || 'Signed in';
+        const isPro = String(user.plan_tier || '').toLowerCase() === 'pro' || String(user.subscription_status || '').toLowerCase() === 'active';
+        const nav = document.getElementById('topNav');
+        if (nav) {
+          nav.innerHTML = `
+            <a class="btn" href="${HOME_HREF}">Home</a>
+            <a class="btn" href="${ENTER_HREF}">Enter App</a>
+            <span class="btn" style="cursor:default;max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${email}</span>
+            <a class="btn" href="#" id="logoutBtn">Log out</a>`;
+        }
+        const cta = document.getElementById('proCtaStack');
+        if (cta) {
+          cta.innerHTML = isPro
+            ? `
+              <div class="btn gold" style="cursor:default">Pro active on this account</div>
+              <a class="btn" href="${ENTER_HREF}">Return to app</a>
+              <a class="btn" href="${HOW_HREF}">$Keep exploring the free app</a>`
+            : `
+              <a class="btn gold" href="#" id="upgradeNowBtn">Upgrade this account now</a>
+              <a class="btn" href="${ENTER_HREF}">Back to the app</a>
+              <a class="btn" href="${HOW_HREF}">$Keep exploring the free app</a>`;
+        }
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) logoutBtn.addEventListener('click', function(e) { e.preventDefault(); logoutNow(); });
+        const upgradeBtn = document.getElementById('upgradeNowBtn');
+        if (upgradeBtn) upgradeBtn.addEventListener('click', function(e) { e.preventDefault(); upgradeNow(); });
+      }
+
+      document.addEventListener('DOMContentLoaded', async function() {
+        const session = await getSession();
+        if (session && session.user) renderLoggedIn(session);
+        else renderLoggedOut();
+      });
+    })();
+  </script>
+
 </body>
 </html>

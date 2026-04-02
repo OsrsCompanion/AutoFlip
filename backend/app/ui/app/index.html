@@ -1363,7 +1363,439 @@
       .trade-plan-lock-mask { display: none; }
     }
 
-  </style>
+  
+
+/* PATCH: Premium skin selector system */
+
+/* PATCH: Premium effect 4 — Coin Stack (panel-anchored + real coin toss) */
+body.premium-skin-coin .shell-account-trigger {
+  position: relative !important;
+  overflow: visible !important;
+  isolation: isolate !important;
+  border-color: rgba(212, 169, 63, 0.86) !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 230, 148, 0.18),
+    0 0 0 3px rgba(117, 86, 18, 0.14),
+    0 12px 24px rgba(0,0,0,0.22),
+    inset 0 1px 0 rgba(255,247,198,0.08),
+    inset 0 -10px 18px rgba(110, 79, 14, 0.10) !important;
+}
+body.premium-skin-coin .shell-account-trigger > * { position: relative; z-index: 2; }
+body.premium-skin-coin .shell-account-trigger::before {
+  content: "";
+  position: absolute;
+  left: 10px; right: 10px; bottom: 4px;
+  height: 18px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 16% 58%, rgba(255,237,163,0.34) 0 10%, rgba(255,237,163,0) 11%),
+    radial-gradient(circle at 31% 48%, rgba(246,196,72,0.36) 0 14%, rgba(246,196,72,0) 15%),
+    radial-gradient(circle at 49% 55%, rgba(228,173,49,0.30) 0 13%, rgba(228,173,49,0) 14%),
+    radial-gradient(circle at 67% 50%, rgba(255,221,123,0.30) 0 12%, rgba(255,221,123,0) 13%),
+    radial-gradient(circle at 82% 60%, rgba(214,156,33,0.26) 0 10%, rgba(214,156,33,0) 11%);
+  opacity: .8;
+  pointer-events: none;
+  z-index: 1;
+}
+body.premium-skin-coin .shell-avatar-badge {
+  position: relative !important;
+  z-index: 5 !important;
+  overflow: visible !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,251,224,0.58),
+    0 0 0 2px rgba(224,176,48,0.86),
+    0 0 10px rgba(214,154,23,0.12) !important;
+}
+body.premium-skin-coin .shell-avatar-badge::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255,224,120,0.0) 48%, rgba(255,216,112,0.12) 66%, rgba(255,246,188,0.28) 82%, rgba(255,236,160,0.0) 100%);
+  animation: premiumCoinPulse 2.4s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+@keyframes premiumCoinPulse {
+  0%,100% { transform: scale(1); opacity: .54; }
+  50% { transform: scale(1.07); opacity: .82; }
+}
+.premium-coin-stack-anchor {
+  position: absolute;
+  top: -18px;
+  width: 84px;
+  height: 60px;
+  pointer-events: none;
+  z-index: 9;
+  opacity: .96;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,.18));
+}
+.premium-coin-stack-anchor img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.premium-coin-stack-anchor.is-left { left: 12px; }
+.premium-coin-stack-anchor.is-right { right: 14px; }
+.premium-coin-stack-anchor.hit {
+  animation: premiumStackNudge .36s ease;
+}
+@keyframes premiumStackNudge {
+  0% { transform: translateY(0) scale(1); }
+  40% { transform: translateY(-2px) scale(1.06); }
+  100% { transform: translateY(0) scale(1); }
+}
+.premium-coin-flight-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+}
+.premium-coin-flight {
+  position: fixed;
+  width: 28px;
+  height: 28px;
+  pointer-events: none;
+  will-change: transform, left, top;
+}
+.premium-coin-flight img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 2px 2px rgba(66, 45, 5, 0.18));
+}
+.premium-coin-glint {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: radial-gradient(circle at 35% 28%, rgba(255,255,255,.72) 0 8%, rgba(255,255,255,0) 9%);
+  opacity: 0;
+  mix-blend-mode: screen;
+}
+.premium-coin-impact {
+  position: absolute;
+  width: 24px;
+  height: 12px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 45% 35%, rgba(255,249,204,0.82) 0 14%, rgba(255,249,204,0) 15%),
+    linear-gradient(180deg, rgba(255,220,114,0.52), rgba(215,164,52,0.38) 70%, rgba(145,98,21,0.28));
+  filter: blur(.2px);
+  box-shadow: 0 0 6px rgba(230,180,72,0.08);
+  pointer-events: none;
+  animation: premiumCoinImpact .46s ease-out forwards;
+}
+@keyframes premiumCoinImpact {
+  0% { opacity: 0; transform: scale(.55); }
+  20% { opacity: .95; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.22); }
+}
+
+
+.premium-coin-stack-layer{
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10001;
+}
+.premium-coin-stack-overlay{
+  position: fixed;
+  pointer-events: none;
+  z-index: 10002;
+  width: 84px;
+  height: 56px;
+  transform-origin: 50% 100%;
+  filter: drop-shadow(0 6px 10px rgba(0,0,0,0.28));
+}
+.premium-coin-stack-overlay img{
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.premium-coin-stack-overlay.hit{
+  animation: premiumCoinStackOverlayHit .45s ease;
+}
+.premium-coin-panel-mark{
+  position: absolute !important;
+  inset: 0 auto auto 0 !important;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+@keyframes premiumCoinStackOverlayHit {
+  0% { transform: translateY(0) scale(1); }
+  35% { transform: translateY(-2px) scale(1.08); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+/* PATCH: chip coin fill with bright avatar and dark shell, preserving on-screen stacks/throws */
+body.premium-skin-coin .shell-account-trigger.premium-chip-coinfill{
+  position: relative !important;
+  overflow: hidden !important;
+  isolation: isolate !important;
+}
+body.premium-skin-coin .shell-account-trigger.premium-chip-coinfill::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  background:
+    radial-gradient(140px 64px at 50% 100%, rgba(255,214,96,0.16), rgba(255,214,96,0) 72%),
+    linear-gradient(180deg, rgba(255,203,84,0.04), rgba(255,203,84,0.01));
+  pointer-events:none;
+  z-index:0;
+}
+body.premium-skin-coin .shell-account-trigger.premium-chip-coinfill .premium-chip-coins{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  z-index:1;
+}
+body.premium-skin-coin .shell-account-trigger.premium-chip-coinfill .premium-chip-coins img{
+  position:absolute;
+  height:auto;
+  object-fit:contain;
+  user-select:none;
+  -webkit-user-drag:none;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.32));
+  opacity:0.98;
+}
+body.premium-skin-coin .shell-account-trigger.premium-chip-coinfill .premium-chip-coins .stack-a{ width:76px; left:-4px; bottom:-3px; transform:rotate(-4deg); }
+body.premium-skin-coin .shell-account-trigger.premium-chip-coinfill .premium-chip-coins .stack-b{ width:68px; left:36px; bottom:-1px; transform:rotate(3deg); }
+body.premium-skin-coin .shell-account-trigger.premium-chip-coinfill .premium-chip-coins .stack-c{ width:64px; right:26px; bottom:-2px; transform:rotate(-2deg); }
+body.premium-skin-coin .shell-account-trigger.premium-chip-coinfill .premium-chip-coins .stack-d{ width:58px; right:-4px; bottom:1px; transform:rotate(4deg); }
+body.premium-skin-coin .shell-account-trigger.premium-chip-coinfill .premium-chip-coins .stack-e{ width:48px; left:60px; bottom:15px; transform:rotate(-6deg); opacity:0.94; }
+body.premium-skin-coin .shell-account-trigger.premium-chip-coinfill .premium-chip-coins .stack-f{ width:42px; right:72px; bottom:18px; transform:rotate(7deg); opacity:0.94; }
+
+body.premium-skin-coin .shell-account-trigger.premium-chip-coinfill .shell-account-meta,
+body.premium-skin-coin .shell-account-trigger.premium-chip-coinfill .shell-account-caret{
+  position:relative;
+  z-index:3;
+}
+body.premium-skin-coin .shell-account-trigger.premium-chip-coinfill .shell-account-title,
+body.premium-skin-coin .shell-account-trigger.premium-chip-coinfill .shell-account-subtitle{
+  text-shadow: 0 1px 0 rgba(0,0,0,0.58), 0 0 10px rgba(0,0,0,0.36);
+}
+
+/* Keep avatar bright like CTA while preserving dark outer shell contrast */
+body.premium-skin-coin .shell-account-trigger.premium-chip-coinfill .shell-avatar-badge{
+  position:relative !important;
+  z-index:4 !important;
+  background: linear-gradient(180deg, #ffd86b, #ffb300) !important;
+  color:#2a1a00 !important;
+  box-shadow:
+    0 0 0 2px rgba(255,230,120,1),
+    0 0 0 8px rgba(31,19,7,0.70),
+    0 8px 18px rgba(0,0,0,0.36),
+    inset 0 1px 0 rgba(255,255,220,0.92) !important;
+}
+body.premium-skin-coin .shell-account-trigger.premium-chip-coinfill body.premium-skin-coin .shell-avatar-badge::before{
+  content:"";
+  position:absolute;
+  inset:-12px;
+  border-radius:999px;
+  background: radial-gradient(circle, rgba(24,15,6,0.80) 0%, rgba(24,15,6,0.60) 44%, rgba(24,15,6,0.0) 76%);
+  z-index:-1;
+  pointer-events:none;
+}
+
+
+/* PATCH: Premium effect 4 — Heat Forge (sweat merge + flying sparks) */
+body.premium-skin-magma .shell-account-trigger {
+  --forge-fill: 42%;
+  position: relative !important;
+  overflow: visible !important;
+  isolation: isolate !important;
+  border-color: rgba(255, 137, 56, 0.82) !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 154, 82, 0.30),
+    0 0 0 3px rgba(118, 26, 0, 0.20),
+    0 12px 24px rgba(0,0,0,0.26),
+    inset 0 1px 0 rgba(255,222,173,0.08),
+    inset 0 -18px 28px rgba(74, 9, 0, 0.28) !important;
+}
+body.premium-skin-magma .shell-account-trigger > * {
+  position: relative;
+  z-index: 3;
+}
+body.premium-skin-magma .shell-account-trigger::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  bottom: 5px;
+  height: var(--forge-fill);
+  border-radius: 0 0 16px 16px;
+  background:
+    radial-gradient(120% 60% at 18% 8%, rgba(255,234,162,0.90) 0 8%, rgba(255,234,162,0) 9%),
+    radial-gradient(120% 62% at 52% 10%, rgba(255,196,88,0.78) 0 10%, rgba(255,196,88,0) 11%),
+    radial-gradient(120% 58% at 82% 12%, rgba(255,174,66,0.84) 0 9%, rgba(255,174,66,0) 10%),
+    linear-gradient(180deg,
+      rgba(255,219,132,0.98) 0%,
+      rgba(255,154,44,0.96) 16%,
+      rgba(229,82,16,0.94) 42%,
+      rgba(132,19,0,0.96) 100%);
+  box-shadow:
+    inset 0 6px 8px rgba(255,228,158,0.24),
+    inset 0 -10px 18px rgba(95, 0, 0, 0.34),
+    0 -2px 10px rgba(255, 159, 44, 0.18);
+  clip-path: polygon(0% 100%, 0% 24%, 7% 21%, 14% 25%, 22% 20%, 29% 24%, 37% 18%, 45% 23%, 53% 17%, 61% 23%, 69% 19%, 77% 25%, 85% 21%, 93% 24%, 100% 20%, 100% 100%);
+  animation: premiumForgeLake 5.8s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+body.premium-skin-magma .shell-account-trigger::after {
+  content: "";
+  position: absolute;
+  inset: auto 10px 6px 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 20% 50%, rgba(255,210,123,0.18), transparent 26%),
+              radial-gradient(circle at 68% 50%, rgba(255,167,70,0.16), transparent 24%);
+  filter: blur(8px);
+  opacity: .95;
+  pointer-events: none;
+  z-index: 0;
+}
+body.premium-skin-magma .shell-avatar-badge {
+  position: relative !important;
+  z-index: 5 !important;
+  overflow: visible !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,243,201,0.42),
+    0 0 0 2px rgba(255,150,70,0.78),
+    0 0 14px rgba(217,76,8,0.28),
+    0 0 24px rgba(255,198,98,0.10) !important;
+}
+body.premium-skin-magma .shell-avatar-badge::before {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255,160,82,0.0) 48%, rgba(255,120,31,0.16) 66%, rgba(255,220,137,0.48) 82%, rgba(255,149,44,0.0) 100%);
+  filter: blur(1px);
+  animation: premiumForgeCore 2.2s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+.premium-forge-sweat {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 46% 26%, rgba(255,245,194,0.98) 0 20%, rgba(255,245,194,0) 21%),
+    linear-gradient(180deg, rgba(255,183,79,0.98), rgba(245,93,18,0.96) 58%, rgba(130,18,0,0.96));
+  box-shadow: 0 1px 6px rgba(255,96,0,0.28);
+  pointer-events: none;
+  z-index: 7;
+}
+.premium-forge-spark-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+}
+.premium-forge-spark {
+  position: fixed;
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255,240,191,1) 0 30%, rgba(255,191,95,1) 31% 56%, rgba(255,128,38,.95) 57% 75%, rgba(255,128,38,0) 76%);
+  box-shadow: 0 0 7px rgba(255,116,10,.25);
+  pointer-events: none;
+}
+.premium-forge-puddle {
+  position: fixed;
+  width: 14px;
+  height: 7px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(255,235,180,.92) 0 18%, rgba(255,235,180,0) 19%),
+    linear-gradient(180deg, rgba(255,174,70,.95), rgba(232,77,14,.92) 55%, rgba(119,16,0,.94));
+  box-shadow: 0 1px 6px rgba(255,96,0,.18);
+  pointer-events: none;
+  z-index: 9998;
+  animation: premiumForgePuddleFade 1s ease-out forwards;
+}
+@keyframes premiumForgeLake {
+  0%, 100% {
+    clip-path: polygon(0% 100%, 0% 24%, 7% 21%, 14% 25%, 22% 20%, 29% 24%, 37% 18%, 45% 23%, 53% 17%, 61% 23%, 69% 19%, 77% 25%, 85% 21%, 93% 24%, 100% 20%, 100% 100%);
+    filter: saturate(1) brightness(1);
+  }
+  36% {
+    clip-path: polygon(0% 100%, 0% 20%, 8% 24%, 15% 19%, 23% 23%, 31% 18%, 39% 25%, 47% 20%, 55% 24%, 63% 18%, 71% 24%, 79% 20%, 87% 23%, 94% 19%, 100% 24%, 100% 100%);
+    filter: saturate(1.08) brightness(1.04);
+  }
+  70% {
+    clip-path: polygon(0% 100%, 0% 25%, 8% 19%, 15% 23%, 23% 18%, 31% 22%, 39% 19%, 47% 24%, 55% 20%, 63% 25%, 71% 21%, 79% 24%, 87% 18%, 94% 22%, 100% 19%, 100% 100%);
+    filter: saturate(1.02) brightness(0.98);
+  }
+}
+@keyframes premiumForgeCore {
+  0%,100% { transform: scale(1); opacity: 0.74; }
+  50% { transform: scale(1.07); opacity: 0.96; }
+}
+@keyframes premiumForgePuddleFade {
+  0% { opacity: 0; transform: scale(.6); }
+  14% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.2); }
+}
+
+
+
+/* PATCH: Premium effect 3 — Arcane Gold */
+body.premium-skin-arcane .shell-avatar-badge {
+  position: relative !important;
+  z-index: 0 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,245,220,0.42),
+    0 0 0 2px rgba(170,120,255,0.72),
+    0 0 22px rgba(147,84,255,0.28) !important;
+}
+body.premium-skin-arcane .shell-avatar-badge::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border-radius: 999px;
+  border: 2px dashed rgba(238,210,118,0.85);
+  box-shadow: 0 0 14px rgba(187,126,255,0.35);
+  animation: premiumArcaneOrbit 7s linear infinite;
+  pointer-events: none;
+}
+body.premium-skin-arcane .shell-avatar-badge::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 20% 25%, rgba(255,244,186,0.65), transparent 28%),
+    radial-gradient(circle at 78% 72%, rgba(197,130,255,0.55), transparent 26%),
+    radial-gradient(circle, rgba(164,108,255,0.18), rgba(164,108,255,0.02) 70%, transparent 75%);
+  filter: blur(1px);
+  animation: premiumArcanePulse 2.4s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes premiumArcaneOrbit {
+  from { transform: rotate(0deg); opacity: 0.75; }
+  to { transform: rotate(360deg); opacity: 0.75; }
+}
+@keyframes premiumArcanePulse {
+  0%,100% { transform: scale(0.98); opacity: 0.75; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
+
+
+
+
+</style>
 </head>
 <body>
   <aside class="favorites-sidebar" id="favoritesSidebar">
@@ -1447,6 +1879,8 @@
             <a href="security.html">Security</a>
             <div class="menu-sep"></div>
             <a href="settings.html">Personal Settings</a>
+            <div class="menu-sep"></div>
+            <a href="../login.html" id="profileAuthAction" data-login-href="../login.html">Log in</a>
           </div>
         </details>
         <a class="shell-account-link shell-settings-link" href="settings.html" aria-label="Open personal settings" title="Personal Settings">
@@ -1711,7 +2145,7 @@
         &lt;span id=&quot;topPlan&quot; class=&quot;tag&quot;&gt;Free Tier&lt;/span&gt;
         &lt;span id=&quot;topAccess&quot; class=&quot;state-badge locked&quot;&gt;Plugin Locked&lt;/span&gt;
         &lt;button class=&quot;btn&quot; onclick=&quot;refreshRecommendations()&quot;&gt;Refresh Preview&lt;/button&gt;
-        &lt;button class=&quot;btn gold&quot; onclick=&quot;window.top.location.href='/pro.html'&quot;&gt;Optimize My GE&lt;/button&gt;
+        &lt;button class=&quot;btn gold&quot; onclick=&quot;window.top.location.href=&#x27;pro.html&#x27;&quot;&gt;Optimize My GE&lt;/button&gt;
       &lt;/div&gt;
     &lt;/div&gt;
   &lt;/div&gt;
@@ -1758,7 +2192,7 @@
           &lt;div class=&quot;account-hero-card&quot;&gt;
             &lt;div class=&quot;eyebrow&quot;&gt;Free → Pro path&lt;/div&gt;
             &lt;div id=&quot;accountHeroTitle&quot; class=&quot;account-title&quot;&gt;Start on the website. Unlock execution when you are ready.&lt;/div&gt;
-            &lt;div id=&quot;accountHeroMeta&quot; class=&quot;helper-copy&quot; style=&quot;margin-top:8px;&quot;&gt;Create an account to save your access state, then use the same login inside RuneLite when you upgrade.&lt;/div&gt;
+            &lt;div id=&quot;accountHeroMeta&quot; class=&quot;helper-copy&quot; style=&quot;margin-top:8px;&quot;&gt;Use the profile menu in the top-right to log in or out. When you upgrade, premium CTA buttons can take you to the test pay screen.&lt;/div&gt;
             &lt;div class=&quot;badge-row&quot;&gt;
               &lt;span id=&quot;planBadgeLarge&quot; class=&quot;state-badge free&quot;&gt;Free Website&lt;/span&gt;
               &lt;span id=&quot;accessBadgeLarge&quot; class=&quot;state-badge locked&quot;&gt;Plugin Locked&lt;/span&gt;
@@ -1780,18 +2214,7 @@
             &lt;/div&gt;
           &lt;/div&gt;
 
-          &lt;div class=&quot;account-form-grid&quot;&gt;
-            &lt;input id=&quot;email&quot; placeholder=&quot;Email&quot; /&gt;
-            &lt;input id=&quot;password&quot; type=&quot;password&quot; placeholder=&quot;Password&quot; /&gt;
-          &lt;/div&gt;
-
-          &lt;div class=&quot;row&quot;&gt;
-            &lt;button class=&quot;btn primary&quot; onclick=&quot;signup()&quot;&gt;Create Account&lt;/button&gt;
-            &lt;button class=&quot;btn&quot; onclick=&quot;login()&quot;&gt;Login&lt;/button&gt;
-            &lt;button class=&quot;btn subtle&quot; onclick=&quot;logout()&quot;&gt;Logout&lt;/button&gt;
-          &lt;/div&gt;
-
-          &lt;div class=&quot;plugin-card-grid&quot;&gt;
+&lt;div class=&quot;plugin-card-grid&quot;&gt;
             &lt;div class=&quot;plugin-subcard&quot;&gt;
               &lt;div class=&quot;plugin-subcard-title&quot;&gt;Subscription State&lt;/div&gt;
               &lt;div class=&quot;helper-copy&quot;&gt;Free keeps discovery, charts, and preview planning. Pro unlocks the RuneLite plugin, full 8-slot optimization, and execution-ready guidance.&lt;/div&gt;
@@ -1800,7 +2223,7 @@
                 &lt;span id=&quot;billingBadge&quot; class=&quot;state-badge&quot;&gt;No billing yet&lt;/span&gt;
               &lt;/div&gt;
               &lt;div class=&quot;row&quot; style=&quot;margin-top:12px;&quot;&gt;
-                &lt;button class=&quot;btn gold&quot; onclick=&quot;window.top.location.href='/pro.html'&quot;&gt;Upgrade to Pro&lt;/button&gt;
+                &lt;button class=&quot;btn gold&quot; onclick=&quot;window.top.location.href=&#x27;pro.html&#x27;&quot;&gt;Upgrade to Pro&lt;/button&gt;
                 &lt;button class=&quot;btn&quot; onclick=&quot;loadMe()&quot;&gt;Refresh Account&lt;/button&gt;
               &lt;/div&gt;
             &lt;/div&gt;
@@ -1820,12 +2243,12 @@
               &lt;/div&gt;
               &lt;div class=&quot;row&quot; style=&quot;margin-top:12px;&quot;&gt;
                 &lt;button class=&quot;btn cta-pulse&quot; type=&quot;button&quot; onclick=&quot;setStatus(&amp;#x27;pluginStatus&amp;#x27;, &amp;#x27;Open RuneLite → Plugin Hub → search “Auto Flip”, then return here and link your RuneLite device.&amp;#x27;, &amp;#x27;info&amp;#x27;)&quot;&gt;How to install&lt;/button&gt;
-                &lt;button class=&quot;btn primary cta-pulse&quot; onclick=&quot;linkDevice()&quot;&gt;Link RuneLite Device&lt;/button&gt;
+                &lt;button class=&quot;btn primary cta-pulse&quot; onclick=&quot;window.top.location.href=&#x27;pro.html&#x27;&quot;&gt;Link RuneLite Device&lt;/button&gt;
               &lt;/div&gt;
             &lt;/div&gt;
           &lt;/div&gt;
 
-          &lt;div id=&quot;accountStatus&quot; class=&quot;status info&quot;&gt;Not logged in. Create an account or log in to store access state.&lt;/div&gt;
+          &lt;div id=&quot;accountStatus&quot; class=&quot;status info&quot;&gt;Not logged in. Use the profile menu in the top-right to log in.&lt;/div&gt;
         &lt;/div&gt;
       &lt;/div&gt;
     &lt;/section&gt;
@@ -2012,7 +2435,7 @@
         ? (isPro
             ? &#x27;Your account is ready for both the website and the RuneLite plugin.&#x27;
             : &#x27;You are on the free website tier. Upgrade when you want full 8-slot optimization and plugin access.&#x27;)
-        : &#x27;Create an account to save your access state, then use the same login inside RuneLite when you upgrade.&#x27;;
+        : &#x27;Use the profile menu in the top-right to log in or out. When you upgrade, premium CTA buttons can take you to the test pay screen.&#x27;;
     }
 
     function renderDevices() {
@@ -2106,7 +2529,7 @@
         state.devices = [];
         updateAccountSummary(null);
         renderDevices();
-        setStatus(&#x27;accountStatus&#x27;, &#x27;Not logged in. Create an account or log in to store access state.&#x27;, &#x27;info&#x27;);
+        setStatus(&#x27;accountStatus&#x27;, &#x27;Not logged in. Use the profile menu in the top-right to log in.&#x27;, &#x27;info&#x27;);
         setStatus(&#x27;pluginStatus&#x27;, &#x27;Plugin locked. Upgrade to Pro to enable Plugin Hub access guidance and device linking.&#x27;, &#x27;info&#x27;);
         return;
       }
@@ -5816,6 +6239,42 @@
       setTimeout(applyHeight, 150);
     }
 
+
+    function updateProfileAuthAction() {
+      const authLink = document.getElementById("profileAuthAction");
+      if (!authLink) return;
+      const token = (localStorage.getItem("osrs_token") || "").trim();
+      if (token) {
+        authLink.textContent = "Log out";
+        authLink.href = "#";
+        authLink.dataset.mode = "logout";
+      } else {
+        authLink.textContent = "Log in";
+        authLink.href = authLink.dataset.loginHref || "../login.html";
+        authLink.dataset.mode = "login";
+      }
+    }
+
+    async function handleProfileAuthAction(event) {
+      const authLink = event.target.closest("#profileAuthAction");
+      if (!authLink) return;
+      if (authLink.dataset.mode !== "logout") return;
+      event.preventDefault();
+      const token = (localStorage.getItem("osrs_token") || "").trim();
+      try {
+        if (token) {
+          await fetch("/auth/logout?token=" + encodeURIComponent(token), { method: "POST" });
+        }
+      } catch (error) {
+        console.warn("Profile logout request failed", error);
+      }
+      localStorage.removeItem("osrs_token");
+      window.location.reload();
+    }
+
+    document.addEventListener("click", handleProfileAuthAction);
+    window.addEventListener("storage", updateProfileAuthAction);
+
     initializeFavoritesSidebarState();
     initializeAiCopilotSidebarState();
     setActiveTradePlanSource("algo", "Algorithm overlay active.");
@@ -5825,7 +6284,708 @@
     renderGeSlots([]);
     bootstrapMarketExplorer();
     resizeOverviewFrame();
+    updateProfileAuthAction();
     restoreActiveTab();
   </script>
+
+<script>
+(function(){
+  const PREMIUM_SKIN_KEY = 'osrs_premium_skin';
+const VALID_SKINS = new Set(['none','coin','magma','arcane']);
+const COIN_FRAMES = [
+    '../assets/coins/coin_1.png',
+    '../assets/coins/coin_2.png',
+    '../assets/coins/coin_3.png',
+    '../assets/coins/coin_4.png',
+    '../assets/coins/coin_5.png',
+    '../assets/coins/coin_6.png'
+  ];
+const STACK_IMAGES = [
+    '../assets/stacks/stack1.png',
+    '../assets/stacks/stack2.png',
+    '../assets/stacks/stack3.png',
+    '../assets/stacks/stack4.png',
+    '../assets/stacks/stack5.png',
+    '../assets/stacks/stack6.png'
+  ];
+
+function getSavedSkin(){
+  const value = (localStorage.getItem(PREMIUM_SKIN_KEY) || 'none').trim().toLowerCase();
+  return VALID_SKINS.has(value) ? value : 'none';
+}
+
+function clearSkinClasses(){
+  document.body.classList.remove('premium-skin-coin','premium-skin-magma','premium-skin-arcane');
+}
+
+function cleanupPremiumArtifacts(){
+  document.querySelectorAll('.premium-coin-stack-layer,.premium-coin-flight-layer,.premium-forge-spark-layer,.premium-forge-puddle').forEach(el => el.remove());
+  const chip = document.querySelector('.shell-account-trigger');
+  if (chip) {
+    chip.dataset.premiumCoinReady = '';
+    chip.dataset.premiumForgeReady = '';
+    chip.classList.remove('premium-chip-coinfill');
+    chip.querySelectorAll('.premium-forge-sweat,.premium-chip-coins').forEach(el => el.remove());
+    chip.style.removeProperty('--forge-fill');
+  }
+  clearSkinClasses();
+}
+
+async function fetchPremiumStatus(){
+  const token = (localStorage.getItem('osrs_token') || '').trim();
+  if (!token) return false;
+  try {
+    const res = await fetch('/auth/me?token=' + encodeURIComponent(token));
+    const data = await res.json().catch(() => ({}));
+    return !!(res.ok && data && data.user && data.user.plan_tier === 'pro');
+  } catch (_) {
+    return false;
+  }
+}
+
+function initPremiumCoinStack(){
+    const chip = document.querySelector('.shell-account-trigger');
+    const avatar = document.querySelector('.shell-avatar-badge');
+    if (!chip || !avatar || chip.dataset.premiumCoinReady === '1') return false;
+    chip.dataset.premiumCoinReady = '1';
+
+
+chip.classList.add('premium-chip-coinfill');
+
+const existingChipCoins = chip.querySelector('.premium-chip-coins');
+if (existingChipCoins) existingChipCoins.remove();
+
+const chipCoinLayer = document.createElement('div');
+chipCoinLayer.className = 'premium-chip-coins';
+
+const chipPlacements = [
+  ['stack-a', 0],
+  ['stack-b', 1],
+  ['stack-c', 2],
+  ['stack-d', 3],
+  ['stack-e', 4],
+  ['stack-f', 5]
+];
+
+chipPlacements.forEach(([cls, idx]) => {
+  const img = document.createElement('img');
+  img.className = cls;
+  img.src = STACK_IMAGES[idx % STACK_IMAGES.length];
+  img.alt = '';
+  chipCoinLayer.appendChild(img);
+});
+
+chip.insertBefore(chipCoinLayer, chip.firstChild);
+
+    const stackLayer = document.createElement('div');
+    stackLayer.className = 'premium-coin-stack-layer';
+    document.body.appendChild(stackLayer);
+
+    const flightLayer = document.createElement('div');
+    flightLayer.className = 'premium-coin-flight-layer';
+    document.body.appendChild(flightLayer);
+
+    const stacks = [];
+    let activeTabKey = '';
+    let rebuildNonce = 0;
+
+    const PANEL_SELECTORS = [
+      '.overview-frame-wrap', '.chart-wrap', '.panel', '.card', '.app-card',
+      '.trade-plan-card', '.trade-plan-lock-callout', '.advisor-card', '.advisor-chat-card',
+      '.ge-grid', '.optimization-inputs', '.debug-panel', '.debug-collapsible'
+    ].join(',');
+
+    const AVOID_SELECTORS = [
+      'h1','h2','h3','h4','p','button','input','select','textarea','label',
+      '.badge','.chip','.tag','.muted','.tab-btn','.shell-account-trigger',
+      '.shell-settings-link','a','.pill','.status','.stat','.section-title',
+      '.advisor-title','.advisor-subtitle','.debug-toolbar','.card-actions',
+      '.form-row','.field','.table','.grid','.list'
+    ].join(',');
+
+    function getActiveTab(){
+      return document.querySelector('.tab-panel.active') || document.querySelector('#overviewTab');
+    }
+
+    function isDebugTab(tab){
+      return !!(tab && /debug/i.test(tab.id || ''));
+    }
+
+    function desiredCountForTab(tab, panels){
+      if (!tab) return 2;
+      if (isDebugTab(tab)) return Math.min(3, Math.max(2, panels.length));
+      return Math.min(4, Math.max(2, panels.length));
+    }
+
+    function collectPanels(tab){
+      if (!tab) return [];
+      const panelWeights = [];
+      Array.from(tab.querySelectorAll(PANEL_SELECTORS)).forEach(el => {
+        const r = el.getBoundingClientRect();
+        if (r.width < 170 || r.height < 80) return;
+        if (r.bottom < 0 || r.top > window.innerHeight) return;
+        const style = getComputedStyle(el);
+        if (style.display === 'none' || style.visibility === 'hidden') return;
+
+        let score = 0;
+        const cls = (el.className || '').toString();
+        if (/overview-frame-wrap|chart-wrap|trade-plan-card|advisor-card|optimization-inputs|ge-grid/i.test(cls)) score += 6;
+        if (/app-card|card|panel/i.test(cls)) score += 4;
+        if (/debug-panel|debug-collapsible/i.test(cls)) score += isDebugTab(tab) ? 2 : -4;
+
+        score += Math.min(3, Math.round(r.width / 220));
+        score += Math.min(3, Math.round(r.height / 160));
+
+        panelWeights.push({el, r, score});
+      });
+
+      panelWeights.sort((a,b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        return a.r.top - b.r.top;
+      });
+      return panelWeights.map(x => x.el);
+    }
+
+    function expandRect(r, padX, padY){
+      return { left: r.left - padX, top: r.top - padY, right: r.right + padX, bottom: r.bottom + padY };
+    }
+
+    function rectsOverlap(a, b){
+      return !(a.right <= b.left || a.left >= b.right || a.bottom <= b.top || a.top >= b.bottom);
+    }
+
+    function getAvoidRects(tab){
+      if (!tab) return [];
+      const rects = [];
+      Array.from(tab.querySelectorAll(AVOID_SELECTORS)).forEach(el => {
+        const r = el.getBoundingClientRect();
+        if (r.width < 8 || r.height < 8) return;
+        if (r.bottom < 0 || r.top > window.innerHeight) return;
+        const st = getComputedStyle(el);
+        if (st.display === 'none' || st.visibility === 'hidden' || st.opacity === '0') return;
+        rects.push(expandRect(r, 4, 4));
+      });
+      return rects;
+    }
+
+    function stackSizeForAttempt(attempt){
+      const sizes = [
+        { width: 84, height: 56 },
+        { width: 78, height: 52 },
+        { width: 72, height: 48 }
+      ];
+      return sizes[Math.min(sizes.length - 1, Math.floor(attempt / 5))];
+    }
+
+    function makeCandidate(panel, side, attempt, jitterX, jitterY){
+      const r = panel.getBoundingClientRect();
+      const size = stackSizeForAttempt(attempt);
+      const topBase = r.top - Math.round(size.height * 0.62) + jitterY;
+      let x;
+      if (side === 'left') {
+        x = r.left + 8 + jitterX;
+      } else if (side === 'right') {
+        x = r.right - size.width - 8 - jitterX;
+      } else if (side === 'inner-left') {
+        x = r.left + Math.min(40, Math.max(16, r.width * 0.14)) + jitterX;
+      } else if (side === 'inner-right') {
+        x = r.right - size.width - Math.min(40, Math.max(16, r.width * 0.14)) - jitterX;
+      } else {
+        x = r.left + (r.width - size.width) * 0.5 + jitterX;
+      }
+      return {
+        left: Math.round(x),
+        top: Math.round(topBase),
+        right: Math.round(x + size.width),
+        bottom: Math.round(topBase + size.height),
+        width: size.width,
+        height: size.height,
+        side,
+        attempt,
+        jitterX,
+        jitterY
+      };
+    }
+
+    function setStackRect(stackEl, rect){
+      stackEl.style.left = rect.left + 'px';
+      stackEl.style.top = rect.top + 'px';
+      stackEl.style.width = rect.width + 'px';
+      stackEl.style.height = rect.height + 'px';
+    }
+
+    function updateStackPositions(){
+      stacks.forEach(stack => {
+        const rect = makeCandidate(stack.panel, stack.side, stack.attempt, stack.jitterX, stack.jitterY);
+        stack.rect = rect;
+        setStackRect(stack.el, rect);
+      });
+    }
+
+    function placeStacksForTab(){
+      rebuildNonce += 1;
+      stacks.splice(0, stacks.length);
+      stackLayer.innerHTML = '';
+
+      const tab = getActiveTab();
+      const panels = collectPanels(tab);
+      const avoidRects = getAvoidRects(tab);
+      const placedRects = [];
+      const targetCount = desiredCountForTab(tab, panels);
+      const sidePattern = ['left','right','inner-left','inner-right','center'];
+
+      for (let i = 0; i < panels.length && stacks.length < targetCount; i++) {
+        const panel = panels[i];
+        let chosen = null;
+
+        for (let attempt = 0; attempt < 15 && !chosen; attempt++) {
+          const side = sidePattern[(attempt + rebuildNonce + i) % sidePattern.length];
+          const jitterX = Math.round((Math.random() * Math.min(16, Math.max(4, panel.getBoundingClientRect().width * 0.06))));
+          const jitterY = ((attempt % 3) - 1) * 2;
+          const candidate = makeCandidate(panel, side, attempt, jitterX, jitterY);
+          const viewportSafe = candidate.left >= 4 && candidate.right <= (window.innerWidth - 4) && candidate.top >= 4 && candidate.bottom <= (window.innerHeight - 4);
+          if (!viewportSafe) continue;
+
+          const placedConflict = placedRects.some(r => rectsOverlap(expandRect(candidate, 8, 6), r));
+          if (placedConflict) continue;
+
+          const avoidPad = attempt < 5 ? 3 : 1;
+          const avoidConflict = avoidRects.some(r => rectsOverlap(candidate, expandRect(r, -avoidPad, -avoidPad)));
+          if (avoidConflict) continue;
+
+          chosen = candidate;
+        }
+
+        if (!chosen) continue;
+
+        const stackEl = document.createElement('div');
+        stackEl.className = 'premium-coin-stack-overlay';
+        setStackRect(stackEl, chosen);
+
+        const img = document.createElement('img');
+        img.src = STACK_IMAGES[(rebuildNonce + i) % STACK_IMAGES.length];
+        img.alt = '';
+        stackEl.appendChild(img);
+        stackLayer.appendChild(stackEl);
+
+        placedRects.push(chosen);
+        stacks.push({
+          panel,
+          el: stackEl,
+          rect: chosen,
+          side: chosen.side,
+          attempt: chosen.attempt,
+          jitterX: chosen.jitterX,
+          jitterY: chosen.jitterY
+        });
+      }
+
+      if (stacks.length < Math.min(2, targetCount)) {
+        const fallbackPanels = panels.slice(0, Math.min(4, panels.length));
+        fallbackPanels.forEach((panel, idx) => {
+          if (stacks.length >= Math.min(2, targetCount)) return;
+          const sides = ['left', 'right'];
+          for (let s = 0; s < sides.length; s++) {
+            const jitterX = 8;
+            const candidate = makeCandidate(panel, sides[(idx + s + rebuildNonce) % sides.length], 12 + s, jitterX, 0);
+            const viewportSafe = candidate.left >= 4 && candidate.right <= (window.innerWidth - 4) && candidate.top >= 4 && candidate.bottom <= (window.innerHeight - 4);
+            if (!viewportSafe) continue;
+            const placedConflict = placedRects.some(r => rectsOverlap(expandRect(candidate, 6, 4), r));
+            if (placedConflict) continue;
+
+            const stackEl = document.createElement('div');
+            stackEl.className = 'premium-coin-stack-overlay';
+            setStackRect(stackEl, candidate);
+
+            const img = document.createElement('img');
+            img.src = STACK_IMAGES[(rebuildNonce + idx + s) % STACK_IMAGES.length];
+            img.alt = '';
+            stackEl.appendChild(img);
+            stackLayer.appendChild(stackEl);
+
+            placedRects.push(candidate);
+            stacks.push({
+              panel,
+              el: stackEl,
+              rect: candidate,
+              side: candidate.side,
+              attempt: candidate.attempt,
+              jitterX: candidate.jitterX,
+              jitterY: candidate.jitterY
+            });
+            break;
+          }
+        });
+      }
+    }
+
+    function getCoinSource(){
+      const rect = avatar.getBoundingClientRect();
+      return {
+        x: rect.left + rect.width * 0.52,
+        y: rect.top + 2
+      };
+    }
+
+    function getStackTarget(stack){
+      const r = stack.el.getBoundingClientRect();
+      return {
+        x: r.left + r.width * (0.48 + Math.random() * 0.08),
+        y: r.top + r.height * (0.52 + Math.random() * 0.10)
+      };
+    }
+
+    function animateThrow(stack){
+      if (!document.body.contains(stack.el)) return;
+
+      const source = getCoinSource();
+      const firstTarget = getStackTarget(stack);
+      const coin = document.createElement('div');
+      coin.className = 'premium-coin-flight';
+
+      const img = document.createElement('img');
+      img.src = COIN_FRAMES[0];
+      coin.appendChild(img);
+
+      const glint = document.createElement('div');
+      glint.className = 'premium-coin-glint';
+      coin.appendChild(glint);
+
+      flightLayer.appendChild(coin);
+
+      const startX = source.x;
+      const startY = source.y;
+      const initialTargetY = firstTarget.y;
+
+      const launchVy = -430;
+      const gravity = 1120;
+      const a = 0.5 * gravity;
+      const b = launchVy;
+      const c = startY - initialTargetY;
+      const disc = Math.max(0, (b * b) - (4 * a * c));
+      let durationMs = ((-b + Math.sqrt(disc)) / (2 * a)) * 1000;
+      if (!isFinite(durationMs) || durationMs < 900) durationMs = 900;
+      if (durationMs > 1650) durationMs = 1650;
+
+      const birth = performance.now();
+
+      function frame(now){
+        if (!document.body.contains(coin) || !document.body.contains(stack.el)) return;
+        const elapsedMs = now - birth;
+        const elapsed = elapsedMs / 1000;
+        const t = Math.max(0, Math.min(1, elapsedMs / durationMs));
+
+        const liveTarget = getStackTarget(stack);
+        const easedT = 1 - Math.pow(1 - t, 2.2);
+        const x = startX + ((liveTarget.x - startX) * easedT);
+        const y = startY + (launchVy * elapsed) + (0.5 * gravity * elapsed * elapsed);
+
+        const frameIndex = Math.floor(elapsedMs / 72) % COIN_FRAMES.length;
+        img.src = COIN_FRAMES[frameIndex];
+
+        const wobble = Math.sin(elapsedMs / 85) * 7;
+        const squash = 1 - Math.abs(Math.sin(elapsedMs / 120)) * 0.08;
+        coin.style.left = x + 'px';
+        coin.style.top = y + 'px';
+        coin.style.transform = 'translate(-50%, -50%) rotate(' + wobble.toFixed(1) + 'deg) scale(' + squash.toFixed(3) + ')';
+
+        glint.style.opacity = (frameIndex === 0 || frameIndex === 3) ? '0.60' : '0';
+
+        if (elapsedMs >= durationMs || (t > 0.58 && y >= liveTarget.y)) {
+          coin.remove();
+          stack.el.classList.remove('hit');
+          void stack.el.offsetWidth;
+          stack.el.classList.add('hit');
+
+          const impact = document.createElement('div');
+          impact.className = 'premium-coin-impact';
+          impact.style.left = '38px';
+          impact.style.top = '36px';
+          stack.el.appendChild(impact);
+          setTimeout(() => impact.remove(), 460);
+          return;
+        }
+        requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+    }
+
+    function currentTabKey(){
+      const tab = getActiveTab();
+      return tab ? (tab.id || 'active-tab') : 'none';
+    }
+
+    function ensureTabPlacement(){
+      const key = currentTabKey();
+      if (key !== activeTabKey) {
+        activeTabKey = key;
+        placeStacksForTab();
+      }
+    }
+
+    ensureTabPlacement();
+    updateStackPositions();
+
+    let lastThrow = 0;
+    function tick(now){
+      if (!document.body.contains(flightLayer) || !document.body.contains(stackLayer)) return;
+      ensureTabPlacement();
+      if (stacks.length && now - lastThrow > 1650) {
+        lastThrow = now + Math.random() * 300;
+        const stack = stacks[Math.floor(Math.random() * stacks.length)];
+        animateThrow(stack);
+      }
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+
+    let resizeTimer = null;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        activeTabKey = '';
+        ensureTabPlacement();
+      }, 180);
+    });
+
+    let scrollRaf = null;
+    window.addEventListener('scroll', () => {
+      if (scrollRaf) return;
+      scrollRaf = requestAnimationFrame(() => {
+        scrollRaf = null;
+        updateStackPositions();
+      });
+    }, { passive: true });
+
+    document.addEventListener('click', (ev) => {
+      if (ev.target && ev.target.closest && ev.target.closest('.tab-btn')) {
+        setTimeout(() => {
+          activeTabKey = '';
+          ensureTabPlacement();
+        }, 90);
+      }
+    });
+
+    const tabObserver = new MutationObserver(() => {
+      ensureTabPlacement();
+    });
+    document.querySelectorAll('.tab-panel, .tab-btn').forEach(el => {
+      tabObserver.observe(el, { attributes: true, attributeFilter: ['class'] });
+    });
+
+    return true;
+  }
+
+function initPremiumForge(){
+    const chip = document.querySelector('.shell-account-trigger');
+    const avatar = document.querySelector('.shell-avatar-badge');
+    if (!chip || !avatar || chip.dataset.premiumForgeReady === '1') return false;
+
+    chip.dataset.premiumForgeReady = '1';
+
+    const sparkLayer = document.createElement('div');
+    sparkLayer.className = 'premium-forge-spark-layer';
+    document.body.appendChild(sparkLayer);
+
+    const sweat = document.createElement('div');
+    sweat.className = 'premium-forge-sweat';
+    chip.appendChild(sweat);
+
+    let fillT = 0;
+    let droplet = {active:false, start:0, duration:2600};
+
+    function getFillPx(){
+      const r = chip.getBoundingClientRect();
+      const pct = parseFloat(getComputedStyle(chip).getPropertyValue('--forge-fill')) || 42;
+      return r.height * (pct / 100);
+    }
+
+    function positionSweat(progress){
+      const chipRect = chip.getBoundingClientRect();
+      const avatarRect = avatar.getBoundingClientRect();
+      const relLeft = avatarRect.left - chipRect.left;
+      const relTop = avatarRect.top - chipRect.top;
+      const iconW = avatarRect.width;
+      const iconH = avatarRect.height;
+
+      const p = Math.max(0, Math.min(1, progress));
+      let x, y;
+      if (p < 0.35) {
+        const t = p / 0.35;
+        x = relLeft + iconW * (0.52 + 0.14 * t);
+        y = relTop - 1 + iconH * (0.04 + 0.18 * t);
+      } else if (p < 0.72) {
+        const t = (p - 0.35) / 0.37;
+        x = relLeft + iconW * (0.66 + 0.16 * t);
+        y = relTop + iconH * (0.22 + 0.56 * t);
+      } else {
+        const t = (p - 0.72) / 0.28;
+        x = relLeft + iconW * (0.82 - 0.04 * t);
+        y = relTop + iconH * (0.78 + 0.20 * t);
+      }
+
+      const mergeY = chipRect.height - getFillPx() - 6;
+      const baseDropY = relTop + iconH + 2;
+      const targetY = Math.max(mergeY, baseDropY);
+      const dropPhase = Math.max(0, (p - 0.78) / 0.22);
+      y = y + (targetY - y) * dropPhase;
+
+      const size = 6 + 9 * p;
+      sweat.style.width = size + 'px';
+      sweat.style.height = (size * (0.95 + 0.22 * p)) + 'px';
+      sweat.style.left = (x - size/2) + 'px';
+      sweat.style.top = (y - size/2) + 'px';
+      sweat.style.opacity = p < 0.05 ? '0' : String(0.95 - Math.max(0, p - 0.86) * 3.2);
+      sweat.style.transform = 'rotate(' + (12 + p * 46) + 'deg)';
+    }
+
+    function runSparkBurst(){
+      const origin = avatar.getBoundingClientRect();
+      const ox = origin.left + origin.width * 0.56;
+      const oy = origin.top + origin.height * 0.28;
+      const targets = Array.from(document.querySelectorAll('.debug-panel, .debug-collapsible, .overview-frame-wrap, .chart-wrap, .panel, .card, .app-card, .trade-plan-card, .trade-plan-lock-callout'))
+        .map(el => ({el, rect: el.getBoundingClientRect()}))
+        .filter(x => x.rect.top > oy + 10 && x.rect.width > 40 && x.rect.height > 24);
+
+      for (let i = 0; i < 8; i++) {
+        const s = document.createElement('div');
+        s.className = 'premium-forge-spark';
+        sparkLayer.appendChild(s);
+        let x = ox, y = oy;
+        let vx = (Math.random() * 2 - 1) * 3.6 + (Math.random() < 0.5 ? -2.3 : 2.3);
+        let vy = -3.2 - Math.random() * 2.8;
+        const birth = performance.now();
+        let hit = false;
+
+        function frame(now){
+          if (!document.body.contains(s)) return;
+          const age = now - birth;
+          x += vx;
+          y += vy;
+          vy += 0.065;
+          vx *= 0.998;
+          s.style.left = x + 'px';
+          s.style.top = y + 'px';
+          s.style.opacity = String(Math.max(0, 1 - age / 1500));
+
+          if (!hit) {
+            for (const t of targets) {
+              const r = t.rect;
+              if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) {
+                hit = true;
+                const puddle = document.createElement('div');
+                puddle.className = 'premium-forge-puddle';
+                puddle.style.left = (x - 7) + 'px';
+                puddle.style.top = (Math.min(r.bottom - 6, y) - 3) + 'px';
+                sparkLayer.appendChild(puddle);
+                setTimeout(() => puddle.remove(), 1100);
+                s.remove();
+                return;
+              }
+            }
+          }
+
+          if (y < -30) {
+            const g = 0.065;
+            const a = 0.5 * g;
+            const b = vy;
+            const c = y;
+            const disc = Math.max(0, (b * b) - (4 * a * c));
+            const t = Math.max(1, (-b + Math.sqrt(disc)) / (2 * a));
+            x += vx * t;
+            y = -2;
+            vy += g * t;
+            while (x < -30) x += window.innerWidth + 60;
+            while (x > window.innerWidth + 30) x -= window.innerWidth + 60;
+            s.style.left = x + 'px';
+            s.style.top = y + 'px';
+          }
+
+          if (age > 2200 || x < -30 || x > window.innerWidth + 30 || y > window.innerHeight + 30) {
+            s.remove();
+            return;
+          }
+          requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+      }
+    }
+
+    let lastBurst = 0;
+    function tick(now){
+      fillT += 0.012;
+      const fillPct = 37 + Math.sin(fillT) * 6 + Math.sin(fillT * 0.47) * 2.2;
+      chip.style.setProperty('--forge-fill', fillPct.toFixed(2) + '%');
+
+      if (!droplet.active) {
+        droplet.active = true;
+        droplet.start = now;
+        droplet.duration = 2500 + Math.random() * 700;
+      }
+      let p = (now - droplet.start) / droplet.duration;
+      if (p >= 1) {
+        droplet.start = now + 700 + Math.random() * 500;
+        droplet.duration = 2500 + Math.random() * 700;
+        p = 0;
+      }
+      positionSweat(p);
+
+      if (now - lastBurst > 3600) {
+        lastBurst = now;
+        runSparkBurst();
+      }
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+    return true;
+  }
+
+async function applySelectedPremiumSkin(){
+  cleanupPremiumArtifacts();
+  const isPremium = await fetchPremiumStatus();
+  if (!isPremium) return;
+  const selected = getSavedSkin();
+  if (selected === 'none') return;
+
+  if (selected === 'coin') {
+    document.body.classList.add('premium-skin-coin');
+    let tries = 0;
+    const run = () => {
+      tries += 1;
+      if (initPremiumCoinStack() || tries > 30) return;
+      setTimeout(run, 350);
+    };
+    run();
+    return;
+  }
+
+  if (selected === 'magma') {
+    document.body.classList.add('premium-skin-magma');
+    let tries = 0;
+    const run = () => {
+      tries += 1;
+      if (initPremiumForge() || tries > 30) return;
+      setTimeout(run, 350);
+    };
+    run();
+    return;
+  }
+
+  if (selected === 'arcane') {
+    document.body.classList.add('premium-skin-arcane');
+  }
+}
+
+function bootSkinSystem(){
+  applySelectedPremiumSkin();
+  window.addEventListener('storage', (event) => {
+    if (event.key === PREMIUM_SKIN_KEY || event.key === 'osrs_token') {
+      applySelectedPremiumSkin();
+    }
+  });
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', bootSkinSystem); else bootSkinSystem();
+})();
+</script>
 </body>
 </html>

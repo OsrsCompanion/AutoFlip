@@ -263,6 +263,17 @@ def activate_subscription(token: str, plan_tier: str = "pro") -> dict[str, Any]:
     user["subscription_status"] = "active"
     user["plugin_access_enabled"] = True
     user["next_billing_at"] = "2026-04-28T00:00:00+00:00"
+    plugin_links = user.get("plugin_links")
+    if not isinstance(plugin_links, list):
+        plugin_links = []
+    if not plugin_links:
+        plugin_links.append({
+            "device_id": secrets.token_hex(6),
+            "device_name": "RuneLite",
+            "linked_at": _utc_now(),
+            "status": "linked",
+        })
+    user["plugin_links"] = plugin_links
     store.setdefault("subscriptions", {})[user["user_id"]] = {
         "user_id": user["user_id"],
         "plan_tier": user["plan_tier"],

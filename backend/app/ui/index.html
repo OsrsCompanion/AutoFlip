@@ -46,14 +46,14 @@
   <div class="app-ghost"><iframe id="appPreview" src="app/index.html" title="App preview"></iframe><div class="veil"></div></div>
   <div class="topbar">
     <div class="brand"><div class="brand-badge">GE</div><div><div>Auto Flip Web</div><div style="font-size:12px;color:var(--muted);font-weight:400">Discovery on web. Auto Flip in RuneLite.</div></div></div>
-    <div class="nav"><a class="btn subtle" href="app/index.html">Preview App</a><a class="btn subtle" href="login.html?next=/app/">Login</a><a class="btn" href="register.html?next=/app/">Register</a><a class="btn gold" href="pro.html">Unlock Plugin</a></div>
+    <div class="nav" id="authNav"><a class="btn subtle" href="/app/index.html">Preview App</a><a class="btn subtle" href="/login.html?next=/app/">Login</a><a class="btn" href="/register.html?next=/app/">Register</a><a class="btn gold" href="/pro.html">Unlock Plugin</a></div>
   </div>
   <section class="hero">
     <div class="card">
       <div class="eyebrow">OSRS market discovery</div>
       <div class="headline">Find good flips fast.<br/>Finish the plan in RuneLite.</div>
       <div class="copy">Use the website to search items, compare spreads, watch momentum, and build conviction before you commit. When you want the full 8-slot board, exact quantities, and execution-ready guidance, Auto Flip takes over inside RuneLite.</div>
-      <div class="row"><a class="btn gold" href="app/index.html">Enter Free App</a><a class="btn" href="pro.html">See Pro Benefits</a><a class="btn subtle" href="register.html?next=/app/">Create Account</a></div>
+      <div class="row" id="heroPrimaryRow"><a class="btn gold" href="/app/index.html">Enter Free App</a><a class="btn" href="/pro.html">See Pro Benefits</a><a class="btn subtle" href="/register.html?next=/app/">Create Account</a></div>
       <div class="pill-row"><span class="pill">Charts + explorer</span><span class="pill">Favorites + watchlist</span><span class="pill">Preview-only AI help</span><span class="pill">Plugin owns full optimization</span></div>
       <div class="mini"><div class="mini-card"><div class="mini-label">Website role</div><div class="mini-value">Discovery</div></div><div class="mini-card"><div class="mini-label">Plugin role</div><div class="mini-value">Execution</div></div><div class="mini-card"><div class="mini-label">Visible plan</div><div class="mini-value">3 / 8 slots</div></div></div>
       <div class="demo-shell">
@@ -77,7 +77,7 @@
         <li><strong>Auto Flip Pro:</strong> full board allocation, quantity logic, and guided execution</li>
         <li><strong>Same account:</strong> build trust on web, then continue with the same login later</li>
       </ul>
-      <div class="row"><a class="btn gold" href="pro.html">See why players upgrade</a><a class="btn subtle" href="login.html?next=/app/">Already have an account?</a></div>
+      <div class="row" id="sideAuthRow"><a class="btn gold" href="/pro.html">See why players upgrade</a><a class="btn subtle" href="/login.html?next=/app/">Already have an account?</a></div>
     </div>
   </section>
   <section class="section-shell">
@@ -173,5 +173,72 @@
       setTimeout(suppressNestedScroll, 1200);
     })();
   </script>
+
+  <script>
+    (function(){
+      function getToken(){
+        try { return localStorage.getItem('osrs_token') || ''; } catch (e) { return ''; }
+      }
+      function clearToken(){
+        try { localStorage.removeItem('osrs_token'); } catch (e) {}
+      }
+      function escapeHtml(value){
+        return String(value || '').replace(/[&<>"']/g, function(ch){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]); });
+      }
+      function renderLoggedOut(){
+        var nav = document.getElementById('authNav');
+        if(nav){
+          nav.innerHTML = '<a class="btn subtle" href="/app/index.html">Preview App</a><a class="btn subtle" href="/login.html?next=/app/">Login</a><a class="btn" href="/register.html?next=/app/">Register</a><a class="btn gold" href="/pro.html">Unlock Plugin</a>';
+        }
+        var hero = document.getElementById('heroPrimaryRow');
+        if(hero){
+          hero.innerHTML = '<a class="btn gold" href="/app/index.html">Enter Free App</a><a class="btn" href="/pro.html">See Pro Benefits</a><a class="btn subtle" href="/register.html?next=/app/">Create Account</a>';
+        }
+        var side = document.getElementById('sideAuthRow');
+        if(side){
+          side.innerHTML = '<a class="btn gold" href="/pro.html">See why players upgrade</a><a class="btn subtle" href="/login.html?next=/app/">Already have an account?</a>';
+        }
+      }
+      function renderLoggedIn(user){
+        var email = escapeHtml(user && user.email ? user.email : 'Account');
+        var nav = document.getElementById('authNav');
+        if(nav){
+          nav.innerHTML = '<a class="btn subtle" href="/app/index.html">Preview App</a><a class="btn subtle" href="/pro.html">Unlock Plugin</a><a class="btn" href="/app/index.html">'+email+'</a><button class="btn gold" id="logoutBtn" type="button">Log out</button>';
+        }
+        var hero = document.getElementById('heroPrimaryRow');
+        if(hero){
+          hero.innerHTML = '<a class="btn gold" href="/app/index.html">Enter Free App</a><a class="btn" href="/pro.html">See Pro Benefits</a><a class="btn subtle" href="/app/index.html">Continue as '+email+'</a>';
+        }
+        var side = document.getElementById('sideAuthRow');
+        if(side){
+          side.innerHTML = '<a class="btn gold" href="/pro.html">See why players upgrade</a><a class="btn subtle" href="/app/index.html">Continue with current account</a>';
+        }
+        var logoutBtn = document.getElementById('logoutBtn');
+        if(logoutBtn){
+          logoutBtn.addEventListener('click', async function(){
+            var token = getToken();
+            try { if(token){ await fetch('/auth/logout?token=' + encodeURIComponent(token), { method:'POST' }); } } catch (e) {}
+            clearToken();
+            window.location.reload();
+          });
+        }
+      }
+      async function syncAuthState(){
+        var token = getToken();
+        if(!token){ renderLoggedOut(); return; }
+        try {
+          var res = await fetch('/auth/me?token=' + encodeURIComponent(token), { credentials:'same-origin' });
+          if(!res.ok){ clearToken(); renderLoggedOut(); return; }
+          var data = await res.json();
+          if(!data || !data.ok || !data.user){ clearToken(); renderLoggedOut(); return; }
+          renderLoggedIn(data.user);
+        } catch (e) {
+          renderLoggedOut();
+        }
+      }
+      syncAuthState();
+    })();
+  </script>
+
 </body>
 </html>

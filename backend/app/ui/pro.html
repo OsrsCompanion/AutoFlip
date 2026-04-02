@@ -90,5 +90,112 @@
       </div>
     </div>
   </div>
+
+<script>
+(function () {
+  const token = localStorage.getItem("osrs_token");
+  if (!token) return;
+
+  const nav = document.querySelector(".topbar .nav");
+  const ctaStack = document.querySelector(".right-cta .cta-stack");
+  const enterAppHref = "app/index.html";
+
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, function (m) {
+      return ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" })[m];
+    });
+  }
+
+  async function logout() {
+    try {
+      await fetch("/auth/logout", {
+        method: "POST",
+        headers: { "Authorization": "Bearer " + token }
+      });
+    } catch (e) {}
+    localStorage.removeItem("osrs_token");
+    window.location.reload();
+  }
+
+  async function upgradeNow() {
+    const btn = document.getElementById("upgrade-now-btn");
+    if (btn) {
+      btn.textContent = "Upgrading...";
+      btn.style.pointerEvents = "none";
+    }
+    try {
+      const res = await fetch("/auth/subscribe", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer " + token,
+          "Content-Type": "application/json"
+        },
+        body: "{}"
+      });
+      if (!res.ok) throw new Error("upgrade failed");
+      window.location.href = enterAppHref;
+    } catch (e) {
+      if (btn) {
+        btn.textContent = "Upgrade this account now";
+        btn.style.pointerEvents = "";
+      }
+      alert("Upgrade could not be completed.");
+    }
+  }
+
+  async function init() {
+    try {
+      const res = await fetch("/auth/me", {
+        headers: { "Authorization": "Bearer " + token }
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      const user = data.user || data;
+      const email = user.email || "Signed in";
+
+      if (nav) {
+        nav.innerHTML = `
+          <a class="btn" href="index.html">Home</a>
+          <a class="btn" href="${enterAppHref}">Enter App</a>
+          <span class="btn" style="cursor:default;max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(email)}</span>
+          <button class="btn" id="pro-logout-btn" type="button">Log out</button>
+        `;
+        const logoutBtn = document.getElementById("pro-logout-btn");
+        if (logoutBtn) logoutBtn.addEventListener("click", logout);
+      }
+
+      const isPremium = !!(user.is_premium || user.premium || user.subscription_active || user.subscription === "active" || user.plan === "pro" || user.role === "pro");
+      if (ctaStack) {
+        if (isPremium) {
+          ctaStack.innerHTML = `
+            <div class="btn gold" style="cursor:default;">Pro active on this account</div>
+            <a class="btn" href="${enterAppHref}">Enter App</a>
+            <button class="btn" id="pro-active-logout-btn" type="button">Log out</button>
+          `;
+          const b = document.getElementById("pro-active-logout-btn");
+          if (b) b.addEventListener("click", logout);
+        } else {
+          ctaStack.innerHTML = `
+            <button class="btn gold" id="upgrade-now-btn" type="button">Upgrade this account now</button>
+            <a class="btn" href="${enterAppHref}">Back to app</a>
+            <button class="btn" id="pro-cta-logout-btn" type="button">Log out</button>
+          `;
+          const up = document.getElementById("upgrade-now-btn");
+          const lo = document.getElementById("pro-cta-logout-btn");
+          if (up) up.addEventListener("click", upgradeNow);
+          if (lo) lo.addEventListener("click", logout);
+        }
+      }
+    } catch (e) {}
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
+</script>
+
 </body>
 </html>

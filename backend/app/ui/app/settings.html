@@ -168,10 +168,46 @@
     .status.error, .notice.error { background: rgba(121,36,19,0.12); color:#6c2418; border-color: rgba(121,36,19,0.24); }
     .status.success, .notice.success { background: rgba(44,104,54,0.12); color:#224f29; border-color: rgba(44,104,54,0.24); }
     @media (max-width: 980px) { .hero.two-col { grid-template-columns:1fr; } .side-copy { max-width:none; } .scroll-grid, .stat-grid { grid-template-columns:1fr; } .scroll-paper { margin:0 14px; padding:30px 22px 38px; } .scroll-roller, .scroll-footer { left:10px; right:10px; } }
+
+/* Skin selector */
+.skin-setting-card {
+  margin-top: 18px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(143, 99, 56, 0.22);
+  background: linear-gradient(180deg, rgba(255,244,223,0.55), rgba(240,220,183,0.52));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.28);
+}
+.skin-setting-card.locked { opacity: 0.72; filter: saturate(0.88); }
+.skin-setting-head {
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  flex-wrap:wrap; margin-bottom:10px;
+}
+.skin-setting-head h3 { margin:0; color:var(--ink); font-size:20px; }
+.skin-status-pill {
+  display:inline-flex; align-items:center; min-height:30px; padding:0 12px; border-radius:999px;
+  background: rgba(59, 34, 18, 0.10); color: var(--ink); border: 1px solid rgba(111,76,37,0.18);
+  font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+}
+.skin-status-pill.pro { background: linear-gradient(135deg, rgba(239,202,119,0.95), rgba(197,139,53,0.95)); color:#2a1a0f; border:none; }
+.skin-status-pill.locked { background: rgba(76, 59, 41, 0.10); color: var(--ink-soft); }
+.skin-setting-copy { margin:0 0 12px; color:var(--ink-soft); line-height:1.6; font-size:14px; }
+.skin-field { display:grid; gap:8px; }
+.skin-field label { color:var(--ink); font-weight:700; font-size:14px; }
+.skin-field select {
+  width:100%; min-height:48px; border-radius:14px; border:1px solid rgba(143,99,56,0.24);
+  background: rgba(255,248,234,0.86); color: var(--ink); padding: 0 14px; font-size:15px; font-weight:700;
+  outline:none; box-shadow: inset 0 1px 0 rgba(255,255,255,0.34);
+}
+.skin-field select:disabled {
+  cursor:not-allowed; background: rgba(227,213,182,0.70); color: rgba(67,40,17,0.52);
+}
+.skin-helper { margin:0; color:var(--ink-soft); font-size:13px; line-height:1.55; }
+.skin-option-list { margin:10px 0 0; padding-left:18px; color:var(--ink-soft); font-size:13px; line-height:1.55; }
 </style>
 </head>
 <body>
-<div class="page-wrap"><div class="topbar"><a class="back-link" href="/app/">← Back to Auto Flip Web</a><div class="topbar-actions"><a href="profile.html">Profile Hub</a><a href="membership.html">Membership</a></div></div><div class="hero single"><main class="scroll-shell long"><div class="scroll-roller"></div><section class="scroll-paper"><div class="scroll-ornament left"></div><div class="scroll-ornament right"></div><div class="scroll-paper-inner"><div class="scroll-kicker">Merchant ledger</div><h1 class="scroll-title">Personal settings</h1><div class="scroll-copy">The gear now lands directly here. Personal controls have their own long-form scroll so the main dashboard can stay focused on trading, AI, and market exploration.</div><div class="scroll-grid"><div class="scroll-card"><h2>Workspace controls</h2><ul><li>Budget and time-away planning belong here.</li><li>AI key and personal preferences stay out of the main top tabs.</li><li>This surface can grow independently without bloating the dashboard.</li></ul></div><div class="scroll-card"><h2>Account routing</h2><ul><li>Gear icon goes straight to Personal Settings.</li><li>Profile menu routes each account area to its own page.</li><li>Auto Flip Web remains the discovery workspace.</li></ul></div></div><div class="stat-grid"><div class="stat"><div class="stat-label">Budget</div><div class="stat-value">Managed in app</div></div><div class="stat"><div class="stat-label">Hours away</div><div class="stat-value">Managed in app</div></div><div class="stat"><div class="stat-label">AI key</div><div class="stat-value">Managed in app</div></div></div><div class="notice">This page is the focused settings destination. Keep detailed form controls in the app workspace, but route account-level settings here so the shell stays clean.</div></div></section><div class="scroll-footer"></div></main></div></div>
+<div class="page-wrap"><div class="topbar"><a class="back-link" href="/app/">← Back to Auto Flip Web</a><div class="topbar-actions"><a href="profile.html">Profile Hub</a><a href="membership.html">Membership</a></div></div><div class="hero single"><main class="scroll-shell long"><div class="scroll-roller"></div><section class="scroll-paper"><div class="scroll-ornament left"></div><div class="scroll-ornament right"></div><div class="scroll-paper-inner"><div class="scroll-kicker">Merchant ledger</div><h1 class="scroll-title">Personal settings</h1><div class="scroll-copy">The gear now lands directly here. Personal controls have their own long-form scroll so the main dashboard can stay focused on trading, AI, and market exploration.</div><div class="scroll-grid"><div class="scroll-card"><h2>Workspace controls</h2><ul><li>Budget and time-away planning belong here.</li><li>AI key and personal preferences stay out of the main top tabs.</li><li>This surface can grow independently without bloating the dashboard.</li></ul><div id="skinSettingCard" class="skin-setting-card locked"><div class="skin-setting-head"><h3>Select skin</h3><span id="skinPremiumPill" class="skin-status-pill locked">Premium locked</span></div><p class="skin-setting-copy">Premium accounts can change the top-right Profile Hub effect. Free accounts can still view the list, but the selector stays locked until Pro is active.</p><div class="skin-field"><label for="skinSelect">Profile Hub skin</label><select id="skinSelect" disabled><option value="none">None</option><option value="coin">Coin Flipper</option><option value="magma">Magma Theme</option><option value="arcane">Arcane</option></select><p id="skinSettingStatus" class="skin-helper">Checking account access…</p></div><ul class="skin-option-list"><li>None keeps the standard Profile Hub look.</li><li>Coin Flipper uses the premium coin toss + cash stack theme.</li><li>Magma Theme enables the lava / forge look.</li><li>Arcane adds the magical gold orbit effect.</li></ul></div></div><div class="scroll-card"><h2>Account routing</h2><ul><li>Gear icon goes straight to Personal Settings.</li><li>Profile menu routes each account area to its own page.</li><li>Auto Flip Web remains the discovery workspace.</li></ul></div></div><div class="stat-grid"><div class="stat"><div class="stat-label">Budget</div><div class="stat-value">Managed in app</div></div><div class="stat"><div class="stat-label">Hours away</div><div class="stat-value">Managed in app</div></div><div class="stat"><div class="stat-label">AI key</div><div class="stat-value">Managed in app</div></div></div><div class="notice">This page is the focused settings destination. Keep detailed form controls in the app workspace, but route account-level settings here so the shell stays clean.</div></div></section><div class="scroll-footer"></div></main></div></div>
 <script>
     async function api(url, options = {}) {
       const response = await fetch(url, { headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }, ...options });
@@ -191,6 +227,52 @@
       localStorage.removeItem('osrs_token');
       window.location.href = next;
     }
+
+const PREMIUM_SKIN_KEY = 'osrs_premium_skin';
+function getStoredSkin() {
+  const value = (localStorage.getItem(PREMIUM_SKIN_KEY) || 'none').trim().toLowerCase();
+  return ['none', 'coin', 'magma', 'arcane'].includes(value) ? value : 'none';
+}
+function saveStoredSkin(value) {
+  const next = ['none', 'coin', 'magma', 'arcane'].includes(value) ? value : 'none';
+  localStorage.setItem(PREMIUM_SKIN_KEY, next);
+  return next;
+}
+async function renderSkinSettings() {
+  const selectEl = document.getElementById('skinSelect');
+  const statusEl = document.getElementById('skinSettingStatus');
+  const cardEl = document.getElementById('skinSettingCard');
+  const pillEl = document.getElementById('skinPremiumPill');
+  if (!selectEl || !statusEl || !cardEl || !pillEl) return;
+
+  const stored = getStoredSkin();
+  selectEl.value = stored;
+
+  const session = await loadSession();
+  const user = session && session.user ? session.user : null;
+  const isPremium = !!(user && user.plan_tier === 'pro');
+
+  selectEl.disabled = !isPremium;
+  cardEl.classList.toggle('locked', !isPremium);
+  pillEl.className = 'skin-status-pill ' + (isPremium ? 'pro' : 'locked');
+  pillEl.textContent = isPremium ? 'Premium unlocked' : 'Premium locked';
+
+  if (isPremium) {
+    statusEl.textContent = stored === 'none'
+      ? 'No premium skin selected. Choose a look for the Profile Hub.'
+      : 'Current skin: ' + selectEl.options[selectEl.selectedIndex].text + '.';
+  } else {
+    statusEl.textContent = 'Upgrade this account to Pro to unlock Profile Hub skin selection.';
+  }
+
+  selectEl.addEventListener('change', () => {
+    const next = saveStoredSkin(selectEl.value);
+    statusEl.textContent = next === 'none'
+      ? 'Skin cleared. Standard Profile Hub look will be used.'
+      : 'Saved: ' + selectEl.options[selectEl.selectedIndex].text + '. Return to Auto Flip Web to see it.';
+  });
+}
+window.addEventListener('DOMContentLoaded', renderSkinSettings);
 </script>
 </body>
 </html>
