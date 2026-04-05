@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Header, HTTPException, Query
 from pydantic import BaseModel
 
 from app.services.auth_store import (
@@ -17,6 +17,16 @@ from app.services.auth_store import (
 )
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+
+def _resolve_token(token: str = "", authorization: str | None = None) -> str:
+    explicit = str(token or "").strip()
+    if explicit:
+        return explicit
+    auth = str(authorization or "").strip()
+    if auth.lower().startswith("bearer "):
+        return auth[7:].strip()
+    return auth
 
 
 class SignupRequest(BaseModel):
@@ -63,54 +73,54 @@ def login(request: LoginRequest):
 
 
 @router.get("/me")
-def me(token: str = Query(default="")):
+def me(token: str = Query(default=""), authorization: str | None = Header(default=None)):
     try:
-        return {"ok": True, **get_session(token)}
+        return {"ok": True, **get_session(_resolve_token(token, authorization))}
     except ValueError as exc:
         raise HTTPException(status_code=401, detail=str(exc)) from exc
 
 
 @router.post("/logout")
-def logout(token: str = Query(default="")):
-    return logout_session(token)
+def logout(token: str = Query(default=""), authorization: str | None = Header(default=None)):
+    return logout_session(_resolve_token(token, authorization))
 
 
 @router.post("/subscribe")
-def subscribe(request: SubscribeRequest):
+def subscribe(request: SubscribeRequest, authorization: str | None = Header(default=None)):
     try:
-        user = activate_subscription(request.token, request.plan_tier)
+        user = activate_subscription(_resolve_token(request.token, authorization), request.plan_tier)
         return {"ok": True, "user": user}
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.post("/plugin/link")
-def plugin_link(request: PluginLinkRequest):
+def plugin_link(request: PluginLinkRequest, authorization: str | None = Header(default=None)):
     try:
-        return {"ok": True, **link_plugin_device(request.token, request.device_name)}
+        return {"ok": True, **link_plugin_device(_resolve_token(request.token, authorization), request.device_name)}
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.get("/plugin/devices")
-def plugin_devices(token: str = Query(default="")):
+def plugin_devices(token: str = Query(default=""), authorization: str | None = Header(default=None)):
     try:
-        return {"ok": True, **list_plugin_devices(token)}
+        return {"ok": True, **list_plugin_devices(_resolve_token(token, authorization))}
     except ValueError as exc:
         raise HTTPException(status_code=401, detail=str(exc)) from exc
 
 
 @router.delete("/plugin/devices/{device_id}")
-def plugin_unlink_device(device_id: str, token: str = Query(default="")):
+def plugin_unlink_device(device_id: str, token: str = Query(default=""), authorization: str | None = Header(default=None)):
     try:
-        return unlink_plugin_device(token, device_id)
+        return unlink_plugin_device(_resolve_token(token, authorization), device_id)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.get("/plugin/download")
-def plugin_download(token: str = Query(default="")):
+def plugin_download(token: str = Query(default=""), authorization: str | None = Header(default=None)):
     try:
-        return {"ok": True, **get_download_payload(token)}
+        return {"ok": True, **get_download_payload(_resolve_token(token, authorization))}
     except ValueError as exc:
         raise HTTPException(status_code=401, detail=str(exc)) from exc

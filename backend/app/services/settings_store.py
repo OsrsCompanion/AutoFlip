@@ -16,6 +16,8 @@ DEFAULT_SETTINGS = {
     "hours_away": 0,
 }
 
+SECRET_SETTING_FIELDS = {"openai_api_key", "openai_api_key_path"}
+
 ALLOWED_MODELS = {
     "gpt-5.4-mini",
     "gpt-5.4",
@@ -97,11 +99,37 @@ def load_settings() -> dict[str, Any]:
     return normalize_settings_input(data)
 
 
-def save_settings(settings: dict[str, Any]) -> None:
-    os.makedirs(SETTINGS_DIR, exist_ok=True)
+def merge_settings_update(settings: dict[str, Any], *, allow_secret_updates: bool = False) -> dict[str, Any]:
+    current = load_settings()
+    incoming = normalize_settings_input(settings)
+
+    merged = {**current, **incoming}
+    for field in SECRET_SETTING_FIELDS:
+        if allow_secret_updates:
+            if field in settings and str(settings.get(field, "") or "").strip():
+                merged[field] = str(settings.get(field, "") or "").strip()
+            else:
+                merged[field] = current.get(field, "")
+        else:
+            merged[field] = current.get(field, "")
+
+    return normalize_settings_input(merged)
+
+
+def to_public_settings(settings: dict[str, Any]) -> dict[str, Any]:
     normalized = normalize_settings_input(settings)
+    public = {k: v for k, v in normalized.items() if k not in SECRET_SETTING_FIELDS}
+    public["has_openai_api_key"] = bool(str(normalized.get("openai_api_key", "") or "").strip())
+    public["has_openai_api_key_path"] = bool(str(normalized.get("openai_api_key_path", "") or "").strip())
+    return public
+
+
+def save_settings(settings: dict[str, Any], *, allow_secret_updates: bool = False) -> dict[str, Any]:
+    os.makedirs(SETTINGS_DIR, exist_ok=True)
+    normalized = merge_settings_update(settings, allow_secret_updates=allow_secret_updates)
     with open(SETTINGS_PATH, "w", encoding="utf-8") as f:
         json.dump(normalized, f, indent=2)
+    return normalized
 
 
 def resolve_openai_api_key(settings: dict[str, Any]) -> str:
