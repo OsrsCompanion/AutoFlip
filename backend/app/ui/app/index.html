@@ -6023,7 +6023,7 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
           hours_away: String(ctx.hoursAway || 0),
           risk_percent: String(ctx.riskPercent || 0),
         });
-        const response = await fetch(`/market/recommendations?${params.toString()}`);
+        const response = await fetch(apiUrl(`/market/recommendations?${params.toString()}`));
         const data = await readJsonResponse(response);
         latestRecommendationsData = data;
         activeTradePlanSource = "algo";
@@ -7138,7 +7138,7 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
       settingsStatusEl.textContent = "Loading settings...";
       personalStatusEl.textContent = "Loading personal settings...";
       try {
-        const response = await fetch("/settings");
+        const response = await fetch(apiUrl("/settings"));
         const data = await readJsonResponse(response);
         openaiKeyEl.value = data.openai_api_key || "";
         openaiKeyPathEl.value = data.openai_api_key_path || "";
@@ -7171,7 +7171,7 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
         risk_percent: getRiskPercentValue(),
       };
       try {
-        const response = await fetch("/settings", {
+        const response = await fetch(apiUrl("/settings"), {
           method: "POST",
           headers: {"Content-Type": "application/json"},
           body: JSON.stringify(payload),
