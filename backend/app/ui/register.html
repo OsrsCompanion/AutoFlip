@@ -201,10 +201,39 @@
     </div>
   </div>
   <script>
+    const API_BASE_STORAGE_KEY = 'osrs_api_base';
+
+    function normalizeApiBase(value) {
+      const raw = String(value || '').trim();
+      if (!raw) return '';
+      return raw.replace(/\/$/, '');
+    }
+
+    const API_BASE = (() => {
+      const metaValue = document.querySelector('meta[name="osrs-api-base"]')?.content || '';
+      const windowValue = typeof window !== 'undefined' ? (window.__OSRS_API_BASE__ || window.OSRS_API_BASE || '') : '';
+      const storedValue = localStorage.getItem(API_BASE_STORAGE_KEY) || '';
+      return normalizeApiBase(windowValue || storedValue || metaValue);
+    })();
+
+    function buildApiUrl(path) {
+      const value = String(path || '');
+      if (!value) return value;
+      if (/^https?:\/\//i.test(value)) return value;
+      if (!API_BASE) return value;
+      return `${API_BASE}${value.startsWith('/') ? value : `/${value}`}`;
+    }
+
+    if (!API_BASE && window.location.hostname !== '127.0.0.1' && window.location.hostname !== 'localhost') {
+      console.warn('[Auto Flip] No external API base configured. Relative API calls will stay on the current host. For a Vercel frontend talking to your home PC, set window.__OSRS_API_BASE__, add a meta[name="osrs-api-base"], or localStorage.osrs_api_base to your public backend/tunnel URL.');
+    } else {
+      console.info(`[Auto Flip] API target: ${API_BASE || 'same-origin local backend'}`);
+    }
+
     function nextUrl() { const next = new URLSearchParams(location.search).get('next'); return next || '/app/'; }
     
     async function api(url, options = {}) {
-      const response = await fetch(url, { headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }, ...options });
+      const response = await fetch(buildApiUrl(url), { headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }, ...options });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.detail || 'Request failed');
       return data;
