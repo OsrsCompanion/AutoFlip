@@ -2340,49 +2340,6 @@ body.premium-skin-arcane .shell-avatar-badge::after {
   &lt;/div&gt;
 
   &lt;script&gt;
-    const API_BASE_STORAGE_KEY = &quot;osrs_api_base&quot;;
-
-    function normalizeApiBase(value) {
-      const raw = String(value || &quot;&quot;).trim();
-      if (!raw) return &quot;&quot;;
-      return raw.replace(/\/$/, &quot;&quot;);
-    }
-
-    const API_BASE = (() =&gt; {
-      const metaValue = document.querySelector(&#x27;meta[name=&quot;osrs-api-base&quot;]&#x27;)?.content || &quot;&quot;;
-      const windowValue = typeof window !== &quot;undefined&quot; ? (window.__OSRS_API_BASE__ || window.OSRS_API_BASE || &quot;&quot;) : &quot;&quot;;
-      const storedValue = localStorage.getItem(API_BASE_STORAGE_KEY) || &quot;&quot;;
-      return normalizeApiBase(windowValue || storedValue || metaValue);
-    })();
-
-    function buildApiUrl(path) {
-      const value = String(path || &quot;&quot;);
-      if (!value) return value;
-      if (/^https?:\/\//i.test(value)) return value;
-      if (!API_BASE) return value;
-      return `${API_BASE}${value.startsWith(&#x27;/&#x27;) ? value : `/${value}`}`;
-    }
-
-    if (!API_BASE &amp;&amp; window.location.hostname !== &quot;127.0.0.1&quot; &amp;&amp; window.location.hostname !== &quot;localhost&quot;) {
-      console.warn(&#x27;[Auto Flip] No external API base configured. Relative API calls will stay on the current host. For a Vercel frontend talking to your home PC, set window.__OSRS_API_BASE__, add a meta[name=&quot;osrs-api-base&quot;], or localStorage.osrs_api_base to your public backend/tunnel URL.&#x27;);
-    } else {
-      console.info(`[Auto Flip] API target: ${API_BASE || &quot;same-origin local backend&quot;}`);
-    }
-
-    window.setApiBase = function setApiBase(url) {
-      const normalized = normalizeApiBase(url);
-      if (normalized) {
-        localStorage.setItem(API_BASE_STORAGE_KEY, normalized);
-      } else {
-        localStorage.removeItem(API_BASE_STORAGE_KEY);
-      }
-      window.location.reload();
-    };
-
-    window.getApiBase = function getApiBase() {
-      return API_BASE;
-    };
-
     const state = {
       token: localStorage.getItem(&#x27;osrs_token&#x27;) || &#x27;&#x27;,
       user: null,
@@ -2391,7 +2348,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
     };
 
     async function api(url, options = {}) {
-      const response = await fetch(buildApiUrl(url), {
+      const response = await fetch(url, {
         headers: { &#x27;Content-Type&#x27;: &#x27;application/json&#x27;, ...(options.headers || {}) },
         ...options,
       });
@@ -3086,6 +3043,27 @@ body.premium-skin-arcane .shell-avatar-badge::after {
   </div>
 
   <script>
+    const resolveApiBase = () => {
+      const candidates = [
+        window.__OSRS_API_BASE__,
+        window.OSRS_API_BASE,
+        localStorage.getItem("osrs_api_base"),
+        document.querySelector('meta[name="osrs-api-base"]')?.content,
+      ];
+      const base = candidates.find((value) => typeof value === "string" && value.trim());
+      return base ? base.trim().replace(/\/$/, "") : "";
+    };
+
+    const API_BASE = resolveApiBase();
+    const apiUrl = (path) => {
+      const value = String(path || "");
+      if (!API_BASE) return value;
+      if (/^https?:\/\//i.test(value)) return value;
+      return value.startsWith("/") ? `${API_BASE}${value}` : `${API_BASE}/${value}`;
+    };
+
+    console.info("[Auto Flip] API target:", API_BASE || window.location.origin);
+
     const ACTIVE_TAB_STORAGE_KEY = "osrs_flip_active_tab";
     const refreshBtn = document.getElementById("refreshBtn");
     const saveSettingsBtn = document.getElementById("saveSettingsBtn");
@@ -5991,7 +5969,7 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), timeoutMs);
       try {
-        const response = await fetch(buildApiUrl(url), { ...options, signal: controller.signal });
+        const response = await fetch(apiUrl(url), { ...options, signal: controller.signal });
         return await readJsonResponse(response);
       } catch (error) {
         if (error && error.name === "AbortError") {
@@ -6005,7 +5983,7 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
 
     async function runAutoReview(offersData) {
       try {
-        const response = await fetch(buildApiUrl("/market/decisions"));
+        const response = await fetch(apiUrl("/market/decisions"));
         const data = await readJsonResponse(response);
         const currentScan = data.current_scan || offersData || {};
         latestOffers = currentScan.offers || [];
@@ -6045,7 +6023,7 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
           hours_away: String(ctx.hoursAway || 0),
           risk_percent: String(ctx.riskPercent || 0),
         });
-        const response = await fetch(buildApiUrl(`/market/recommendations?${params.toString()}`));
+        const response = await fetch(`/market/recommendations?${params.toString()}`);
         const data = await readJsonResponse(response);
         latestRecommendationsData = data;
         activeTradePlanSource = "algo";
@@ -6265,7 +6243,7 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
       }
 
       try {
-        const response = await fetch(buildApiUrl(`/market/explorer/search?q=${encodeURIComponent(item.name)}&limit=25`));
+        const response = await fetch(apiUrl(`/market/explorer/search?q=${encodeURIComponent(item.name)}&limit=25`));
         const data = await readJsonResponse(response);
         const results = Array.isArray(data?.items) ? data.items : [];
         const exact = results.find(entry => favoriteMatchesItem(item, entry) || normalizeName(entry?.name) === normalizeName(item?.name)) || results[0];
@@ -6408,7 +6386,7 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
       try {
         latestExplorerHasActiveSearch = true;
         latestExplorerPage = 1;
-        const response = await fetch(buildApiUrl(`/market/explorer/search?q=${encodeURIComponent(item.name || "")}&limit=250`));
+        const response = await fetch(apiUrl(`/market/explorer/search?q=${encodeURIComponent(item.name || "")}&limit=250`));
         const data = await readJsonResponse(response);
         latestExplorerItems = data.items || [];
         renderMarketExplorerTable(latestExplorerItems);
@@ -6644,7 +6622,7 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
         return;
       }
       try {
-        const response = await fetch(buildApiUrl(`/market/explorer/search?q=${encodeURIComponent(query)}&limit=12`));
+        const response = await fetch(apiUrl(`/market/explorer/search?q=${encodeURIComponent(query)}&limit=12`));
         const data = await readJsonResponse(response);
         renderMarketSuggestions(buildSuggestionList(query, data.items || []));
       } catch (_error) {
@@ -7160,7 +7138,7 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
       settingsStatusEl.textContent = "Loading settings...";
       personalStatusEl.textContent = "Loading personal settings...";
       try {
-        const response = await fetch(buildApiUrl("/settings"));
+        const response = await fetch("/settings");
         const data = await readJsonResponse(response);
         openaiKeyEl.value = data.openai_api_key || "";
         openaiKeyPathEl.value = data.openai_api_key_path || "";
@@ -7193,7 +7171,7 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
         risk_percent: getRiskPercentValue(),
       };
       try {
-        const response = await fetch(buildApiUrl("/settings"), {
+        const response = await fetch("/settings", {
           method: "POST",
           headers: {"Content-Type": "application/json"},
           body: JSON.stringify(payload),
@@ -7224,7 +7202,7 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
       statusEl.textContent = "Refreshing current offers...";
       statusEl.className = "warn";
       try {
-        const response = await fetch(buildApiUrl("/screen/capture-runelite-object-panel"));
+        const response = await fetch("/screen/capture-runelite-object-panel");
         const data = await readJsonResponse(response);
         offerCountEl.textContent = String(data.offer_count ?? 0);
         captureModeEl.textContent = data.capture_mode || "-";
@@ -7347,7 +7325,7 @@ ${buildSlotPurposeContextForAi()}`;
       }, AI_ADVISOR_FRONTEND_TIMEOUT_MS);
 
       try {
-        const response = await fetch(buildApiUrl("/ai/advice"), {
+        const response = await fetch("/ai/advice", {
           method: "POST",
           headers: {"Content-Type": "application/json"},
           body: JSON.stringify({ message: payloadMessage }),
@@ -7786,7 +7764,7 @@ ${buildSlotPurposeContextForAi()}`;
       const token = (localStorage.getItem("osrs_token") || "").trim();
       try {
         if (token) {
-          await fetch(buildApiUrl("/auth/logout?token=" + encodeURIComponent(token)), { method: "POST" });
+          await fetch("/auth/logout?token=" + encodeURIComponent(token), { method: "POST" });
         }
       } catch (error) {
         console.warn("Profile logout request failed", error);
@@ -7858,7 +7836,7 @@ async function fetchPremiumStatus(){
   const token = (localStorage.getItem('osrs_token') || '').trim();
   if (!token) return false;
   try {
-    const res = await fetch(buildApiUrl('/auth/me?token=' + encodeURIComponent(token)));
+    const res = await fetch('/auth/me?token=' + encodeURIComponent(token));
     const data = await res.json().catch(() => ({}));
     return !!(res.ok && data && data.user && data.user.plan_tier === 'pro');
   } catch (_) {

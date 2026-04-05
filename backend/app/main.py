@@ -9,7 +9,7 @@ from app.routes.auth import router as auth_router
 from app.routes.plugin import router as plugin_router
 
 app = FastAPI(title="OSRS Companion")
-
+print("🔥 USING UPDATED MAIN.PY 🔥")
 ALLOWED_ORIGINS = [
     "https://www.autoflip.gg",
     "https://autoflip.gg",
