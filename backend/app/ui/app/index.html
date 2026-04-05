@@ -7325,7 +7325,7 @@ ${buildSlotPurposeContextForAi()}`;
       }, AI_ADVISOR_FRONTEND_TIMEOUT_MS);
 
       try {
-        const response = await fetch("/ai/advice", {
+        const response = await fetch(withApiBase("/ai/advice"), {
           method: "POST",
           headers: {"Content-Type": "application/json"},
           body: JSON.stringify({ message: payloadMessage }),
