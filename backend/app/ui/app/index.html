@@ -485,7 +485,7 @@
     .trade-plan-status { margin-top:8px; min-height:20px; }
     .debug-workspace{
       display:grid;
-      grid-template-columns:repeat(2,minmax(320px,1fr));
+      grid-template-columns:1fr;
       gap:16px;
       margin-top:8px;
     }
@@ -2340,6 +2340,49 @@ body.premium-skin-arcane .shell-avatar-badge::after {
   &lt;/div&gt;
 
   &lt;script&gt;
+    const API_BASE_STORAGE_KEY = &quot;osrs_api_base&quot;;
+
+    function normalizeApiBase(value) {
+      const raw = String(value || &quot;&quot;).trim();
+      if (!raw) return &quot;&quot;;
+      return raw.replace(/\/$/, &quot;&quot;);
+    }
+
+    const API_BASE = (() =&gt; {
+      const metaValue = document.querySelector(&#x27;meta[name=&quot;osrs-api-base&quot;]&#x27;)?.content || &quot;&quot;;
+      const windowValue = typeof window !== &quot;undefined&quot; ? (window.__OSRS_API_BASE__ || window.OSRS_API_BASE || &quot;&quot;) : &quot;&quot;;
+      const storedValue = localStorage.getItem(API_BASE_STORAGE_KEY) || &quot;&quot;;
+      return normalizeApiBase(windowValue || storedValue || metaValue);
+    })();
+
+    function buildApiUrl(path) {
+      const value = String(path || &quot;&quot;);
+      if (!value) return value;
+      if (/^https?:\/\//i.test(value)) return value;
+      if (!API_BASE) return value;
+      return `${API_BASE}${value.startsWith(&#x27;/&#x27;) ? value : `/${value}`}`;
+    }
+
+    if (!API_BASE &amp;&amp; window.location.hostname !== &quot;127.0.0.1&quot; &amp;&amp; window.location.hostname !== &quot;localhost&quot;) {
+      console.warn(&#x27;[Auto Flip] No external API base configured. Relative API calls will stay on the current host. For a Vercel frontend talking to your home PC, set window.__OSRS_API_BASE__, add a meta[name=&quot;osrs-api-base&quot;], or localStorage.osrs_api_base to your public backend/tunnel URL.&#x27;);
+    } else {
+      console.info(`[Auto Flip] API target: ${API_BASE || &quot;same-origin local backend&quot;}`);
+    }
+
+    window.setApiBase = function setApiBase(url) {
+      const normalized = normalizeApiBase(url);
+      if (normalized) {
+        localStorage.setItem(API_BASE_STORAGE_KEY, normalized);
+      } else {
+        localStorage.removeItem(API_BASE_STORAGE_KEY);
+      }
+      window.location.reload();
+    };
+
+    window.getApiBase = function getApiBase() {
+      return API_BASE;
+    };
+
     const state = {
       token: localStorage.getItem(&#x27;osrs_token&#x27;) || &#x27;&#x27;,
       user: null,
@@ -2348,7 +2391,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
     };
 
     async function api(url, options = {}) {
-      const response = await fetch(url, {
+      const response = await fetch(buildApiUrl(url), {
         headers: { &#x27;Content-Type&#x27;: &#x27;application/json&#x27;, ...(options.headers || {}) },
         ...options,
       });
@@ -2898,12 +2941,16 @@ body.premium-skin-arcane .shell-avatar-badge::after {
               </div>
             </summary>
             <div class="debug-panel-body">
+              <div class="debug-inline-actions">
+                <button id="copyAutoFlipperDebugBtn" type="button">Copy Auto Flipper Debug</button>
+                <button id="clearAutoFlipperDebugBtn" type="button">Clear Auto Flipper Debug</button>
+              </div>
               <pre id="autoFlipperDebugEl" class="debug-log">No Auto Flipper debug yet.</pre>
             </div>
           </details>
         </div>
 
-        <div class="debug-panel">
+        <div class="debug-panel wide">
           <details id="debugDetails" open class="debug-collapsible">
             <summary>
               <div class="debug-panel-header">
@@ -2915,12 +2962,16 @@ body.premium-skin-arcane .shell-avatar-badge::after {
               </div>
             </summary>
             <div class="debug-panel-body">
+              <div class="debug-inline-actions">
+                <button id="copyDebugBtn" type="button">Copy Debug</button>
+                <button id="clearDebugBtn" type="button">Clear Debug</button>
+              </div>
               <pre id="debugEl" class="debug-log">No debug yet.</pre>
             </div>
           </details>
         </div>
 
-        <div class="debug-panel">
+        <div class="debug-panel wide">
           <details id="explorerDebugDetails" open class="debug-collapsible">
             <summary>
               <div class="debug-panel-header">
@@ -2932,7 +2983,57 @@ body.premium-skin-arcane .shell-avatar-badge::after {
               </div>
             </summary>
             <div class="debug-panel-body">
+              <div class="debug-inline-actions">
+                <button id="copyExplorerDebugBtn" type="button">Copy Explorer Debug</button>
+                <button id="clearExplorerDebugBtn" type="button">Clear Explorer Debug</button>
+                <button id="clearRecentSearchesBtn" type="button">Clear Recent Searches</button>
+                <button id="clearMarketLocalCacheBtn" type="button">Clear Market Local Cache</button>
+              </div>
               <pre id="explorerDebugEl" class="debug-log">No explorer debug yet.</pre>
+            </div>
+          </details>
+        </div>
+
+        <div class="debug-panel wide">
+          <details id="marketGraphDebugDetails" open class="debug-collapsible">
+            <summary>
+              <div class="debug-panel-header">
+                <div>
+                  <h3 class="debug-panel-title">Market Graph Debug</h3>
+                  <p class="debug-panel-subtitle">Graph tab selection state, request flow, cache usage, and render decisions for market history.</p>
+                </div>
+                <button class="debug-expand-btn" type="button" data-debug-expand="marketGraphDebugDetails">Collapse</button>
+              </div>
+            </summary>
+            <div class="debug-panel-body">
+              <div class="debug-inline-actions">
+                <button id="dumpMarketGraphDebugBtn" type="button">Dump Market Graph Debug</button>
+                <button id="copyMarketGraphDebugBtn" type="button">Copy Market Graph Debug</button>
+                <button id="clearMarketGraphDebugBtn" type="button">Clear Market Graph Debug</button>
+              </div>
+              <pre id="marketGraphDebugEl" class="debug-log">No market graph debug yet.</pre>
+            </div>
+          </details>
+        </div>
+
+        <div class="debug-panel wide">
+          <details id="graphDataDebugDetails" open class="debug-collapsible">
+            <summary>
+              <div class="debug-panel-header">
+                <div>
+                  <h3 class="debug-panel-title">Graph Data Debug</h3>
+                  <p class="debug-panel-subtitle">History payload summaries, point normalization, fallback usage, and graph-data snapshots for future debugging.</p>
+                </div>
+                <button class="debug-expand-btn" type="button" data-debug-expand="graphDataDebugDetails">Collapse</button>
+              </div>
+            </summary>
+            <div class="debug-panel-body">
+              <div class="debug-inline-actions">
+                <button id="dumpGraphDataDebugBtn" type="button">Dump Graph Data Debug</button>
+                <button id="copyGraphDataDebugBtn" type="button">Copy Graph Data Debug</button>
+                <button id="clearGraphDataDebugBtn" type="button">Clear Graph Data Debug</button>
+              </div>
+              <pre id="graphDataDebugEl" class="debug-log">No graph data debug yet.</pre>
             </div>
           </details>
         </div>
@@ -2951,9 +3052,32 @@ body.premium-skin-arcane .shell-avatar-badge::after {
             <div class="debug-panel-body">
               <div class="debug-inline-actions">
                 <button id="dumpTradePlanDebugBtn" type="button">Dump Trade Plan Debug</button>
+                <button id="copyTradePlanDebugBtn" type="button">Copy Trade Plan Debug</button>
                 <button id="clearTradePlanDebugBtn" type="button">Clear Trade Plan Debug</button>
               </div>
               <pre id="tradePlanDebugEl" class="debug-log">No trade-plan debug yet.</pre>
+            </div>
+          </details>
+        </div>
+
+        <div class="debug-panel wide">
+          <details id="aiCopilotDebugDetails" open class="debug-collapsible">
+            <summary>
+              <div class="debug-panel-header">
+                <div>
+                  <h3 class="debug-panel-title">AI Copilot Debug</h3>
+                  <p class="debug-panel-subtitle">Advisor request lifecycle, timeout/fallback causes, preset fast-path hits, and backend debug metadata.</p>
+                </div>
+                <button class="debug-expand-btn" type="button" data-debug-expand="aiCopilotDebugDetails">Collapse</button>
+              </div>
+            </summary>
+            <div class="debug-panel-body">
+              <div class="debug-inline-actions">
+                <button id="dumpAiCopilotDebugBtn" type="button">Dump AI Copilot Debug</button>
+                <button id="copyAiCopilotDebugBtn" type="button">Copy AI Copilot Debug</button>
+                <button id="clearAiCopilotDebugBtn" type="button">Clear AI Copilot Debug</button>
+              </div>
+              <pre id="aiCopilotDebugEl" class="debug-log">No AI Copilot debug yet.</pre>
             </div>
           </details>
         </div>
@@ -2967,6 +3091,40 @@ body.premium-skin-arcane .shell-avatar-badge::after {
     const saveSettingsBtn = document.getElementById("saveSettingsBtn");
     const savePersonalBtn = document.getElementById("savePersonalBtn");
     const askAiBtn = document.getElementById("askAiBtn");
+    const AI_ADVISOR_FRONTEND_TIMEOUT_MS = 12000;
+    let activeAdvisorRequestController = null;
+    let activeAdvisorRequestTimeout = null;
+    let latestAdvisorRequestId = 0;
+    const AI_COPILOT_DEBUG_EMPTY_TEXT = "No AI Copilot debug yet.";
+    const AUTO_FLIPPER_DEBUG_EMPTY_TEXT = "No Auto Flipper debug yet.";
+    const DEBUG_EMPTY_TEXT = "No debug yet.";
+    const EXPLORER_DEBUG_EMPTY_TEXT = "No explorer debug yet.";
+    const MARKET_GRAPH_DEBUG_EMPTY_TEXT = "No market graph debug yet.";
+    const GRAPH_DATA_DEBUG_EMPTY_TEXT = "No graph data debug yet.";
+    const TRADE_PLAN_DEBUG_EMPTY_TEXT = "No trade-plan debug yet.";
+    const marketGraphDebugState = {
+      selection: null,
+      active_request: null,
+      last_request: null,
+      last_render: null,
+      last_error: null,
+      request_state: "idle",
+      current_valid_history: null,
+      recent_events: [],
+    };
+    const graphDataDebugState = {
+      last_payload_summary: null,
+      last_normalized_summary: null,
+      cache_snapshot: null,
+      last_error: null,
+      recent_events: [],
+    };
+    const aiCopilotDebugState = {
+      activeRequest: null,
+      lastRequest: null,
+      lastBackendDebug: null,
+      events: [],
+    };
     const browseKeyBtn = document.getElementById("browseKeyBtn");
     const keyFileInput = document.getElementById("keyFileInput");
     const selectedKeyFileEl = document.getElementById("selectedKeyFile");
@@ -2984,12 +3142,34 @@ body.premium-skin-arcane .shell-avatar-badge::after {
     const decisionCountsEl = document.getElementById("decisionCounts");
     const geSlotsEl = document.getElementById("geSlots");
     const tradingTradePlanSlotsEl = document.getElementById("tradingTradePlanSlots");
+    const autoFlipperDebugEl = document.getElementById("autoFlipperDebugEl");
     const debugEl = document.getElementById("debugEl");
     const recommendationDebugEl = document.getElementById("recommendationDebug");
-    const explorerDebugEl = document.getElementById("explorerDebug");
-    const tradePlanDebugEl = document.getElementById("tradePlanDebug");
+    const aiCopilotDebugEl = document.getElementById("aiCopilotDebugEl");
+    const explorerDebugEl = document.getElementById("explorerDebugEl");
+    const marketGraphDebugEl = document.getElementById("marketGraphDebugEl");
+    const graphDataDebugEl = document.getElementById("graphDataDebugEl");
+    const tradePlanDebugEl = document.getElementById("tradePlanDebugEl");
+    const copyAutoFlipperDebugBtn = document.getElementById("copyAutoFlipperDebugBtn");
+    const clearAutoFlipperDebugBtn = document.getElementById("clearAutoFlipperDebugBtn");
+    const copyDebugBtn = document.getElementById("copyDebugBtn");
+    const clearDebugBtn = document.getElementById("clearDebugBtn");
+    const copyExplorerDebugBtn = document.getElementById("copyExplorerDebugBtn");
+    const clearExplorerDebugBtn = document.getElementById("clearExplorerDebugBtn");
+    const clearRecentSearchesBtn = document.getElementById("clearRecentSearchesBtn");
+    const clearMarketLocalCacheBtn = document.getElementById("clearMarketLocalCacheBtn");
+    const dumpMarketGraphDebugBtn = document.getElementById("dumpMarketGraphDebugBtn");
+    const copyMarketGraphDebugBtn = document.getElementById("copyMarketGraphDebugBtn");
+    const clearMarketGraphDebugBtn = document.getElementById("clearMarketGraphDebugBtn");
+    const dumpGraphDataDebugBtn = document.getElementById("dumpGraphDataDebugBtn");
+    const copyGraphDataDebugBtn = document.getElementById("copyGraphDataDebugBtn");
+    const clearGraphDataDebugBtn = document.getElementById("clearGraphDataDebugBtn");
     const dumpTradePlanDebugBtn = document.getElementById("dumpTradePlanDebugBtn");
+    const copyTradePlanDebugBtn = document.getElementById("copyTradePlanDebugBtn");
     const clearTradePlanDebugBtn = document.getElementById("clearTradePlanDebugBtn");
+    const dumpAiCopilotDebugBtn = document.getElementById("dumpAiCopilotDebugBtn");
+    const copyAiCopilotDebugBtn = document.getElementById("copyAiCopilotDebugBtn");
+    const clearAiCopilotDebugBtn = document.getElementById("clearAiCopilotDebugBtn");
     const openaiKeyEl = document.getElementById("openaiKey");
     const openaiKeyPathEl = document.getElementById("openaiKeyPath");
     const openaiModelEl = document.getElementById("openaiModel");
@@ -3060,7 +3240,9 @@ body.premium-skin-arcane .shell-avatar-badge::after {
     let latestAdvisorReplyData = null;
     let activeTradePlanSource = "algo";
     const MARKET_BOOTSTRAP_STORAGE_KEY = "market_bootstrap_cache_v1";
-    const MARKET_REQUEST_TIMEOUT_MS = 4500;
+    const MARKET_REQUEST_TIMEOUT_MS = 9000;
+    const MARKET_VALID_HISTORY_STORAGE_KEY = "market_valid_history_payload_v1";
+    const marketValidHistoryPayloadByKey = new Map();
     const SLOT_PURPOSE_STORAGE_KEY = "osrs_flip_slot_purpose_v1";
     const GHOST_OVERRIDE_STORAGE_KEY = "osrs_flip_ghost_trade_override_v1";
     const APPLIED_SLOT_TRADE_STORAGE_KEY = "osrs_flip_applied_slot_trade_v1";
@@ -3099,7 +3281,9 @@ body.premium-skin-arcane .shell-avatar-badge::after {
 
     function formatCoins(value) {
       if (value === undefined || value === null || value === "-") return "-";
-      return Number(value).toLocaleString();
+      const numeric = Number(value);
+      if (!Number.isFinite(numeric)) return "-";
+      return Math.round(numeric).toLocaleString();
     }
 
     function formatBudgetField() {
@@ -3660,10 +3844,282 @@ body.premium-skin-arcane .shell-avatar-badge::after {
       decisionCountsEl.textContent = `${counts.keep || 0}/${counts.hold || 0}/${counts.replace || 0}/${counts.cancel || 0}/${counts.completed || 0}`;
     }
 
+    function pushAiCopilotDebugEvent(label, payload = null) {
+      const entry = {
+        at: new Date().toISOString(),
+        label,
+      };
+      if (payload !== null && payload !== undefined) entry.payload = payload;
+      aiCopilotDebugState.events.push(entry);
+      if (aiCopilotDebugState.events.length > 30) {
+        aiCopilotDebugState.events = aiCopilotDebugState.events.slice(-30);
+      }
+    }
+
+    function buildAiCopilotDebugSnapshot() {
+      const active = aiCopilotDebugState.activeRequest ? {
+        ...aiCopilotDebugState.activeRequest,
+        age_ms: aiCopilotDebugState.activeRequest.started_at_ms ? Date.now() - aiCopilotDebugState.activeRequest.started_at_ms : null,
+      } : null;
+      return {
+        generated_at: new Date().toISOString(),
+        advisor_status: {
+          text: advisorStatusEl?.textContent || "",
+          class_name: advisorStatusEl?.className || "",
+        },
+        frontend: {
+          timeout_ms: AI_ADVISOR_FRONTEND_TIMEOUT_MS,
+          latest_request_id: latestAdvisorRequestId,
+          request_in_flight: Boolean(activeAdvisorRequestController),
+          ask_button_disabled: Boolean(askAiBtn?.disabled),
+          input_chars: String(advisorPromptEl?.value || "").length,
+          rendered_message_count: advisorReplyEl?.querySelectorAll(".ai-chat-message").length || 0,
+        },
+        active_request: active,
+        last_request: aiCopilotDebugState.lastRequest,
+        backend_debug: aiCopilotDebugState.lastBackendDebug,
+        recent_events: aiCopilotDebugState.events.slice(-20),
+      };
+    }
+
+    function trimDebugEvents(events, max = 25) {
+      return Array.isArray(events) ? events.slice(-max) : [];
+    }
+
+    function pushDebugEvent(state, label, payload = null) {
+      if (!state) return;
+      const event = {
+        at: new Date().toISOString(),
+        label,
+      };
+      if (payload !== null && payload !== undefined) event.payload = payload;
+      state.recent_events = trimDebugEvents([...(state.recent_events || []), event]);
+    }
+
+    function summarizeHistoryPoints(points) {
+      const clean = Array.isArray(points) ? points.filter(Boolean) : [];
+      const renderable = clean.filter(isRenderablePoint);
+      const lows = renderable.map(point => Number(point.low)).filter(Number.isFinite);
+      const highs = renderable.map(point => Number(point.high)).filter(Number.isFinite);
+      const volumes = clean.map(point => Number(point.recent_volume ?? point.volume ?? 0)).filter(Number.isFinite);
+      const timeValues = clean.map((point, index) => getPointTimeMs(point, index)).filter(Number.isFinite);
+      const sourceCounts = {};
+      clean.forEach(point => {
+        const key = String(point?.source || point?.point_source || point?.mode || "unknown");
+        sourceCounts[key] = (sourceCounts[key] || 0) + 1;
+      });
+      const sample = (point) => point ? {
+        snapshot_ts: point.snapshot_ts || point.ts || point.timestamp || point.bucket || null,
+        low: point.low ?? null,
+        high: point.high ?? null,
+        volume: point.recent_volume ?? point.volume ?? null,
+        source: point.source || point.point_source || point.mode || null,
+        is_gap: Boolean(point.is_gap),
+      } : null;
+      const first = clean.length ? sample(clean[0]) : null;
+      const last = clean.length ? sample(clean[clean.length - 1]) : null;
+      return {
+        point_count: clean.length,
+        renderable_count: renderable.length,
+        gap_count: clean.filter(point => point?.is_gap).length,
+        unique_low_count: new Set(lows).size,
+        unique_high_count: new Set(highs).size,
+        flat_low_line: lows.length > 0 && new Set(lows).size <= 1,
+        flat_high_line: highs.length > 0 && new Set(highs).size <= 1,
+        low_min: lows.length ? Math.min(...lows) : null,
+        low_max: lows.length ? Math.max(...lows) : null,
+        high_min: highs.length ? Math.min(...highs) : null,
+        high_max: highs.length ? Math.max(...highs) : null,
+        volume_max: volumes.length ? Math.max(...volumes) : null,
+        first_point: first,
+        last_point: last,
+        first_ts: timeValues.length ? new Date(Math.min(...timeValues)).toISOString() : null,
+        last_ts: timeValues.length ? new Date(Math.max(...timeValues)).toISOString() : null,
+        source_counts: sourceCounts,
+      };
+    }
+
+    function summarizeHistoryPayload(data, range = null) {
+      const points = extractHistoryPoints(data);
+      return {
+        range: range || null,
+        point_source: data?.point_source || data?.window_strategy || null,
+        contains_trade_events: Boolean(data?.contains_trade_events),
+        freshness_label: data?.freshness_label || null,
+        age_display: data?.age_display || null,
+        snapshot_bucket: data?.snapshot_bucket || null,
+        refresh_running: Boolean(data?.refresh_running),
+        endpoint: data?._history_endpoint || null,
+        attempts: Array.isArray(data?._history_attempts) ? data._history_attempts : [],
+        raw_point_count: Number(data?.raw_point_count || 0),
+        extracted_point_count: points.length,
+        point_summary: summarizeHistoryPoints(points),
+      };
+    }
+
+    function buildMarketHistoryCacheSnapshot(itemId) {
+      const ranges = ["day", "week", "month"];
+      return ranges.map((range) => {
+        const key = getHistoryCacheKey(itemId, range);
+        const payload = marketHistoryPayloadCache.get(key);
+        const persistedPayload = loadPersistedValidHistoryPayload(key);
+        return {
+          range,
+          cache_key: key,
+          cached: Boolean(payload),
+          persisted_valid_history: Boolean(persistedPayload),
+          summary: payload ? summarizeHistoryPayload(payload, range) : null,
+          persisted_summary: persistedPayload ? summarizeHistoryPayload(persistedPayload, range) : null,
+        };
+      });
+    }
+
+    function hasRenderableHistoryPoints(points) {
+      return normalizeHistoryPoints(points, "month").some(point => isRenderablePoint(point));
+    }
+
+    function hasMeaningfulHistoryVariance(points) {
+      const renderable = normalizeHistoryPoints(points, "month").filter(point => isRenderablePoint(point));
+      if (!renderable.length) return false;
+      const lows = renderable.map(point => Number(point.low)).filter(Number.isFinite);
+      const highs = renderable.map(point => Number(point.high)).filter(Number.isFinite);
+      return new Set(lows).size > 1 || new Set(highs).size > 1;
+    }
+
+    function isValidHistoryPayloadForPreserve(data) {
+      const points = extractHistoryPoints(data);
+      return points.length > 0 && hasRenderableHistoryPoints(points);
+    }
+
+    function canUseFallbackHistory(data) {
+      const points = extractHistoryPoints(data);
+      if (!points.length) return true;
+      return !hasRenderableHistoryPoints(points);
+    }
+
+    function loadPersistedValidHistoryStore() {
+      try {
+        const raw = window.sessionStorage?.getItem(MARKET_VALID_HISTORY_STORAGE_KEY);
+        if (!raw) return {};
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === "object" ? parsed : {};
+      } catch (_error) {
+        return {};
+      }
+    }
+
+    function savePersistedValidHistoryStore(store) {
+      try {
+        window.sessionStorage?.setItem(MARKET_VALID_HISTORY_STORAGE_KEY, JSON.stringify(store));
+      } catch (_error) {
+        // Ignore storage failures.
+      }
+    }
+
+    function loadPersistedValidHistoryPayload(cacheKey) {
+      if (!cacheKey) return null;
+      const store = loadPersistedValidHistoryStore();
+      const payload = store?.[cacheKey];
+      if (!payload || !isValidHistoryPayloadForPreserve(payload)) return null;
+      return cloneHistoryPayload(payload);
+    }
+
+    function persistValidHistoryPayload(cacheKey, payload) {
+      if (!cacheKey || !isValidHistoryPayloadForPreserve(payload)) return;
+      const safePayload = cloneHistoryPayload({ ...payload, points: extractHistoryPoints(payload) });
+      marketValidHistoryPayloadByKey.set(cacheKey, safePayload);
+      const store = loadPersistedValidHistoryStore();
+      store[cacheKey] = safePayload;
+      savePersistedValidHistoryStore(store);
+    }
+
+    function renderMarketGraphDebug() {
+      if (!marketGraphDebugEl) return;
+      const snapshot = {
+        selection: marketGraphDebugState.selection,
+        request_state: marketGraphDebugState.request_state,
+        active_request: marketGraphDebugState.active_request,
+        last_request: marketGraphDebugState.last_request,
+        current_valid_history: marketGraphDebugState.current_valid_history,
+        last_render: marketGraphDebugState.last_render,
+        last_error: marketGraphDebugState.last_error,
+        recent_events: trimDebugEvents(marketGraphDebugState.recent_events),
+      };
+      const hasContent = snapshot.selection || snapshot.active_request || snapshot.last_request || snapshot.current_valid_history || snapshot.last_render || snapshot.last_error || snapshot.recent_events.length || snapshot.request_state !== "idle";
+      marketGraphDebugEl.textContent = hasContent ? JSON.stringify(snapshot, null, 2) : MARKET_GRAPH_DEBUG_EMPTY_TEXT;
+    }
+
+    function renderGraphDataDebug() {
+      if (!graphDataDebugEl) return;
+      const snapshot = {
+        last_payload_summary: graphDataDebugState.last_payload_summary,
+        last_normalized_summary: graphDataDebugState.last_normalized_summary,
+        cache_snapshot: graphDataDebugState.cache_snapshot,
+        last_error: graphDataDebugState.last_error,
+        recent_events: trimDebugEvents(graphDataDebugState.recent_events),
+      };
+      const hasContent = snapshot.last_payload_summary || snapshot.last_normalized_summary || snapshot.cache_snapshot || snapshot.last_error || snapshot.recent_events.length;
+      graphDataDebugEl.textContent = hasContent ? JSON.stringify(snapshot, null, 2) : GRAPH_DATA_DEBUG_EMPTY_TEXT;
+    }
+
+    function resetMarketGraphDebug() {
+      marketGraphDebugState.selection = null;
+      marketGraphDebugState.active_request = null;
+      marketGraphDebugState.last_request = null;
+      marketGraphDebugState.last_render = null;
+      marketGraphDebugState.last_error = null;
+      marketGraphDebugState.request_state = "idle";
+      marketGraphDebugState.current_valid_history = null;
+      marketGraphDebugState.recent_events = [];
+      renderMarketGraphDebug();
+    }
+
+    function resetGraphDataDebug() {
+      graphDataDebugState.last_payload_summary = null;
+      graphDataDebugState.last_normalized_summary = null;
+      graphDataDebugState.cache_snapshot = null;
+      graphDataDebugState.last_error = null;
+      graphDataDebugState.recent_events = [];
+      renderGraphDataDebug();
+    }
+
+    function renderAiCopilotDebug() {
+      if (!aiCopilotDebugEl) return;
+      const snapshot = buildAiCopilotDebugSnapshot();
+      const hasContent = snapshot.active_request || snapshot.last_request || snapshot.backend_debug || snapshot.recent_events.length;
+      aiCopilotDebugEl.textContent = hasContent ? JSON.stringify(snapshot, null, 2) : AI_COPILOT_DEBUG_EMPTY_TEXT;
+    }
+
+    async function copyTextToClipboard(text) {
+      const value = String(text || "");
+      if (!value) return false;
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(value);
+          return true;
+        }
+      } catch (_error) {}
+      try {
+        const temp = document.createElement("textarea");
+        temp.value = value;
+        temp.setAttribute("readonly", "readonly");
+        temp.style.position = "fixed";
+        temp.style.opacity = "0";
+        document.body.appendChild(temp);
+        temp.focus();
+        temp.select();
+        const ok = document.execCommand("copy");
+        temp.remove();
+        return Boolean(ok);
+      } catch (_error) {
+        return false;
+      }
+    }
+
     function appendTradePlanDebug(label, payload = null) {
       if (!tradePlanDebugEl) return;
       const stamp = new Date().toLocaleTimeString();
-      const existing = tradePlanDebugEl.textContent === "No trade-plan debug yet." ? "" : tradePlanDebugEl.textContent + "\n\n";
+      const existing = tradePlanDebugEl.textContent === TRADE_PLAN_DEBUG_EMPTY_TEXT ? "" : tradePlanDebugEl.textContent + "\n\n";
       let block = `[${stamp}] ${label}`;
       if (payload !== null && payload !== undefined) {
         try {
@@ -4503,6 +4959,220 @@ body.premium-skin-arcane .shell-avatar-badge::after {
       renderMarketExplorerTable(latestExplorerItems);
     }
 
+    const marketDetailStatsCache = new Map();
+    const marketHistoryPayloadCache = new Map();
+    const marketHistoryInflight = new Map();
+    const marketHistoryInflightMeta = new Map();
+    const marketRangeSummaryInflight = new Map();
+    const marketHistoryPreloadInflight = new Map();
+    let marketSelectionRequestSeq = 0;
+
+    function getHistoryCacheKey(itemId, range) {
+      return `${Number(itemId || 0)}:${String(range || "month")}`;
+    }
+
+    function cloneHistoryPayload(payload) {
+      if (!payload || typeof payload !== "object") return { points: [] };
+      const points = extractHistoryPoints(payload).map(point => ({ ...point }));
+      return { ...payload, points };
+    }
+
+    function hasValue(value) {
+      return value !== undefined && value !== null && value !== "" && Number(value || 0) > 0;
+    }
+
+    function resolveHighAlchValue(...sources) {
+      const directKeys = [
+        "high_alch_value",
+        "high_alch",
+        "alch_value",
+        "high_alchemy_value",
+        "highAlchemyValue",
+        "highAlchValue",
+        "ha_value",
+        "haValue",
+      ];
+      const nestedKeys = ["item", "market", "cache", "data", "payload", "details", "metadata"];
+      for (const source of sources) {
+        if (!source || typeof source !== "object") continue;
+        const candidates = [];
+        directKeys.forEach((key) => candidates.push(source?.[key]));
+        nestedKeys.forEach((nestedKey) => {
+          const nested = source?.[nestedKey];
+          if (!nested || typeof nested !== "object") return;
+          directKeys.forEach((key) => candidates.push(nested?.[key]));
+        });
+        for (const candidate of candidates) {
+          const numeric = Number(candidate || 0);
+          if (numeric > 0) return Math.round(numeric);
+        }
+      }
+      return 0;
+    }
+
+    function formatRangePair(lowValue, highValue) {
+      const low = Number(lowValue || 0);
+      const high = Number(highValue || 0);
+      if (!(low > 0) && !(high > 0)) return "- / -";
+      return `${low > 0 ? formatCoins(low) : "-"} / ${high > 0 ? formatCoins(high) : "-"}`;
+    }
+
+    function summarizeHistoryPoints(points) {
+      let low = Number.POSITIVE_INFINITY;
+      let high = Number.NEGATIVE_INFINITY;
+      let pointCount = 0;
+      for (const point of Array.isArray(points) ? points : []) {
+        const pointLow = Number(point?.low ?? point?.buy ?? point?.min_low ?? 0);
+        const pointHigh = Number(point?.high ?? point?.sell ?? point?.max_high ?? 0);
+        if (pointLow > 0) {
+          low = Math.min(low, pointLow);
+          pointCount += 1;
+        }
+        if (pointHigh > 0) {
+          high = Math.max(high, pointHigh);
+        }
+      }
+      return {
+        low: Number.isFinite(low) ? low : 0,
+        high: Number.isFinite(high) ? high : 0,
+        point_count: pointCount,
+      };
+    }
+
+    function hasRealHistoryPayload(data) {
+      if (!data || typeof data !== "object") return false;
+      if (Number(data.raw_point_count || 0) > 0) return true;
+      return extractHistoryPoints(data).some(point => isRenderablePoint(point));
+    }
+
+    function getStoredHistoryPayload(itemId, rangeName) {
+      const cacheKey = getHistoryCacheKey(itemId, rangeName);
+      return marketHistoryPayloadCache.get(cacheKey)
+        || marketValidHistoryPayloadByKey.get(cacheKey)
+        || loadPersistedValidHistoryPayload(cacheKey)
+        || null;
+    }
+
+    function hasRangeSummary(item, rangeName) {
+      return Number(item?.[`${rangeName}_low`] || 0) > 0 || Number(item?.[`${rangeName}_high`] || 0) > 0;
+    }
+
+    async function hydrateMarketDetailStats(item, activeRange, activeHistoryData = null) {
+      const itemId = Number(item?.id || 0);
+      if (!(itemId > 0)) return;
+      const cached = marketDetailStatsCache.get(itemId) || {};
+      const normalizedName = normalizeName(item?.name || "");
+      const marketMapEntry = normalizedName ? (latestMarketMap?.[normalizedName] || {}) : {};
+      const next = {
+        ...cached,
+        high_alch_value: resolveHighAlchValue(item, marketMapEntry, cached),
+      };
+      const rangePayloads = {};
+      if (activeHistoryData && activeRange) {
+        rangePayloads[activeRange] = activeHistoryData;
+      }
+
+      ["day", "week", "month"].forEach((rangeName) => {
+        if (rangePayloads[rangeName]) return;
+        const cachedPayload = getStoredHistoryPayload(itemId, rangeName);
+        if (cachedPayload) {
+          rangePayloads[rangeName] = cloneHistoryPayload(cachedPayload);
+        }
+      });
+
+      for (const [rangeName, payload] of Object.entries(rangePayloads)) {
+        if (!hasRealHistoryPayload(payload)) continue;
+        const summary = summarizeHistoryPoints(extractHistoryPoints(payload));
+        if (!(summary.point_count > 0)) continue;
+        next[`${rangeName}_low`] = summary.low;
+        next[`${rangeName}_high`] = summary.high;
+      }
+
+      marketDetailStatsCache.set(itemId, next);
+      if (Number(latestSelectedItemId) !== itemId) return;
+      latestSelectedItem = { ...(latestSelectedItem || item || {}), ...next };
+      renderMarketDetail(latestSelectedItem);
+    }
+
+
+    async function warmMissingMarketRangeSummaries(item, activeRange, activeHistoryData = null) {
+      const itemId = Number(item?.id || 0);
+      if (!(itemId > 0)) return;
+      await hydrateMarketDetailStats(item, activeRange, activeHistoryData);
+      const selectedSnapshot = Number(latestSelectedItemId) === itemId ? (latestSelectedItem || item) : item;
+      const rangesToWarm = ["day", "week", "month"].filter((rangeName) => {
+        if (rangeName === activeRange && activeHistoryData) return false;
+        if (hasRangeSummary(selectedSnapshot, rangeName)) return false;
+        const cachedPayload = getStoredHistoryPayload(itemId, rangeName);
+        if (cachedPayload && hasRealHistoryPayload(cachedPayload)) return false;
+        return true;
+      });
+      if (!rangesToWarm.length) return;
+
+      await Promise.all(rangesToWarm.map(async (rangeName) => {
+        const warmKey = getHistoryCacheKey(itemId, rangeName);
+        if (marketRangeSummaryInflight.has(warmKey)) {
+          try { await marketRangeSummaryInflight.get(warmKey); } catch (_error) {}
+          return;
+        }
+        const warmPromise = (async () => {
+          try {
+            const payload = await fetchHistoryPayload(itemId, rangeName, { preferCache: true, silent: true, timeoutMs: Math.min(MARKET_REQUEST_TIMEOUT_MS, 6500) });
+            if (hasRealHistoryPayload(payload)) {
+              persistValidHistoryPayload(warmKey, payload);
+            }
+            if (Number(latestSelectedItemId) === itemId) {
+              await hydrateMarketDetailStats(latestSelectedItem || item, rangeName, payload);
+            }
+          } catch (_error) {
+          } finally {
+            marketRangeSummaryInflight.delete(warmKey);
+          }
+        })();
+        marketRangeSummaryInflight.set(warmKey, warmPromise);
+        await warmPromise;
+      }));
+    }
+
+
+    async function warmMissingMarketHistoryPayloads(item, activeRange, activeHistoryData = null) {
+      const itemId = Number(item?.id || 0);
+      if (!(itemId > 0)) return;
+      const rangesToWarm = ["day", "week", "month"].filter((rangeName) => {
+        if (rangeName === activeRange && activeHistoryData && hasRealHistoryPayload(activeHistoryData)) return false;
+        const cachedPayload = getStoredHistoryPayload(itemId, rangeName);
+        if (cachedPayload && hasRealHistoryPayload(cachedPayload)) return false;
+        return true;
+      });
+      if (!rangesToWarm.length) return;
+
+      for (const rangeName of rangesToWarm) {
+        const warmKey = getHistoryCacheKey(itemId, rangeName);
+        if (marketHistoryPreloadInflight.has(warmKey)) {
+          try { await marketHistoryPreloadInflight.get(warmKey); } catch (_error) {}
+          return;
+        }
+        const warmPromise = (async () => {
+          try {
+            const payload = await fetchHistoryPayload(itemId, rangeName, { preferCache: true, silent: true, timeoutMs: Math.min(MARKET_REQUEST_TIMEOUT_MS, 6500) });
+            if (hasRealHistoryPayload(payload)) {
+              persistValidHistoryPayload(warmKey, payload);
+              if (Number(latestSelectedItemId) === itemId) {
+                await hydrateMarketDetailStats(latestSelectedItem || item, rangeName, payload);
+              }
+            }
+          } catch (_error) {
+          } finally {
+            marketHistoryPreloadInflight.delete(warmKey);
+          }
+        })();
+        marketHistoryPreloadInflight.set(warmKey, warmPromise);
+        await warmPromise;
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+    }
+
+
     function renderMarketDetail(item) {
       if (!item) {
         marketDetailTitleEl.textContent = "Item Detail";
@@ -4516,14 +5186,19 @@ body.premium-skin-arcane .shell-avatar-badge::after {
       marketDetailTitleEl.innerHTML = `<span>${escapeHtml(item.name)}</span> ${favoriteButtonHtml({ id: item.id, name: item.name })}`;
       chartPanelTitleEl.textContent = `${item.name} Market History`;
       chartPanelSubtitleEl.textContent = `Buy ${formatCoins(item.buy_price)} • Sell ${formatCoins(item.sell_price)} • ROI ${(Number(item.roi_pct || 0)).toFixed(2)}% • 5m Volume ${formatCoins(item.recent_volume)}`;
+      const normalizedName = normalizeName(item?.name || "");
+      const marketMapEntry = normalizedName ? (latestMarketMap?.[normalizedName] || {}) : {};
+      const explorerEntry = (Array.isArray(latestExplorerItems) ? latestExplorerItems.find(entry => favoriteMatchesItem(entry, item) || normalizeName(entry?.name) === normalizedName) : null) || {};
+      const favoriteEntry = (loadFavorites().find(entry => favoriteMatchesItem(entry, item) || normalizeName(entry?.name) === normalizedName) || {});
+      const highAlch = resolveHighAlchValue(item, marketMapEntry, explorerEntry, favoriteEntry);
       marketDetailEl.innerHTML = `
         <div class="detail-grid">
           <div class="detail-stat"><div class="detail-label">Current Spread</div><div class="detail-value">${formatCoins(item.buy_price)} → ${formatCoins(item.sell_price)}</div><div class="detail-subvalue">Profit / item ${formatCoins(item.profit_per_item)} • ROI ${(Number(item.roi_pct || 0)).toFixed(2)}%</div></div>
           <div class="detail-stat"><div class="detail-label">Liquidity</div><div class="detail-value">${formatCoins(item.recent_volume)} 5m volume</div><div class="detail-subvalue">4h buy limit ${formatCoins(item.buy_limit)}</div></div>
-          <div class="detail-stat"><div class="detail-label">Day Range</div><div class="detail-value">${formatCoins(item.day_low)} / ${formatCoins(item.day_high)}</div><div class="detail-subvalue">Dip vs day ${(Number(item.dip_vs_day_pct || 0)).toFixed(2)}%</div></div>
-          <div class="detail-stat"><div class="detail-label">Week Range</div><div class="detail-value">${formatCoins(item.week_low)} / ${formatCoins(item.week_high)}</div><div class="detail-subvalue">Dip vs week ${(Number(item.dip_vs_week_pct || 0)).toFixed(2)}%</div></div>
-          <div class="detail-stat"><div class="detail-label">Month Range</div><div class="detail-value">${formatCoins(item.month_low)} / ${formatCoins(item.month_high)}</div><div class="detail-subvalue">Longer context for spikes and stability</div></div>
-          <div class="detail-stat"><div class="detail-label">High Alch Value</div><div class="detail-value">${formatCoins(item.high_alch_value || item.high_alch || item.alch_value || item.high_alchemy_value || 0)}</div></div>
+          <div class="detail-stat"><div class="detail-label">Day Range</div><div class="detail-value">${formatRangePair(item.day_low, item.day_high)}</div><div class="detail-subvalue">Dip vs day ${(Number(item.dip_vs_day_pct || 0)).toFixed(2)}%</div></div>
+          <div class="detail-stat"><div class="detail-label">Week Range</div><div class="detail-value">${formatRangePair(item.week_low, item.week_high)}</div><div class="detail-subvalue">Dip vs week ${(Number(item.dip_vs_week_pct || 0)).toFixed(2)}%</div></div>
+          <div class="detail-stat"><div class="detail-label">Month Range</div><div class="detail-value">${formatRangePair(item.month_low, item.month_high)}</div><div class="detail-subvalue">Longer context for spikes and stability</div></div>
+          <div class="detail-stat"><div class="detail-label">High Alch Value</div><div class="detail-value">${hasValue(highAlch) ? formatCoins(highAlch) : "-"}</div></div>
         </div>
       `;
       refreshStarButtons();
@@ -4554,7 +5229,29 @@ body.premium-skin-arcane .shell-avatar-badge::after {
     }
 
     function formatGpAxis(value) {
-      return `${formatShortNumber(value)} gp`;
+      const num = Number(value || 0);
+      if (!Number.isFinite(num)) return "-";
+      if (Math.abs(num) < 1000) {
+        return `${Math.round(num)} gp`;
+      }
+      return `${formatShortNumber(num)} gp`;
+    }
+
+    function buildPriceAxisTicks(minValue, maxValue) {
+      const minNum = Number(minValue || 0);
+      const maxNum = Number(maxValue || 0);
+      const span = Math.max(maxNum - minNum, 0);
+      if (maxNum <= 1000 && span <= 20) {
+        const lower = Math.max(0, Math.floor(minNum));
+        const upper = Math.max(lower + 1, Math.ceil(maxNum));
+        const rawStep = Math.ceil((upper - lower) / 4) || 1;
+        const step = Math.max(1, rawStep);
+        const ticks = [];
+        for (let value = lower; value <= upper; value += step) ticks.push(value);
+        if (ticks[ticks.length - 1] !== upper) ticks.push(upper);
+        return Array.from(new Set(ticks)).sort((a, b) => a - b);
+      }
+      return Array.from({ length: 5 }, (_unused, index) => minNum + ((span * index) / 4));
     }
 
     function updateChartPanelMeta(data, range, plottedPoints = 0) {
@@ -4563,10 +5260,10 @@ body.premium-skin-arcane .shell-avatar-badge::after {
         chartPanelMetaEl.textContent = "Source: - • Cache freshness: -";
         return;
       }
-      const source = String(data.point_source || data.window_strategy || "snapshot").replaceAll("_", " ");
+      const source = String(data.render_source || data.point_source || data.window_strategy || "snapshot").replaceAll("_", " ");
       const freshness = `${data.freshness_label || "Unknown"} (${data.age_display || "-"})`;
       const bucket = data.snapshot_bucket || "-";
-      const refreshState = data.refresh_running ? "refresh running" : "refresh idle";
+      const refreshState = data.request_state || (data.refresh_running ? "refresh running" : "refresh idle");
       const rawCount = Number(data.raw_point_count || 0);
       const compactNote = range === "day"
         ? (data.contains_trade_events ? "day view uses trade events + 5m anchors" : "day view fell back to 5m anchors")
@@ -4585,6 +5282,282 @@ body.premium-skin-arcane .shell-avatar-badge::after {
 
 
 
+
+    function extractHistoryPoints(data) {
+      if (!data || typeof data !== "object") return [];
+      const candidates = [
+        data.points,
+        data.history,
+        data.series,
+        data.data,
+        data.payload?.points,
+        data.payload?.history,
+      ];
+      for (const candidate of candidates) {
+        if (Array.isArray(candidate)) return candidate.filter(Boolean);
+      }
+      if (Array.isArray(data?.chart?.points)) return data.chart.points.filter(Boolean);
+      return [];
+    }
+
+    function buildFlatHistoryFallback(item, range) {
+      const target = getTargetPointCount(range);
+      const low = Number(item?.buy_price ?? item?.buy ?? item?.low ?? 0);
+      const high = Number(item?.sell_price ?? item?.sell ?? item?.high ?? low ?? 0);
+      const volume = Number(item?.recent_volume ?? item?.volume ?? 0);
+      if (!(low > 0) || !(high > 0)) return [];
+      const now = Date.now();
+      const stepMs = range === "day" ? 5 * 60 * 1000 : (range === "week" ? 35 * 60 * 1000 : 150 * 60 * 1000);
+      return Array.from({ length: target }, (_, index) => ({
+        snapshot_ts: new Date(now - ((target - 1 - index) * stepMs)).toISOString(),
+        low,
+        high,
+        recent_volume: volume,
+        volume,
+        source: "ui_cache_flat_fallback",
+        is_gap: false,
+      }));
+    }
+
+
+
+    async function fetchHistoryEndpoint(endpoint, timeoutMs) {
+      const startedAt = performance.now();
+      try {
+        const data = await fetchJsonWithTimeout(endpoint, {}, timeoutMs);
+        const points = extractHistoryPoints(data);
+        return {
+          endpoint,
+          ok: true,
+          elapsed_ms: Math.round(performance.now() - startedAt),
+          point_count: points.length,
+          raw_point_count: Number(data?.raw_point_count || 0),
+          payload: { ...data, points, _history_endpoint: endpoint },
+        };
+      } catch (error) {
+        return {
+          endpoint,
+          ok: false,
+          elapsed_ms: Math.round(performance.now() - startedAt),
+          error: String(error),
+          payload: null,
+        };
+      }
+    }
+
+    function buildHistoryAttemptRecord(result) {
+      return {
+        endpoint: result?.endpoint || null,
+        ok: Boolean(result?.ok),
+        elapsed_ms: Number(result?.elapsed_ms || 0),
+        point_count: Number(result?.point_count || 0),
+        raw_point_count: Number(result?.raw_point_count || 0),
+        error: result?.error || undefined,
+      };
+    }
+
+
+async function resolveHistoryRoundFast(endpoints, timeoutMs) {
+  const settled = [];
+  let best = null;
+
+  for (const endpoint of endpoints) {
+    const value = await fetchHistoryEndpoint(endpoint, timeoutMs);
+    settled.push(value);
+    if (value?.ok && value?.payload) {
+      const payload = value.payload;
+      if (hasRealHistoryPayload(payload) || extractHistoryPoints(payload).length > 0) {
+        best = value;
+        break;
+      }
+    }
+  }
+
+  return {
+    best,
+    attempts: settled.map(buildHistoryAttemptRecord),
+  };
+}
+
+async function fetchHistoryPayload(itemId, activeRange, options = {}) {
+      const cacheKey = getHistoryCacheKey(itemId, activeRange);
+      const preferCache = options.preferCache !== false;
+      const timeoutMs = Number(options.timeoutMs || MARKET_REQUEST_TIMEOUT_MS);
+      const silent = options.silent === true;
+      const allowEmptyRetry = options.allowEmptyRetry !== false;
+      const interactive = options.interactive === true;
+      const reuseInflightMaxAgeMs = Number.isFinite(Number(options.reuseInflightMaxAgeMs)) ? Number(options.reuseInflightMaxAgeMs) : Infinity;
+      const cached = marketHistoryPayloadCache.get(cacheKey);
+      if (preferCache && cached) {
+        const cloned = cloneHistoryPayload(cached);
+        if (!silent) {
+          marketGraphDebugState.last_error = null;
+          pushDebugEvent(marketGraphDebugState, "history_cache_hit", { item_id: Number(itemId), range: activeRange, cache_key: cacheKey, point_count: extractHistoryPoints(cloned).length });
+          graphDataDebugState.last_payload_summary = summarizeHistoryPayload(cloned, activeRange);
+          graphDataDebugState.cache_snapshot = buildMarketHistoryCacheSnapshot(itemId);
+          renderMarketGraphDebug();
+          renderGraphDataDebug();
+        }
+        return cloned;
+      }
+      if (marketHistoryInflight.has(cacheKey)) {
+        const inflightMeta = marketHistoryInflightMeta.get(cacheKey) || {};
+        const inflightAgeMs = inflightMeta.started_epoch_ms ? Math.max(0, Date.now() - inflightMeta.started_epoch_ms) : 0;
+        const shouldRejectSlowPreload = interactive && !silent && inflightMeta.silent === true && inflightAgeMs > Math.min(reuseInflightMaxAgeMs, 400);
+        if (!shouldRejectSlowPreload) {
+          if (!silent) {
+            pushDebugEvent(marketGraphDebugState, "history_inflight_reused", { item_id: Number(itemId), range: activeRange, cache_key: cacheKey });
+          }
+          const inflightPayload = cloneHistoryPayload(await marketHistoryInflight.get(cacheKey));
+          const inflightHasRenderableHistory = isValidHistoryPayloadForPreserve(inflightPayload) || extractHistoryPoints(inflightPayload).length > 0;
+          if (!silent) {
+            graphDataDebugState.last_payload_summary = summarizeHistoryPayload(inflightPayload, activeRange);
+            graphDataDebugState.cache_snapshot = buildMarketHistoryCacheSnapshot(itemId);
+            renderMarketGraphDebug();
+            renderGraphDataDebug();
+          }
+          if (silent || inflightHasRenderableHistory) {
+            return inflightPayload;
+          }
+          pushDebugEvent(marketGraphDebugState, "history_inflight_reuse_rejected", {
+            item_id: Number(itemId),
+            range: activeRange,
+            cache_key: cacheKey,
+            reason: "empty_preload_result"
+          });
+        } else if (!silent) {
+          pushDebugEvent(marketGraphDebugState, "history_inflight_reuse_rejected", {
+            item_id: Number(itemId),
+            range: activeRange,
+            cache_key: cacheKey,
+            reason: "slow_preload_cutoff",
+            inflight_age_ms: inflightAgeMs,
+          });
+        }
+      }
+
+      const requestStartedAt = new Date().toISOString();
+      if (!silent) {
+        marketGraphDebugState.active_request = {
+          item_id: Number(itemId),
+          range: activeRange,
+          cache_key: cacheKey,
+          prefer_cache: preferCache,
+          timeout_ms: timeoutMs,
+          started_at: requestStartedAt,
+        };
+        marketGraphDebugState.request_state = "loading";
+        marketGraphDebugState.last_error = null;
+        pushDebugEvent(marketGraphDebugState, "history_request_started", marketGraphDebugState.active_request);
+        renderMarketGraphDebug();
+      }
+
+      const endpoints = interactive && !silent
+        ? [`/market/explorer/history/${itemId}?range=${activeRange}`]
+        : [
+            `/market/explorer/history/${itemId}?range=${activeRange}`,
+            `/market/history/${itemId}?range=${activeRange}`
+          ];
+      const requestPromise = (async () => {
+        let attempts = [];
+        let payload = { points: [], _history_attempts: [], _history_endpoint: null };
+
+        for (let roundIndex = 0; roundIndex < (silent || !allowEmptyRetry ? 1 : 2); roundIndex += 1) {
+          const roundResult = await resolveHistoryRoundFast(endpoints, timeoutMs);
+          attempts = attempts.concat(roundResult.attempts || []);
+
+          const roundPayload = roundResult.best
+            ? { ...roundResult.best.payload, _history_attempts: attempts }
+            : { points: [], _history_attempts: attempts, _history_endpoint: null };
+
+          const roundPoints = extractHistoryPoints(roundPayload);
+          const roundHasValidHistory = isValidHistoryPayloadForPreserve(roundPayload);
+
+          payload = roundPayload;
+
+          if (roundHasValidHistory || roundPoints.length > 0 || roundIndex > 0 || silent || !allowEmptyRetry) {
+            break;
+          }
+
+          if (!silent) {
+            pushDebugEvent(marketGraphDebugState, "history_empty_retry_scheduled", {
+              item_id: Number(itemId),
+              range: activeRange,
+              cache_key: cacheKey,
+              first_payload_point_count: roundPoints.length,
+            });
+            renderMarketGraphDebug();
+          }
+        }
+
+        const payloadPoints = extractHistoryPoints(payload);
+        const payloadHasValidHistory = isValidHistoryPayloadForPreserve(payload);
+        const shouldCache = hasRealHistoryPayload(payload) || payloadHasValidHistory;
+        if (shouldCache) {
+          marketHistoryPayloadCache.set(cacheKey, payload);
+        }
+
+        if (!silent) {
+          marketGraphDebugState.request_state = "resolved";
+          marketGraphDebugState.last_request = {
+            item_id: Number(itemId),
+            range: activeRange,
+            cache_key: cacheKey,
+            started_at: requestStartedAt,
+            completed_at: new Date().toISOString(),
+            prefer_cache: preferCache,
+            endpoint: payload._history_endpoint || null,
+            cached_result: shouldCache,
+            attempts,
+            payload_point_count: payloadPoints.length,
+            has_real_history: hasRealHistoryPayload(payload),
+            has_valid_history: payloadHasValidHistory,
+            request_state: "resolved",
+          };
+          graphDataDebugState.last_payload_summary = summarizeHistoryPayload(payload, activeRange);
+          graphDataDebugState.cache_snapshot = buildMarketHistoryCacheSnapshot(itemId);
+          pushDebugEvent(marketGraphDebugState, "history_request_resolved", {
+            item_id: Number(itemId),
+            range: activeRange,
+            endpoint: payload._history_endpoint || null,
+            payload_point_count: payloadPoints.length,
+            has_real_history: hasRealHistoryPayload(payload),
+            has_valid_history: payloadHasValidHistory,
+            request_state: "resolved",
+          });
+          pushDebugEvent(graphDataDebugState, "history_payload_captured", graphDataDebugState.last_payload_summary);
+          renderMarketGraphDebug();
+          renderGraphDataDebug();
+        }
+        return payload;
+      })();
+
+      marketHistoryInflight.set(cacheKey, requestPromise);
+      marketHistoryInflightMeta.set(cacheKey, { started_epoch_ms: Date.now(), silent, interactive, source: options.source || (silent ? "preload" : "active") });
+      try {
+        const resolved = cloneHistoryPayload(await requestPromise);
+        if (!silent) {
+          marketGraphDebugState.active_request = null;
+          renderMarketGraphDebug();
+        }
+        return resolved;
+      } catch (error) {
+        if (!silent) {
+          marketGraphDebugState.active_request = null;
+          marketGraphDebugState.request_state = "failed";
+          marketGraphDebugState.last_error = String(error);
+          graphDataDebugState.last_error = String(error);
+          pushDebugEvent(marketGraphDebugState, "history_request_failed", { item_id: Number(itemId), range: activeRange, error: String(error) });
+          pushDebugEvent(graphDataDebugState, "history_request_failed", { item_id: Number(itemId), range: activeRange, error: String(error) });
+          renderMarketGraphDebug();
+          renderGraphDataDebug();
+        }
+        throw error;
+      } finally {
+        marketHistoryInflight.delete(cacheKey);
+        marketHistoryInflightMeta.delete(cacheKey);
+      }
+    }
     function isRenderablePrice(value) {
       const num = Number(value);
       return Number.isFinite(num) && num > 0;
@@ -4601,7 +5574,6 @@ body.premium-skin-arcane .shell-avatar-badge::after {
     }
 
     function getTargetPointCount(range) {
-      if (range === "day") return 960;
       return 288;
     }
 
@@ -4612,10 +5584,22 @@ body.premium-skin-arcane .shell-avatar-badge::after {
       return date.getTime();
     }
 
+    function getRangeWindowMs(range) {
+      if (range === "day") return 24 * 60 * 60 * 1000;
+      if (range === "week") return 7 * 24 * 60 * 60 * 1000;
+      return 30 * 24 * 60 * 60 * 1000;
+    }
+
     function normalizeHistoryPoints(points, range) {
       const clean = Array.isArray(points) ? points.filter(Boolean) : [];
       const target = getTargetPointCount(range);
-      if (clean.length <= target) return clean;
+      if (clean.length <= target) {
+        return clean.map(point => ({
+          ...point,
+          bucket_size: Number(point?.bucket_size || 1),
+          is_compacted: Boolean(point?.is_compacted || point?.compacted || Number(point?.bucket_size || 1) > 1),
+        }));
+      }
       const bucketSize = clean.length / target;
       const out = [];
       for (let i = 0; i < target; i++) {
@@ -4645,6 +5629,8 @@ body.premium-skin-arcane .shell-avatar-badge::after {
           volume: Math.round(average(volumes)),
           recent_volume: Math.round(average(volumes)),
           is_gap: false,
+          bucket_size: slice.length,
+          is_compacted: slice.length > 1 || nonGapSlice.length > 1,
         });
       }
       return out;
@@ -4690,6 +5676,25 @@ body.premium-skin-arcane .shell-avatar-badge::after {
       return segments;
     }
 
+
+    function shouldRenderHistoryDot(point, index, lastRealIndex, range, pointTimeMs, latestTimeMs) {
+      if (!isRenderablePoint(point)) return false;
+      if (index === lastRealIndex) return true;
+      if (String(point?.point_mode || "").toLowerCase() === "trade_event") return true;
+      const sourceHint = `${point?.source || ""} ${point?.point_source || ""} ${point?.point_mode || ""}`.toLowerCase();
+      const isCompacted = Boolean(point?.is_compacted || point?.compacted || Number(point?.bucket_size || 1) > 1 || sourceHint.includes("compact"));
+      if (!isCompacted) return true;
+      return false;
+    }
+
+    function renderHistoryLoadingPlaceholder(item, range = "month", message = "Loading history…") {
+      const width = 1720;
+      const height = 860;
+      chartTooltipEl.classList.remove("visible");
+      chartTooltipEl.setAttribute("aria-hidden", "true");
+      historyChartSvgEl.innerHTML = `<rect x="0" y="0" width="${width}" height="${height}" fill="#170e08" rx="16"></rect><text x="${width/2}" y="${height/2 - 16}" fill="#f3d49a" text-anchor="middle" font-size="28" font-family="Arial">${escapeHtml(item?.name || "Selected item")}</text><text x="${width/2}" y="${height/2 + 24}" fill="#d7b06a" text-anchor="middle" font-size="22" font-family="Arial">${escapeHtml(message)}</text>`;
+    }
+
     function drawHistoryChart(points, range = "month", item = null) {
       points = normalizeHistoryPoints(points, range);
       const width = 1720;
@@ -4725,33 +5730,41 @@ body.premium-skin-arcane .shell-avatar-badge::after {
       const padVal = Math.max((maxVal - minVal) * 0.12, 1);
       minVal -= padVal;
       maxVal += padVal;
+      if (maxVal <= 1000 && (maxVal - minVal) <= 12) {
+        minVal = Math.floor(minVal);
+        maxVal = Math.ceil(maxVal);
+        if (minVal === maxVal) { minVal -= 1; maxVal += 1; }
+      }
       const priceSpan = Math.max(maxVal - minVal, 1);
       const maxVolume = Math.max(...volumes, 1);
 
       const pointTimes = points.map((point, index) => getPointTimeMs(point, index));
-      const minTime = Math.min(...pointTimes);
-      const maxTime = Math.max(...pointTimes);
-      const timeSpan = Math.max(maxTime - minTime, 1);
+      const validPointTimes = pointTimes.filter(value => Number.isFinite(value));
+      const fallbackWindowEnd = Date.now();
+      const latestKnownTime = validPointTimes.length ? Math.max(...validPointTimes) : fallbackWindowEnd;
+      const windowMs = getRangeWindowMs(range);
+      const windowEnd = latestKnownTime;
+      const windowStart = windowEnd - windowMs;
+      const timeSpan = Math.max(windowEnd - windowStart, 1);
+      const xForTime = timeMs => leftPad + ((Math.min(Math.max(timeMs, windowStart), windowEnd) - windowStart) / timeSpan) * innerWidth;
       const xForIndex = i => {
-        if (range !== "day") {
+        const pointTime = pointTimes[i];
+        if (!Number.isFinite(pointTime)) {
           return leftPad + (points.length === 1 ? innerWidth / 2 : (i * innerWidth) / Math.max(points.length - 1, 1));
         }
-        const pointTime = pointTimes[i] ?? i;
-        if (!Number.isFinite(pointTime)) return leftPad + (points.length === 1 ? innerWidth / 2 : (i * innerWidth) / Math.max(points.length - 1, 1));
-        if (timeSpan <= 1) return leftPad + innerWidth / 2;
-        return leftPad + (((pointTime - minTime) / timeSpan) * innerWidth);
+        return xForTime(pointTime);
       };
       const priceY = value => priceBottom - (((value - minVal) / priceSpan) * (priceBottom - topPad));
       const volumeY = value => volumeBottom - ((value / maxVolume) * (volumeBottom - volumeTop));
 
       let svg = `<rect x="0" y="0" width="${width}" height="${height}" fill="#170e08" rx="16"></rect>`;
 
-      for (let i = 0; i < 5; i++) {
-        const value = minVal + (priceSpan * i / 4);
+      const priceAxisTicks = buildPriceAxisTicks(minVal, maxVal);
+      priceAxisTicks.forEach((value) => {
         const y = priceY(value);
         svg += `<line x1="${leftPad}" y1="${y}" x2="${width-rightPad}" y2="${y}" stroke="rgba(148,163,184,0.18)" stroke-width="1"></line>`;
         svg += `<text x="${leftPad-12}" y="${y+5}" fill="#d8c6a1" font-size="18" text-anchor="end" font-family="Arial">${formatGpAxis(value)}</text>`;
-      }
+      });
       for (let i = 0; i < 3; i++) {
         const value = maxVolume * i / 2;
         const y = volumeY(value);
@@ -4797,7 +5810,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
       })();
 
       points.forEach((point, i) => {
-        if (!isRenderablePoint(point)) return;
+        if (!shouldRenderHistoryDot(point, i, lastRealIndex, range, pointTimes[i], latestKnownTime)) return;
         const x = xForIndex(i);
         const low = Number(point.low);
         const high = Number(point.high);
@@ -4809,35 +5822,11 @@ body.premium-skin-arcane .shell-avatar-badge::after {
       });
 
       const desiredLabels = range === "day" ? 6 : 7;
-      const labelIndexes = [];
-      if (range !== "day") {
-        const step = Math.max(1, Math.floor((points.length - 1) / (desiredLabels - 1)));
-        for (let i = 0; i < points.length; i += step) labelIndexes.push(i);
-      } else if (points.length <= desiredLabels) {
-        for (let i = 0; i < points.length; i += 1) labelIndexes.push(i);
-      } else {
-        for (let slot = 0; slot < desiredLabels; slot += 1) {
-          const targetTime = minTime + ((timeSpan * slot) / Math.max(desiredLabels - 1, 1));
-          let closestIndex = 0;
-          let closestDistance = Number.POSITIVE_INFINITY;
-          for (let i = 0; i < pointTimes.length; i += 1) {
-            const distance = Math.abs((pointTimes[i] ?? 0) - targetTime);
-            if (distance < closestDistance) {
-              closestDistance = distance;
-              closestIndex = i;
-            }
-          }
-          if (!labelIndexes.includes(closestIndex)) labelIndexes.push(closestIndex);
-        }
+      for (let slot = 0; slot < desiredLabels; slot += 1) {
+        const labelTime = windowStart + ((windowMs * slot) / Math.max(desiredLabels - 1, 1));
+        const x = xForTime(labelTime);
+        svg += `<text x="${x}" y="${volumeBottom + 28}" fill="#d8c6a1" font-size="18" text-anchor="middle" font-family="Arial">${formatTimeLabel(new Date(labelTime).toISOString(), range)}</text>`;
       }
-      if (!labelIndexes.includes(points.length - 1)) labelIndexes.push(points.length - 1);
-      labelIndexes.sort((a, b) => a - b);
-
-      labelIndexes.forEach(i => {
-        const x = xForIndex(i);
-        const p = points[i];
-        svg += `<text x="${x}" y="${volumeBottom + 28}" fill="#d8c6a1" font-size="18" text-anchor="middle" font-family="Arial">${formatTimeLabel(p.snapshot_ts || p.ts || p.timestamp || p.bucket, range)}</text>`;
-      });
 
       svg += `<g id="chartCrosshair" visibility="hidden">
         <line id="chartCrosshairLine" x1="${leftPad}" y1="${topPad}" x2="${leftPad}" y2="${volumeBottom}" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-dasharray="8 8"></line>
@@ -5002,7 +5991,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), timeoutMs);
       try {
-        const response = await fetch(url, { ...options, signal: controller.signal });
+        const response = await fetch(buildApiUrl(url), { ...options, signal: controller.signal });
         return await readJsonResponse(response);
       } catch (error) {
         if (error && error.name === "AbortError") {
@@ -5016,7 +6005,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
 
     async function runAutoReview(offersData) {
       try {
-        const response = await fetch("/market/decisions");
+        const response = await fetch(buildApiUrl("/market/decisions"));
         const data = await readJsonResponse(response);
         const currentScan = data.current_scan || offersData || {};
         latestOffers = currentScan.offers || [];
@@ -5047,7 +6036,6 @@ body.premium-skin-arcane .shell-avatar-badge::after {
     }
 
     async function runAutoRecommendations() {
-      const autoFlipperDebugEl = document.getElementById("autoFlipperDebugEl");
       try {
         const limit = Math.max(1, Math.min(50, Number(itemsPerCategoryEl.value || 10)));
         const ctx = getUserDecisionContext();
@@ -5057,7 +6045,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
           hours_away: String(ctx.hoursAway || 0),
           risk_percent: String(ctx.riskPercent || 0),
         });
-        const response = await fetch(`/market/recommendations?${params.toString()}`);
+        const response = await fetch(buildApiUrl(`/market/recommendations?${params.toString()}`));
         const data = await readJsonResponse(response);
         latestRecommendationsData = data;
         activeTradePlanSource = "algo";
@@ -5210,6 +6198,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
         buy_price: buy,
         sell_price: sell,
         day_start: dayStart,
+        high_alch_value: resolveHighAlchValue(item, market, explorerMatch, selectedMatch, offerMatch),
       };
     }
 
@@ -5231,6 +6220,11 @@ body.premium-skin-arcane .shell-avatar-badge::after {
       }
       if (Number(hydrated?.day_start || 0) > 0) {
         merged.day_start = Number(hydrated.day_start);
+      }
+      const highAlchValue = resolveHighAlchValue(hydrated, item);
+      if (highAlchValue > 0) {
+        merged.high_alch_value = highAlchValue;
+        merged.high_alch = highAlchValue;
       }
       return merged;
     }
@@ -5257,6 +6251,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
         market_buy_price: Number(hydrated?.buy_price || 0) || latestMarketMap[normalizedName]?.market_buy_price || 0,
         market_sell_price: Number(hydrated?.sell_price || 0) || latestMarketMap[normalizedName]?.market_sell_price || 0,
         day_start: Number(hydrated?.day_start || 0) || latestMarketMap[normalizedName]?.day_start || 0,
+        high_alch_value: resolveHighAlchValue(hydrated, item, latestMarketMap[normalizedName]),
       };
     }
 
@@ -5270,7 +6265,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
       }
 
       try {
-        const response = await fetch(`/market/explorer/search?q=${encodeURIComponent(item.name)}&limit=25`);
+        const response = await fetch(buildApiUrl(`/market/explorer/search?q=${encodeURIComponent(item.name)}&limit=25`));
         const data = await readJsonResponse(response);
         const results = Array.isArray(data?.items) ? data.items : [];
         const exact = results.find(entry => favoriteMatchesItem(item, entry) || normalizeName(entry?.name) === normalizeName(item?.name)) || results[0];
@@ -5287,6 +6282,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
           buy_price: exact?.buy_price ?? exact?.buy ?? exact?.low ?? 0,
           sell_price: exact?.sell_price ?? exact?.sell ?? exact?.high ?? 0,
           day_start: exact?.day_start ?? 0,
+          high_alch_value: resolveHighAlchValue(exact, item),
         });
         applyFavoriteMarketDataToMap(item, resolved);
         persistHydratedFavorite(item, resolved);
@@ -5412,7 +6408,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
       try {
         latestExplorerHasActiveSearch = true;
         latestExplorerPage = 1;
-        const response = await fetch(`/market/explorer/search?q=${encodeURIComponent(item.name || "")}&limit=250`);
+        const response = await fetch(buildApiUrl(`/market/explorer/search?q=${encodeURIComponent(item.name || "")}&limit=250`));
         const data = await readJsonResponse(response);
         latestExplorerItems = data.items || [];
         renderMarketExplorerTable(latestExplorerItems);
@@ -5425,6 +6421,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
             buy_price: exact?.buy_price ?? exact?.buy ?? exact?.low ?? 0,
             sell_price: exact?.sell_price ?? exact?.sell ?? exact?.high ?? 0,
             day_start: exact?.day_start ?? 0,
+            high_alch_value: resolveHighAlchValue(exact, item),
           });
           persistHydratedFavorite(item, {
             id: exact?.id ?? item?.id ?? null,
@@ -5432,6 +6429,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
             buy_price: exact?.buy_price ?? exact?.buy ?? exact?.low ?? 0,
             sell_price: exact?.sell_price ?? exact?.sell ?? exact?.high ?? 0,
             day_start: exact?.day_start ?? 0,
+            high_alch_value: resolveHighAlchValue(exact, item),
           });
           renderFavoritesSidebar();
           await selectMarketItem(Number(exact.id));
@@ -5510,9 +6508,54 @@ body.premium-skin-arcane .shell-avatar-badge::after {
         buy_price: item.buy_price ?? 0,
         sell_price: item.sell_price ?? 0,
         recent_volume: item.recent_volume ?? 0,
+        high_alch_value: resolveHighAlchValue(item),
       };
       const next = [entry, ...loadRecentMarketSearches().filter(existing => String(existing.name).toLowerCase() !== String(entry.name).toLowerCase())].slice(0, 8);
       localStorage.setItem(MARKET_RECENT_SEARCHES_KEY, JSON.stringify(next));
+    }
+
+    function clearRecentMarketSearches() {
+      try {
+        localStorage.removeItem(MARKET_RECENT_SEARCHES_KEY);
+      } catch (_error) {
+        // Ignore storage failures.
+      }
+      if (!String(marketSearchInputEl?.value || "").trim()) {
+        renderMarketSuggestions(buildSuggestionList("", latestExplorerItems || []));
+      }
+      appendExplorerDebug("recent_searches_cleared", { key: MARKET_RECENT_SEARCHES_KEY });
+    }
+
+    function clearMarketLocalCache() {
+      try {
+        localStorage.removeItem(MARKET_BOOTSTRAP_STORAGE_KEY);
+      } catch (_error) {
+        // Ignore storage failures.
+      }
+      try {
+        window.sessionStorage?.removeItem(MARKET_VALID_HISTORY_STORAGE_KEY);
+      } catch (_error) {
+        // Ignore storage failures.
+      }
+      marketHistoryPayloadCache.clear();
+      marketHistoryInflight.clear();
+      marketHistoryInflightMeta.clear();
+      marketRangeSummaryInflight.clear();
+      marketHistoryPreloadInflight.clear();
+      marketValidHistoryPayloadByKey.clear();
+      marketDetailStatsCache.clear();
+      graphDataDebugState.cache_snapshot = latestSelectedItemId ? buildMarketHistoryCacheSnapshot(latestSelectedItemId) : null;
+      pushDebugEvent(marketGraphDebugState, "market_local_cache_cleared", {
+        local_storage_key: MARKET_BOOTSTRAP_STORAGE_KEY,
+        session_storage_key: MARKET_VALID_HISTORY_STORAGE_KEY,
+        selected_item_id: Number(latestSelectedItemId || 0) || null,
+      });
+      renderGraphDataDebug();
+      renderMarketGraphDebug();
+      appendExplorerDebug("market_local_cache_cleared", {
+        bootstrap_key: MARKET_BOOTSTRAP_STORAGE_KEY,
+        valid_history_key: MARKET_VALID_HISTORY_STORAGE_KEY,
+      });
     }
 
     function scoreSuggestion(item, query, recentMap) {
@@ -5601,7 +6644,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
         return;
       }
       try {
-        const response = await fetch(`/market/explorer/search?q=${encodeURIComponent(query)}&limit=12`);
+        const response = await fetch(buildApiUrl(`/market/explorer/search?q=${encodeURIComponent(query)}&limit=12`));
         const data = await readJsonResponse(response);
         renderMarketSuggestions(buildSuggestionList(query, data.items || []));
       } catch (_error) {
@@ -5676,6 +6719,8 @@ body.premium-skin-arcane .shell-avatar-badge::after {
           market_buy_price: item?.buy_price ?? item?.buy ?? item?.low ?? latestMarketMap[normalizedName]?.market_buy_price ?? 0,
           market_sell_price: item?.sell_price ?? item?.sell ?? item?.high ?? latestMarketMap[normalizedName]?.market_sell_price ?? 0,
           day_start: item?.day_start ?? latestMarketMap[normalizedName]?.day_start ?? 0,
+          high_alch_value: resolveHighAlchValue(item, latestMarketMap[normalizedName]),
+          high_alch: resolveHighAlchValue(item, latestMarketMap[normalizedName]),
         };
       }
 
@@ -5751,6 +6796,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
             market_buy_price: item?.buy_price ?? item?.buy ?? item?.low ?? latestMarketMap[normalizedName]?.market_buy_price ?? 0,
             market_sell_price: item?.sell_price ?? item?.sell ?? item?.high ?? latestMarketMap[normalizedName]?.market_sell_price ?? 0,
             day_start: item?.day_start ?? latestMarketMap[normalizedName]?.day_start ?? 0,
+            high_alch_value: resolveHighAlchValue(item, latestMarketMap[normalizedName]),
           };
         }
 
@@ -5769,6 +6815,11 @@ body.premium-skin-arcane .shell-avatar-badge::after {
         const exact = latestExplorerItems.find(item => String(item.name || "").toLowerCase() === rawQuery.toLowerCase());
         if (exact) saveRecentMarketSearch(exact);
 
+        const autoSelected = exact || (latestExplorerItems.length === 1 ? latestExplorerItems[0] : null);
+        if (autoSelected?.id != null) {
+          await selectMarketItem(Number(autoSelected.id));
+        }
+
         if (debugEl) debugEl.textContent = JSON.stringify(data, null, 2);
       } catch (error) {
         setMarketTrustPills({ freshness: "Unavailable", source: "search" });
@@ -5779,25 +6830,107 @@ body.premium-skin-arcane .shell-avatar-badge::after {
       }
     }
 
+    const marketHighAlchInflight = new Map();
+
+    async function ensureSelectedItemHighAlch(item) {
+      const itemId = Number(item?.id || 0);
+      const normalizedName = normalizeName(item?.name || "");
+      if (!(itemId > 0) || !normalizedName) return 0;
+
+      const favoriteEntry = (loadFavorites().find(entry => favoriteMatchesItem(entry, item) || normalizeName(entry?.name) === normalizedName) || {});
+      const explorerEntry = (Array.isArray(latestExplorerItems) ? latestExplorerItems.find(entry => favoriteMatchesItem(entry, item) || normalizeName(entry?.name) === normalizedName) : null) || {};
+      const persistedBootstrap = loadPersistedMarketBootstrapSnapshot();
+      const bootstrapMatch = Array.isArray(persistedBootstrap?.items)
+        ? (persistedBootstrap.items.find(entry => favoriteMatchesItem(entry, item) || normalizeName(entry?.name) === normalizedName) || {})
+        : {};
+      const cachedValue = resolveHighAlchValue(item, latestMarketMap?.[normalizedName], explorerEntry, favoriteEntry, bootstrapMatch);
+      if (cachedValue > 0) {
+        return cachedValue;
+      }
+
+      const inflightKey = `${itemId}:${normalizedName}`;
+      if (!marketHighAlchInflight.has(inflightKey)) {
+        marketHighAlchInflight.set(inflightKey, (async () => {
+          try {
+            const response = await fetchJsonWithTimeout(`/market/explorer/search?q=${encodeURIComponent(item.name)}&limit=250`, {}, 4500);
+            const items = Array.isArray(response?.items) ? response.items : [];
+            const exact = items.find(entry => favoriteMatchesItem(entry, item) || normalizeName(entry?.name) === normalizedName) || items[0] || null;
+            const resolvedValue = resolveHighAlchValue(exact, item, latestMarketMap?.[normalizedName], response);
+            if (!(resolvedValue > 0)) return 0;
+
+            latestMarketMap = latestMarketMap && typeof latestMarketMap === "object" ? latestMarketMap : {};
+            latestMarketMap[normalizedName] = {
+              ...(latestMarketMap[normalizedName] || {}),
+              id: itemId,
+              name: item?.name || latestMarketMap[normalizedName]?.name || "",
+              high_alch_value: resolvedValue,
+              high_alch: resolvedValue,
+            };
+
+            if (Array.isArray(latestExplorerItems)) {
+              latestExplorerItems = latestExplorerItems.map(entry => {
+                if (!favoriteMatchesItem(entry, item) && normalizeName(entry?.name) !== normalizedName) return entry;
+                return { ...entry, high_alch_value: resolvedValue, high_alch: resolvedValue };
+              });
+            }
+
+            persistHydratedFavorite(item, { id: itemId, name: item?.name || "", high_alch_value: resolvedValue, high_alch: resolvedValue });
+
+            if (Number(latestSelectedItemId) === itemId && latestSelectedItem) {
+              latestSelectedItem = { ...latestSelectedItem, high_alch_value: resolvedValue, high_alch: resolvedValue };
+              renderMarketDetail(latestSelectedItem);
+            }
+            return resolvedValue;
+          } catch (_error) {
+            return 0;
+          } finally {
+            marketHighAlchInflight.delete(inflightKey);
+          }
+        })());
+      }
+      return Number(await marketHighAlchInflight.get(inflightKey)) || 0;
+    }
+
     async function selectMarketItem(itemId) {
-      const selected = latestExplorerItems.find(item => Number(item.id) === Number(itemId));
+      const previousSelectedItemId = latestSelectedItemId;
+      const selectedFromResults = latestExplorerItems.find(item => Number(item.id) === Number(itemId));
+      const previouslyHydrated = Number(latestSelectedItemId) === Number(itemId) && latestSelectedItem ? latestSelectedItem : null;
+      const selectedBase = previouslyHydrated && selectedFromResults
+        ? { ...selectedFromResults, ...previouslyHydrated }
+        : (selectedFromResults || previouslyHydrated);
+      const selectedNormalizedName = normalizeName(selectedBase?.name || "");
+      const selectedFavoriteEntry = (loadFavorites().find(entry => favoriteMatchesItem(entry, selectedBase) || normalizeName(entry?.name) === selectedNormalizedName) || {});
+      const selectedMarketEntry = selectedNormalizedName ? (latestMarketMap?.[selectedNormalizedName] || {}) : {};
+      const selected = selectedBase
+        ? {
+            ...selectedMarketEntry,
+            ...selectedBase,
+            high_alch_value: resolveHighAlchValue(selectedBase, selectedMarketEntry, selectedFavoriteEntry),
+            high_alch: resolveHighAlchValue(selectedBase, selectedMarketEntry, selectedFavoriteEntry),
+          }
+        : selectedBase;
       latestSelectedItemId = itemId;
       latestSelectedItem = selected || null;
-      if (selected) {
-        saveRecentMarketSearch(selected);
-        applyFavoriteMarketDataToMap(selected, {
-          id: selected?.id ?? null,
-          name: selected?.name || "",
-          buy_price: selected?.buy_price ?? selected?.buy ?? selected?.low ?? 0,
-          sell_price: selected?.sell_price ?? selected?.sell ?? selected?.high ?? 0,
-          day_start: selected?.day_start ?? 0,
+      if (Number(previousSelectedItemId) !== Number(itemId)) {
+        marketGraphDebugState.current_valid_history = null;
+      }
+      if (selectedFromResults) {
+        saveRecentMarketSearch(selectedFromResults);
+        applyFavoriteMarketDataToMap(selectedFromResults, {
+          id: selectedFromResults?.id ?? null,
+          name: selectedFromResults?.name || "",
+          buy_price: selectedFromResults?.buy_price ?? selectedFromResults?.buy ?? selectedFromResults?.low ?? 0,
+          sell_price: selectedFromResults?.sell_price ?? selectedFromResults?.sell ?? selectedFromResults?.high ?? 0,
+          day_start: selectedFromResults?.day_start ?? 0,
+          high_alch_value: resolveHighAlchValue(selectedFromResults),
         });
-        persistHydratedFavorite(selected, {
-          id: selected?.id ?? null,
-          name: selected?.name || "",
-          buy_price: selected?.buy_price ?? selected?.buy ?? selected?.low ?? 0,
-          sell_price: selected?.sell_price ?? selected?.sell ?? selected?.high ?? 0,
-          day_start: selected?.day_start ?? 0,
+        persistHydratedFavorite(selectedFromResults, {
+          id: selectedFromResults?.id ?? null,
+          name: selectedFromResults?.name || "",
+          buy_price: selectedFromResults?.buy_price ?? selectedFromResults?.buy ?? selectedFromResults?.low ?? 0,
+          sell_price: selectedFromResults?.sell_price ?? selectedFromResults?.sell ?? selectedFromResults?.high ?? 0,
+          day_start: selectedFromResults?.day_start ?? 0,
+          high_alch_value: resolveHighAlchValue(selectedFromResults),
         });
         renderFavoritesSidebar();
       }
@@ -5805,18 +6938,176 @@ body.premium-skin-arcane .shell-avatar-badge::after {
       setExplorerSelectionState(Boolean(selected));
       renderMarketDetail(selected);
       if (!selected) return;
+      warmMissingMarketRangeSummaries(selected, document.querySelector(".range-btn.active")?.dataset.range || "month").catch(() => {});
+      ensureSelectedItemHighAlch(selected).catch(() => {});
+
       const activeRange = document.querySelector(".range-btn.active")?.dataset.range || "month";
-      try {
-        const data = await fetchJsonWithTimeout(`/market/explorer/history/${itemId}?range=${activeRange}`);
-        const normalized = normalizeHistoryPoints(data.points || [], activeRange);
-        const sourceLabel = activeRange === "day" && data.contains_trade_events ? "Trade tape + 5m anchors" : (activeRange === "day" ? "5m anchors" : "Snapshot history");
-        chartPanelSubtitleEl.textContent = `${selected?.name || 'Selected item'} • ${String(activeRange).toUpperCase()} view • ${sourceLabel} • ${normalized.length} plotted dots`;
-        updateChartPanelMeta(data, activeRange, normalized.length);
+      const cacheKey = getHistoryCacheKey(itemId, activeRange);
+      const cachedPayload = marketHistoryPayloadCache.get(cacheKey);
+      const requestSeq = ++marketSelectionRequestSeq;
+      marketGraphDebugState.selection = {
+        item_id: Number(itemId),
+        item_name: selected?.name || null,
+        range: activeRange,
+        cache_key: cacheKey,
+        cached_payload_present: Boolean(cachedPayload),
+        selected_at: new Date().toISOString(),
+      };
+      marketGraphDebugState.last_error = null;
+      graphDataDebugState.last_error = null;
+      graphDataDebugState.cache_snapshot = buildMarketHistoryCacheSnapshot(itemId);
+      pushDebugEvent(marketGraphDebugState, "market_item_selected", marketGraphDebugState.selection);
+      renderMarketGraphDebug();
+      renderGraphDataDebug();
+
+      const applyHistoryToChart = (data, { allowFallback = true, renderSourceHint = null } = {}) => {
+        const cacheKeyForRange = getHistoryCacheKey(itemId, activeRange);
+        const extractedPoints = extractHistoryPoints(data);
+        const realPoints = normalizeHistoryPoints(extractedPoints, activeRange);
+        const hasValidRealHistory = extractedPoints.length > 0 && realPoints.some(point => isRenderablePoint(point));
+        let normalized = realPoints;
+        let usedFallback = false;
+        let renderData = data;
+        let renderSource = renderSourceHint || "real";
+
+        if (hasValidRealHistory) {
+          persistValidHistoryPayload(cacheKeyForRange, data);
+          marketGraphDebugState.current_valid_history = {
+            item_id: Number(itemId),
+            item_name: selected?.name || null,
+            range: activeRange,
+            cache_key: cacheKeyForRange,
+            stored_at: new Date().toISOString(),
+            point_count: realPoints.length,
+            endpoint: data?._history_endpoint || null,
+            has_variance: hasMeaningfulHistoryVariance(extractedPoints),
+          };
+          renderSource = renderSourceHint || "real";
+        } else {
+          const preservedPayload = marketValidHistoryPayloadByKey.get(cacheKeyForRange) || loadPersistedValidHistoryPayload(cacheKeyForRange);
+          if (preservedPayload) {
+            renderData = cloneHistoryPayload(preservedPayload);
+            normalized = normalizeHistoryPoints(extractHistoryPoints(renderData), activeRange);
+            usedFallback = false;
+            renderSource = "cached";
+            pushDebugEvent(marketGraphDebugState, "fallback_render_blocked", {
+              item_id: Number(itemId),
+              range: activeRange,
+              reason: "preserved_valid_history_exists",
+              endpoint: data?._history_endpoint || null,
+            });
+          } else if (allowFallback) {
+            normalized = buildFlatHistoryFallback(selected, activeRange);
+            usedFallback = true;
+            renderSource = "fallback";
+          }
+        }
+
+        if (!normalized.length) {
+          chartPanelSubtitleEl.textContent = `${selected?.name || 'Selected item'} • ${String(activeRange).toUpperCase()} view • Waiting for tracked history…`;
+          pushDebugEvent(marketGraphDebugState, "chart_render_skipped_empty", { item_id: Number(itemId), range: activeRange, allow_fallback: allowFallback });
+          renderMarketGraphDebug();
+          return false;
+        }
+        const sourceLabel = renderSource === "fallback"
+          ? "Cache flat fallback"
+          : (renderSource === "cached"
+            ? "Last known good cache"
+            : (activeRange === "day" && renderData.contains_trade_events ? "Trade tape + 5m anchors" : (activeRange === "day" ? "5m anchors" : "Snapshot history")));
+        const requestStateLabel = marketGraphDebugState.request_state === "loading" ? "Loading" : (marketGraphDebugState.request_state === "failed" ? "Request failed" : "Loaded");
+        chartPanelSubtitleEl.textContent = `${selected?.name || 'Selected item'} • ${String(activeRange).toUpperCase()} view • ${requestStateLabel} • ${sourceLabel} • ${normalized.length} plotted dots`;
+        updateChartPanelMeta({ ...renderData, point_source: renderData.point_source || (usedFallback ? "ui_cache_fallback" : (renderSource === "cached" ? "last_known_good_cache" : "snapshot")), render_source: renderSource, request_state: marketGraphDebugState.request_state }, activeRange, normalized.length);
         drawHistoryChart(normalized, activeRange, selected);
-        explorerDebugEl.textContent = JSON.stringify(data, null, 2);
+        explorerDebugEl.textContent = JSON.stringify({ ...renderData, normalized_count: normalized.length, used_fallback: usedFallback }, null, 2);
+        marketGraphDebugState.last_render = {
+          item_id: Number(itemId),
+          item_name: selected?.name || null,
+          range: activeRange,
+          rendered_at: new Date().toISOString(),
+          source_label: sourceLabel,
+          render_source: renderSource,
+          request_state: marketGraphDebugState.request_state,
+          used_fallback: usedFallback,
+          normalized_count: normalized.length,
+          endpoint: renderData?._history_endpoint || null,
+        };
+        graphDataDebugState.last_payload_summary = summarizeHistoryPayload(renderData, activeRange);
+        graphDataDebugState.last_normalized_summary = {
+          item_id: Number(itemId),
+          item_name: selected?.name || null,
+          range: activeRange,
+          used_fallback: usedFallback,
+          normalized_summary: summarizeHistoryPoints(normalized),
+        };
+        graphDataDebugState.cache_snapshot = buildMarketHistoryCacheSnapshot(itemId);
+        pushDebugEvent(marketGraphDebugState, "chart_rendered", marketGraphDebugState.last_render);
+        pushDebugEvent(graphDataDebugState, "normalized_history_ready", graphDataDebugState.last_normalized_summary);
+        renderMarketGraphDebug();
+        renderGraphDataDebug();
+        console.debug("[market-history]", { itemId, range: activeRange, endpoint: renderData._history_endpoint, normalizedCount: normalized.length, attempts: renderData._history_attempts, usedFallback });
+        return true;
+      };
+
+      const persistedPayload = loadPersistedValidHistoryPayload(cacheKey);
+      if (cachedPayload && hasRealHistoryPayload(cachedPayload)) {
+        pushDebugEvent(marketGraphDebugState, "chart_seeded_from_cache", { item_id: Number(itemId), range: activeRange, cache_key: cacheKey });
+        applyHistoryToChart(cloneHistoryPayload(cachedPayload), { allowFallback: false, renderSourceHint: "cached" });
+      } else if (persistedPayload) {
+        pushDebugEvent(marketGraphDebugState, "chart_seeded_from_persisted_valid_history", { item_id: Number(itemId), range: activeRange, cache_key: cacheKey });
+        applyHistoryToChart(cloneHistoryPayload(persistedPayload), { allowFallback: false, renderSourceHint: "cached" });
+      } else {
+        chartPanelSubtitleEl.textContent = `${selected?.name || 'Selected item'} • ${String(activeRange).toUpperCase()} view • Loading stored history…`;
+        renderHistoryLoadingPlaceholder(selected, activeRange, `Loading ${String(activeRange).toUpperCase()} history…`);
+      }
+
+      try {
+        const data = await fetchHistoryPayload(itemId, activeRange, { preferCache: !cachedPayload, interactive: true, reuseInflightMaxAgeMs: 400, timeoutMs: Math.min(MARKET_REQUEST_TIMEOUT_MS, 5500), source: "active_delay_preload" });
+        const responseHasRenderableHistory = normalizeHistoryPoints(extractHistoryPoints(data), activeRange).some(point => isRenderablePoint(point));
+        if (requestSeq !== marketSelectionRequestSeq || Number(latestSelectedItemId) !== Number(itemId)) {
+          if (responseHasRenderableHistory) {
+            persistValidHistoryPayload(cacheKey, data);
+            pushDebugEvent(marketGraphDebugState, "stale_history_response_preserved", { item_id: Number(itemId), range: activeRange, endpoint: data?._history_endpoint || null });
+            renderMarketGraphDebug();
+          } else {
+            pushDebugEvent(marketGraphDebugState, "stale_history_response_ignored", { item_id: Number(itemId), range: activeRange, endpoint: data?._history_endpoint || null });
+            renderMarketGraphDebug();
+          }
+          return;
+        }
+        const hasStoredValidHistory = Boolean((cachedPayload && hasRealHistoryPayload(cachedPayload)) || persistedPayload);
+        const allowFallback = hasStoredValidHistory && marketGraphDebugState.request_state !== "loading" && canUseFallbackHistory(data);
+        const rendered = applyHistoryToChart(data, { allowFallback, renderSourceHint: isValidHistoryPayloadForPreserve(data) ? "real" : null });
+        if (!rendered && cachedPayload && hasRealHistoryPayload(cachedPayload)) {
+          applyHistoryToChart(cloneHistoryPayload(cachedPayload), { allowFallback: false });
+        } else if (!rendered) {
+          renderHistoryLoadingPlaceholder(selected, activeRange, `Waiting for confirmed ${String(activeRange).toUpperCase()} history…`);
+        }
+        warmMissingMarketRangeSummaries(selected, activeRange, data).catch(() => {});
+        setTimeout(() => {
+          if (requestSeq === marketSelectionRequestSeq && Number(latestSelectedItemId) === Number(itemId)) {
+            warmMissingMarketHistoryPayloads(selected, activeRange, data).catch(() => {});
+          }
+        }, 100);
       } catch (error) {
+        if (requestSeq !== marketSelectionRequestSeq || Number(latestSelectedItemId) !== Number(itemId)) {
+          pushDebugEvent(marketGraphDebugState, "stale_history_error_ignored", { item_id: Number(itemId), range: activeRange, error: String(error) });
+          renderMarketGraphDebug();
+          return;
+        }
         explorerDebugEl.textContent = String(error);
         if (debugEl) debugEl.textContent = String(error);
+        marketGraphDebugState.request_state = "failed";
+        marketGraphDebugState.last_error = String(error);
+        graphDataDebugState.last_error = String(error);
+        pushDebugEvent(marketGraphDebugState, "select_market_item_failed", { item_id: Number(itemId), range: activeRange, error: String(error) });
+        pushDebugEvent(graphDataDebugState, "select_market_item_failed", { item_id: Number(itemId), range: activeRange, error: String(error) });
+        renderMarketGraphDebug();
+        renderGraphDataDebug();
+        if (cachedPayload && hasRealHistoryPayload(cachedPayload)) {
+          applyHistoryToChart(cloneHistoryPayload(cachedPayload), { allowFallback: false });
+        } else {
+          renderHistoryLoadingPlaceholder(selected, activeRange, `Unable to confirm ${String(activeRange).toUpperCase()} history yet.`);
+        }
       }
     }
 
@@ -5849,12 +7140,19 @@ body.premium-skin-arcane .shell-avatar-badge::after {
       latestAdvisorReplyData = reply;
       setActiveTradePlanSource("ai", "AI overlay updated from latest reply.");
       renderAllTradePlanBoards();
-      let bubbleHtml = `<p><strong>Summary:</strong> ${escapeHtml(reply.summary || "-")}</p>`;
-      if (actions.length) bubbleHtml += `<h3>Actions</h3><ul>${actions.map(action => `<li>${escapeHtml(action.item || "-")} — ${escapeHtml(action.decision || "-")} — ${escapeHtml(action.reason || "-")}</li>`).join("")}</ul>`;
-      if (topPicks.length) bubbleHtml += `<h3>Top Picks</h3><ul>${topPicks.map(pick => `<li>${escapeHtml(pick)}</li>`).join("")}</ul>`;
-      if (notes.length) bubbleHtml += `<h3>Notes</h3><ul>${notes.map(note => `<li>${escapeHtml(note)}</li>`).join("")}</ul>`;
-      const strategicQuestion = /replace|cancel|hold|risk|budget|hours|overnight|away|slot/i.test(String(reply.summary || "") + " " + actions.map(action => `${action.item || ""} ${action.decision || ""} ${action.reason || ""}`).join(" "));
-      if (strategicQuestion) bubbleHtml += `<div class="ai-cta-note">Need exact quantities, full-budget deployment, or all 8 slots filled? That handoff stays inside the plugin.</div>`;
+      const naturalParagraph = reply.render_style === "natural_paragraph" || reply.mode === "single_item_cache_fast_path";
+      let bubbleHtml = "";
+      if (naturalParagraph) {
+        bubbleHtml = `<p>${escapeHtml(reply.summary || "-")}</p>`;
+        if (notes.length) bubbleHtml += notes.map(note => `<p>${escapeHtml(note)}</p>`).join("");
+      } else {
+        bubbleHtml = `<p><strong>Summary:</strong> ${escapeHtml(reply.summary || "-")}</p>`;
+        if (actions.length) bubbleHtml += `<h3>Actions</h3><ul>${actions.map(action => `<li>${escapeHtml(action.item || "-")} — ${escapeHtml(action.decision || "-")} — ${escapeHtml(action.reason || "-")}</li>`).join("")}</ul>`;
+        if (topPicks.length) bubbleHtml += `<h3>Top Picks</h3><ul>${topPicks.map(pick => `<li>${escapeHtml(pick)}</li>`).join("")}</ul>`;
+        if (notes.length) bubbleHtml += `<h3>Notes</h3><ul>${notes.map(note => `<li>${escapeHtml(note)}</li>`).join("")}</ul>`;
+        const strategicQuestion = /replace|cancel|hold|risk|budget|hours|overnight|away|slot/i.test(String(reply.summary || "") + " " + actions.map(action => `${action.item || ""} ${action.decision || ""} ${action.reason || ""}`).join(" "));
+        if (strategicQuestion) bubbleHtml += `<div class="ai-cta-note">Need exact quantities, full-budget deployment, or all 8 slots filled? That handoff stays inside the plugin.</div>`;
+      }
       appendAdvisorMessage("assistant", bubbleHtml);
     }
 
@@ -5862,7 +7160,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
       settingsStatusEl.textContent = "Loading settings...";
       personalStatusEl.textContent = "Loading personal settings...";
       try {
-        const response = await fetch("/settings");
+        const response = await fetch(buildApiUrl("/settings"));
         const data = await readJsonResponse(response);
         openaiKeyEl.value = data.openai_api_key || "";
         openaiKeyPathEl.value = data.openai_api_key_path || "";
@@ -5895,7 +7193,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
         risk_percent: getRiskPercentValue(),
       };
       try {
-        const response = await fetch("/settings", {
+        const response = await fetch(buildApiUrl("/settings"), {
           method: "POST",
           headers: {"Content-Type": "application/json"},
           body: JSON.stringify(payload),
@@ -5926,7 +7224,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
       statusEl.textContent = "Refreshing current offers...";
       statusEl.className = "warn";
       try {
-        const response = await fetch("/screen/capture-runelite-object-panel");
+        const response = await fetch(buildApiUrl("/screen/capture-runelite-object-panel"));
         const data = await readJsonResponse(response);
         offerCountEl.textContent = String(data.offer_count ?? 0);
         captureModeEl.textContent = data.capture_mode || "-";
@@ -5961,26 +7259,133 @@ body.premium-skin-arcane .shell-avatar-badge::after {
     }
 
     
-    async function askAi() {
-      askAiBtn.disabled = true;
-      const prompt = String(advisorPromptEl?.value || "").trim();
-      advisorStatusEl.textContent = "Asking AI...";
-      advisorStatusEl.className = "warn";
-      if (prompt) {
-        appendAdvisorMessage("user", `<p>${escapeHtml(prompt).replace(/\n/g, "<br>")}</p>`);
+
+    function isAdvisorPresetPrompt(prompt) {
+      const normalized = String(prompt || "").trim().toLowerCase();
+      return [
+        "what should i replace if i will be away for 12 hours?",
+        "which current trades look weakest and why?",
+        "give me a preview-only 3-slot plan from my current setup.",
+        "how should i lower risk without abandoning profit entirely?",
+      ].includes(normalized);
+    }
+
+    function buildAdvisorTimeoutReply(prompt) {
+      const normalized = String(prompt || "").toLowerCase();
+      if (normalized.includes("12") || normalized.includes("away") || normalized.includes("overnight")) {
+        return `<p>That took longer than expected, so here is the quick OSRS preview I would start with: review your slowest-moving or thinner-margin trades first for a longer offline window.</p><div class="ai-cta-note">If you retry, I can keep it narrowed to weakest trades, lower risk, or a short 12h review.</div>`;
       }
+      if (normalized.includes("weak") || normalized.includes("replace") || normalized.includes("cancel")) {
+        return `<p>That took longer than expected, so I would start by checking the weakest slots first: the ones moving slowly, carrying thin margin, or needing frequent repricing.</p><div class="ai-cta-note">Try a tighter OSRS question like “weakest trades” or “lower risk for 12h”.</div>`;
+      }
+      return `<p>That took longer than expected, so here is the quick OSRS preview: focus on priorities, weakest slots, and safer holds first rather than full execution.</p><div class="ai-cta-note">This website preview stays limited, but it can still help with tradeoffs and what to review next.</div>`;
+    }
+
+    async function askAi() {
+      const prompt = String(advisorPromptEl?.value || "").trim();
+      if (!prompt) return;
+
+      if (activeAdvisorRequestController) {
+        pushAiCopilotDebugEvent("request_aborted_for_new_submit", {
+          request_id: aiCopilotDebugState.activeRequest?.request_id || latestAdvisorRequestId,
+          reason: "replaced_by_new_submit",
+        });
+        activeAdvisorRequestController.abort();
+        activeAdvisorRequestController = null;
+      }
+      if (activeAdvisorRequestTimeout) {
+        clearTimeout(activeAdvisorRequestTimeout);
+        activeAdvisorRequestTimeout = null;
+      }
+
+      const requestId = ++latestAdvisorRequestId;
+      const controller = new AbortController();
+      const startedAtMs = Date.now();
+      const startedAtIso = new Date(startedAtMs).toISOString();
+      const isPresetPrompt = isAdvisorPresetPrompt(prompt);
+      const payloadMessage = isPresetPrompt
+        ? prompt
+        : `${prompt}
+
+${buildAiDecisionContext()}
+
+Slot purpose settings:
+${buildSlotPurposeContextForAi()}`;
+
+      aiCopilotDebugState.activeRequest = {
+        request_id: requestId,
+        started_at: startedAtIso,
+        started_at_ms: startedAtMs,
+        prompt,
+        prompt_chars: prompt.length,
+        preset_prompt: isPresetPrompt,
+        payload_chars: payloadMessage.length,
+        transport: "fetch:/ai/advice",
+      };
+      pushAiCopilotDebugEvent("request_started", {
+        request_id: requestId,
+        preset_prompt: isPresetPrompt,
+        prompt_chars: prompt.length,
+        payload_chars: payloadMessage.length,
+      });
+      renderAiCopilotDebug();
+
+      activeAdvisorRequestController = controller;
+      askAiBtn.disabled = true;
+      advisorStatusEl.textContent = "Analyzing OSRS trade context...";
+      advisorStatusEl.className = "warn";
+      appendAdvisorMessage("user", `<p>${escapeHtml(prompt).replace(/\n/g, "<br>")}</p>`);
+      renderAiCopilotDebug();
+
+      activeAdvisorRequestTimeout = setTimeout(() => {
+        pushAiCopilotDebugEvent("frontend_timeout_fired", {
+          request_id: requestId,
+          timeout_ms: AI_ADVISOR_FRONTEND_TIMEOUT_MS,
+        });
+        renderAiCopilotDebug();
+        try { controller.abort("advisor-timeout"); } catch (_) {}
+      }, AI_ADVISOR_FRONTEND_TIMEOUT_MS);
+
       try {
-        const enhancedPrompt = `${prompt}\n\n${buildAiDecisionContext()}\n\nSlot purpose settings:\n${buildSlotPurposeContextForAi()}`;
-        const response = await fetch("/ai/advice", {
+        const response = await fetch(buildApiUrl("/ai/advice"), {
           method: "POST",
           headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({ message: enhancedPrompt }),
+          body: JSON.stringify({ message: payloadMessage }),
+          signal: controller.signal,
         });
         const data = await readJsonResponse(response);
-        if (data.error) {
-          advisorStatusEl.textContent = data.error;
+        if (requestId !== latestAdvisorRequestId) return;
+
+        const durationMs = Date.now() - startedAtMs;
+        aiCopilotDebugState.lastBackendDebug = data.debug || null;
+        aiCopilotDebugState.lastRequest = {
+          request_id: requestId,
+          started_at: startedAtIso,
+          finished_at: new Date().toISOString(),
+          duration_ms: durationMs,
+          prompt,
+          prompt_chars: prompt.length,
+          preset_prompt: isPresetPrompt,
+          payload_chars: payloadMessage.length,
+          outcome: data.error && !data.reply_json ? "backend_error_fallback" : "reply_rendered",
+          response_model: data.model || null,
+          backend_mode: data.reply_json?.mode || null,
+          backend_error: data.error || null,
+        };
+        aiCopilotDebugState.activeRequest = null;
+        pushAiCopilotDebugEvent("response_received", {
+          request_id: requestId,
+          duration_ms: durationMs,
+          model: data.model || null,
+          backend_mode: data.reply_json?.mode || null,
+          has_reply_json: Boolean(data.reply_json),
+          error: data.error || null,
+        });
+
+        if (data.error && !data.reply_json) {
+          advisorStatusEl.textContent = "Advisor needed a lighter pass.";
           advisorStatusEl.className = "warn";
-          appendAdvisorMessage("assistant", `<p>${escapeHtml(data.error)}</p><div class="ai-cta-note">The preview advisor could not complete that request. Try a shorter question focused on priorities, not full execution.</div>`);
+          appendAdvisorMessage("assistant", buildAdvisorTimeoutReply(prompt));
         } else {
           advisorStatusEl.textContent = `Reply ready (${data.model})`;
           advisorStatusEl.className = "success";
@@ -5988,12 +7393,56 @@ body.premium-skin-arcane .shell-avatar-badge::after {
           if (advisorPromptEl) advisorPromptEl.value = "";
           if (debugEl) debugEl.textContent = JSON.stringify(data, null, 2);
         }
+        renderAiCopilotDebug();
       } catch (error) {
-        advisorStatusEl.textContent = "AI request failed";
-        advisorStatusEl.className = "warn";
-        appendAdvisorMessage("assistant", `<p>${escapeHtml(String(error))}</p><div class="ai-cta-note">Temporary failure. The website preview can still help with lightweight questions once the service responds again.</div>`, "error");
+        if (requestId !== latestAdvisorRequestId) return;
+        const durationMs = Date.now() - startedAtMs;
+        const abortReason = controller.signal?.reason || null;
+        aiCopilotDebugState.lastRequest = {
+          request_id: requestId,
+          started_at: startedAtIso,
+          finished_at: new Date().toISOString(),
+          duration_ms: durationMs,
+          prompt,
+          prompt_chars: prompt.length,
+          preset_prompt: isPresetPrompt,
+          payload_chars: payloadMessage.length,
+          outcome: error && error.name === "AbortError" ? "aborted" : "request_error",
+          abort_reason: abortReason,
+          error_name: error?.name || null,
+          error_message: String(error),
+        };
+        aiCopilotDebugState.activeRequest = null;
+        pushAiCopilotDebugEvent(error && error.name === "AbortError" ? "request_aborted" : "request_failed", {
+          request_id: requestId,
+          duration_ms: durationMs,
+          abort_reason: abortReason,
+          error_name: error?.name || null,
+          error_message: String(error),
+        });
+
+        if (error && error.name === "AbortError") {
+          advisorStatusEl.textContent = "Advisor switched to a quick preview.";
+          advisorStatusEl.className = "warn";
+          appendAdvisorMessage("assistant", buildAdvisorTimeoutReply(prompt));
+        } else {
+          advisorStatusEl.textContent = "Advisor paused unexpectedly.";
+          advisorStatusEl.className = "warn";
+          appendAdvisorMessage("assistant", `<p>The advisor hit a temporary issue, so here is the safe OSRS fallback: focus on weaker or slower trades first, then retry with a shorter market question.</p><div class="ai-cta-note">This preview still stays limited to priorities, tradeoffs, and partial planning.</div>`);
+        }
+        renderAiCopilotDebug();
       } finally {
-        askAiBtn.disabled = false;
+        if (requestId === latestAdvisorRequestId) {
+          askAiBtn.disabled = false;
+        }
+        if (activeAdvisorRequestTimeout) {
+          clearTimeout(activeAdvisorRequestTimeout);
+          activeAdvisorRequestTimeout = null;
+        }
+        if (activeAdvisorRequestController === controller) {
+          activeAdvisorRequestController = null;
+        }
+        renderAiCopilotDebug();
       }
     }
 
@@ -6015,8 +7464,23 @@ body.premium-skin-arcane .shell-avatar-badge::after {
     budgetEl.addEventListener("blur", () => { formatBudgetField(); updateRiskSliderDisplay(); });
     document.querySelectorAll(".tab-btn").forEach(btn => btn.addEventListener("click", () => switchTab(btn.dataset.tab)));
     document.querySelectorAll(".range-btn").forEach(btn => btn.addEventListener("click", async () => {
-      document.querySelectorAll(".range-btn").forEach(node => node.classList.remove("active"));
-      btn.classList.add("active");
+      const nextRange = btn.dataset.range || "month";
+      if (btn.classList.contains("active") && latestSelectedItemId) {
+        pushDebugEvent(marketGraphDebugState, "range_click_ignored_already_active", {
+          item_id: Number(latestSelectedItemId || 0) || null,
+          range: nextRange,
+          clicked_at: new Date().toISOString(),
+        });
+        renderMarketGraphDebug();
+        return;
+      }
+      document.querySelectorAll(".range-btn").forEach(node => node.classList.toggle("active", node === btn));
+      pushDebugEvent(marketGraphDebugState, "range_selected", {
+        item_id: Number(latestSelectedItemId || 0) || null,
+        range: nextRange,
+        clicked_at: new Date().toISOString(),
+      });
+      renderMarketGraphDebug();
       if (latestSelectedItemId) await selectMarketItem(latestSelectedItemId);
     }));
     saveSettingsBtn.addEventListener("click", () => saveAllSettings("trading"));
@@ -6029,8 +7493,19 @@ body.premium-skin-arcane .shell-avatar-badge::after {
         advisorPromptEl.value = btn.dataset.aiPrompt || "";
         advisorPromptEl.focus();
       }
+      pushAiCopilotDebugEvent("preset_prompt_selected", {
+        prompt: btn.dataset.aiPrompt || "",
+        prompt_chars: String(btn.dataset.aiPrompt || "").length,
+      });
+      renderAiCopilotDebug();
     }));
     askAiBtn.addEventListener("click", askAi);
+    advisorPromptEl?.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter") return;
+      if (event.shiftKey) return;
+      event.preventDefault();
+      askAi();
+    });
     marketSearchBtn.addEventListener("click", searchMarketExplorer);
     marketSearchInputEl.addEventListener("focus", updateMarketSuggestions);
     marketSearchInputEl.addEventListener("input", updateMarketSuggestions);
@@ -6160,11 +7635,64 @@ body.premium-skin-arcane .shell-avatar-badge::after {
       toggleAiCopilotCollapsed();
     });
     refreshRecommendationsBtn.addEventListener("click", runAutoRecommendations);
+    copyAutoFlipperDebugBtn?.addEventListener("click", () => copyTextToClipboard(autoFlipperDebugEl?.textContent || ""));
+    clearAutoFlipperDebugBtn?.addEventListener("click", () => {
+      if (autoFlipperDebugEl) autoFlipperDebugEl.textContent = AUTO_FLIPPER_DEBUG_EMPTY_TEXT;
+    });
+    copyDebugBtn?.addEventListener("click", () => copyTextToClipboard(debugEl?.textContent || ""));
+    clearDebugBtn?.addEventListener("click", () => {
+      if (debugEl) debugEl.textContent = DEBUG_EMPTY_TEXT;
+    });
+    copyExplorerDebugBtn?.addEventListener("click", () => copyTextToClipboard(explorerDebugEl?.textContent || ""));
+    clearExplorerDebugBtn?.addEventListener("click", () => {
+      if (explorerDebugEl) explorerDebugEl.textContent = EXPLORER_DEBUG_EMPTY_TEXT;
+    });
+    clearRecentSearchesBtn?.addEventListener("click", () => {
+      clearRecentMarketSearches();
+    });
+    clearMarketLocalCacheBtn?.addEventListener("click", () => {
+      clearMarketLocalCache();
+    });
+    dumpMarketGraphDebugBtn?.addEventListener("click", () => {
+      pushDebugEvent(marketGraphDebugState, "manual_dump", { item_id: Number(latestSelectedItemId || 0) || null, range: document.querySelector(".range-btn.active")?.dataset.range || "month" });
+      renderMarketGraphDebug();
+    });
+    copyMarketGraphDebugBtn?.addEventListener("click", () => copyTextToClipboard(marketGraphDebugEl?.textContent || ""));
+    clearMarketGraphDebugBtn?.addEventListener("click", () => resetMarketGraphDebug());
+    dumpGraphDataDebugBtn?.addEventListener("click", () => {
+      const activeRange = document.querySelector(".range-btn.active")?.dataset.range || "month";
+      graphDataDebugState.cache_snapshot = latestSelectedItemId ? buildMarketHistoryCacheSnapshot(latestSelectedItemId) : null;
+      pushDebugEvent(graphDataDebugState, "manual_dump", { item_id: Number(latestSelectedItemId || 0) || null, range: activeRange });
+      renderGraphDataDebug();
+    });
+    copyGraphDataDebugBtn?.addEventListener("click", () => copyTextToClipboard(graphDataDebugEl?.textContent || ""));
+    clearGraphDataDebugBtn?.addEventListener("click", () => resetGraphDataDebug());
     dumpTradePlanDebugBtn?.addEventListener("click", () => {
       appendTradePlanDebug("manual_dump", buildTradePlanDebugSnapshot());
     });
+    copyTradePlanDebugBtn?.addEventListener("click", () => copyTextToClipboard(tradePlanDebugEl?.textContent || ""));
     clearTradePlanDebugBtn?.addEventListener("click", () => {
-      if (tradePlanDebugEl) tradePlanDebugEl.textContent = "No trade-plan debug yet.";
+      if (tradePlanDebugEl) tradePlanDebugEl.textContent = TRADE_PLAN_DEBUG_EMPTY_TEXT;
+    });
+    dumpAiCopilotDebugBtn?.addEventListener("click", () => {
+      pushAiCopilotDebugEvent("manual_dump", {
+        status: advisorStatusEl?.textContent || "",
+      });
+      renderAiCopilotDebug();
+    });
+    copyAiCopilotDebugBtn?.addEventListener("click", async () => {
+      const ok = await copyTextToClipboard(aiCopilotDebugEl?.textContent || "");
+      pushAiCopilotDebugEvent(ok ? "copied_debug_to_clipboard" : "copy_debug_failed", {
+        chars: String(aiCopilotDebugEl?.textContent || "").length,
+      });
+      renderAiCopilotDebug();
+    });
+    clearAiCopilotDebugBtn?.addEventListener("click", () => {
+      aiCopilotDebugState.activeRequest = null;
+      aiCopilotDebugState.lastRequest = null;
+      aiCopilotDebugState.lastBackendDebug = null;
+      aiCopilotDebugState.events = [];
+      if (aiCopilotDebugEl) aiCopilotDebugEl.textContent = AI_COPILOT_DEBUG_EMPTY_TEXT;
     });
     generateAiPlanBtn.addEventListener("click", () => {
       setActiveTradePlanSource("ai", "AI overlay requested. Waiting for reply...");
@@ -6177,15 +7705,10 @@ body.premium-skin-arcane .shell-avatar-badge::after {
       askAi();
     });
 
-    document.querySelectorAll(".range-btn").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        document.querySelectorAll(".range-btn").forEach(node => node.classList.toggle("active", node === btn));
-        if (latestSelectedItemId) {
-          await selectMarketItem(latestSelectedItemId);
-        }
-      });
-    });
 
+    renderAiCopilotDebug();
+    renderMarketGraphDebug();
+    renderGraphDataDebug();
 
     document.querySelectorAll(".debug-expand-btn").forEach(btn => {
       const detailsId = btn.dataset.debugExpand || "";
@@ -6263,7 +7786,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
       const token = (localStorage.getItem("osrs_token") || "").trim();
       try {
         if (token) {
-          await fetch("/auth/logout?token=" + encodeURIComponent(token), { method: "POST" });
+          await fetch(buildApiUrl("/auth/logout?token=" + encodeURIComponent(token)), { method: "POST" });
         }
       } catch (error) {
         console.warn("Profile logout request failed", error);
@@ -6335,7 +7858,7 @@ async function fetchPremiumStatus(){
   const token = (localStorage.getItem('osrs_token') || '').trim();
   if (!token) return false;
   try {
-    const res = await fetch('/auth/me?token=' + encodeURIComponent(token));
+    const res = await fetch(buildApiUrl('/auth/me?token=' + encodeURIComponent(token)));
     const data = await res.json().catch(() => ({}));
     return !!(res.ok && data && data.user && data.user.plan_tier === 'pro');
   } catch (_) {

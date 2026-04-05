@@ -1,0 +1,51 @@
+AUTOFLIP.GG — MONETIZATION
+
+BUSINESS MODEL
+Free website + paid plugin.
+
+FREE WEBSITE SHOULD PROVIDE
+- discovery
+- shortlist / conviction
+- partial board preview
+- market explorer
+- favorites / watch features
+- evidence that AutoFlip knows what it is doing
+
+FREE WEBSITE MUST NOT PROVIDE
+- full 8-slot optimization
+- full execution guidance
+- plugin-level workflow speed
+- complete replacement logic
+- full capital deployment
+
+PAID PLUGIN SHOULD PROVIDE
+- full board optimizer
+- exact quantities and prices
+- runbook per slot
+- replace / cancel / collect / wait guidance
+- player-aware board management
+- future recovery workflow
+
+PRIMARY VALUE SOLD
+Time compression.
+Users are not paying for raw data.
+They are paying to make good money without doing all the work.
+
+PRIMARY SALES PITCHES
+- Fill your GE faster.
+- Make almost as much as expert flippers in a tiny fraction of the time.
+- Stop guessing what to buy and sell.
+
+AUDIENCE SEGMENTS
+1. Beginner / non-flipper
+- wants GP
+- does not want to learn flipping
+- needs confidence and simplicity
+
+2. Existing flipper
+- values time saved
+- willing to trade a little edge for huge convenience
+
+PRICING LOGIC
+Price should feel like paying for speed, clarity, and reduced mistakes.
+Complex pricing tiers are less important than a sharp free-to-plugin boundary.

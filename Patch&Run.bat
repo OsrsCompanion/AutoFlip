@@ -1,13 +1,11 @@
 @echo off
-setlocal EnableExtensions EnableDelayedExpansion
-
 title Patch + Run Debug
+setlocal EnableExtensions EnableDelayedExpansion
 
 set "PATCH_DIR=C:\osrs-flip-assistant\incoming_patch"
 set "DEST_BACKEND=C:\osrs-flip-assistant\backend"
 set "DEST_APP=C:\osrs-flip-assistant\backend\app"
 set "TEMP_EXTRACT=%TEMP%\osrs_patch_extract"
-
 echo ==================================================
 echo PATCH + RUN DEBUG
 echo ==================================================

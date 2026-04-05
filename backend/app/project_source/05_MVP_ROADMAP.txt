@@ -1,0 +1,57 @@
+AUTOFLIP.GG — MVP ROADMAP
+
+PRODUCT PRIORITY RULE
+Ship the board completion loop first.
+Do not drift into side dashboards, over-customization, or extra AI features before the core loop is trustworthy.
+
+PHASE 1 — FOUNDATION (CURRENT)
+- market ingestion
+- cache-first data flow
+- explorer / favorites / stats support surfaces
+- settings + hours-away + budget inputs
+- initial recommendation logic
+
+PHASE 2 — CORE BOARD ENGINE
+- normalized Slot Plan objects
+- simple board scoring
+- slot comparison (keep vs replace)
+- quantity sizing with conservative caps
+- action-first outputs
+- simple explanations
+
+PHASE 3 — SLOT RUNBOOK UX
+- one board, one next action
+- slot cards with price, qty, reason, timer
+- copy-first mechanics
+- expected revisit labels
+- board completion progress
+
+PHASE 4 — PLUGIN EXECUTION LOOP
+- RuneLite panel
+- board sync
+- guided execution
+- event-driven state updates
+- collect / wait / replace workflow
+
+PHASE 5 — TRUST + CONVERSION POLISH
+- plugin safety messaging
+- provenance / freshness indicators
+- website-to-plugin handoff flow
+- unlock slots 4–8 positioning
+
+PHASE 6 — ADVANCED OPTIMIZATION
+- stronger fill probability
+- better stability/risk handling
+- more exact board-level allocation
+- switch thresholds / churn penalties
+
+PHASE 7 — FUTURE RECOVERY SYSTEM
+- user-marked recovery items
+- recovery queue / recovery plans
+- capital unlock optimization
+- recovery explanations
+
+NON-GOALS FOR NOW
+- ML-heavy market prediction
+- tick-level trading
+- over-complicated quant stack before the board loop is working

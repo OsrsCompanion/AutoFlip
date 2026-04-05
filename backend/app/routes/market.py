@@ -11,6 +11,7 @@ from app.services.market_history import (
     ensure_history_and_cache,
     get_item_history_payload,
     get_market_cache_freshness,
+    get_storage_debug_meta,
     load_market_cache,
     load_tracked_universe,
     search_cache,
@@ -270,3 +271,17 @@ def market_explorer_history(
         "points": history,
         "timestamps": [point.get("snapshot_ts") or point.get("ts") or point.get("timestamp") or point.get("bucket") for point in history],
     }
+
+
+@router.get("/history/{item_id}")
+def market_history_compat(
+    item_id: int,
+    background_tasks: BackgroundTasks,
+    range_name: str = Query(default="month", alias="range"),
+):
+    payload = market_explorer_history(item_id=item_id, background_tasks=background_tasks, range_name=range_name)
+    payload["history_debug"] = {
+        **get_storage_debug_meta(),
+        "alias": "/market/history/{item_id}",
+    }
+    return payload

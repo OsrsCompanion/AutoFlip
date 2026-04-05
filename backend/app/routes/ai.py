@@ -18,4 +18,9 @@ def get_advice(request: AdviceRequest):
         return {
             "error": f"AI advisor failed: {str(e)}",
             "reply_json": None,
+            "debug": {
+                "mode": "route_exception",
+                "error_type": type(e).__name__,
+                "error_message": str(e),
+            },
         }

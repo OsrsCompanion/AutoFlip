@@ -1,0 +1,42 @@
+AUTOFLIP.GG — FILE STRUCTURE DIRECTION
+
+EXISTING APP SHAPE
+backend/app/
+- services/
+- routes/
+- ui/
+- data/
+
+IMPORTANT DIRECTIONAL ADDITIONS
+The project should conceptually support these backend responsibilities:
+
+services/
+- market_history.py
+- wiki_prices.py
+- recommendations.py
+- board_optimizer.py          # new logical core
+- decision_engine.py          # normalized action output
+- explanation_builder.py      # shared reason objects for UI + AI
+- player_state_store.py
+- settings_store.py
+
+routes/
+- market.py
+- player.py
+- board.py                    # future board / next-action surface
+- ai.py
+
+ui/
+- website discovery surfaces
+- board preview surfaces
+- future plugin-facing or mirrored board concepts
+
+data/
+- market_history/
+- cache/
+- player/
+- future telemetry/
+
+NOTE
+This file is directional, not a forced immediate refactor.
+It exists so implementation work stays aligned with the new system shape.

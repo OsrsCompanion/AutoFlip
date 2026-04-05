@@ -1,0 +1,22 @@
+AUTOFLIP.GG — VERSION HISTORY
+
+PREVIOUS SNAPSHOT
+- OCR and parsing foundation
+- UI overhaul and GE styling
+- initial recommendation engine
+- JSON-only AI responses
+
+NEW DIRECTIONAL MILESTONES
+- project reframed from item recommender to board management system
+- website/plugin boundary hardened
+- beginner-first positioning locked
+- action-first explanation rule locked
+- Slot Runbook concept adopted as primary UI pattern
+- board-native optimization adopted as core algorithm direction
+- future recovery workflow reserved in architecture
+
+NEXT MILESTONES TO RECORD
+- first Slot Plan implementation
+- first slot comparison engine
+- first board runbook UI
+- plugin execution flow integration

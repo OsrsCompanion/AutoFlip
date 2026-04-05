@@ -1,0 +1,31 @@
+AUTOFLIP.GG — PROJECT OVERVIEW
+
+PURPOSE
+Build a guided execution engine for OSRS flipping that manages the player’s GE board with minimal thinking required.
+
+CURRENT PRODUCT SHAPE
+- website for discovery and trust
+- backend as market + decision brain
+- RuneLite plugin as paid execution layer
+
+CURRENT PROGRESS
+- favorites / watch behavior
+- market and stats surfaces
+- settings and debug surfaces
+- AI assistant with market + player context
+- work-in-progress slot manager
+
+UPDATED PRODUCT SHAPE
+This project is no longer just a recommendation tool.
+It is becoming a board management system.
+
+THE SYSTEM MUST EVENTUALLY HANDLE
+- current GE slots
+- new opportunities
+- replace / keep decisions
+- explainable next actions
+- future recovery items
+
+SUCCESS CONDITION
+The player feels like AutoFlip is taking care of the hard part.
+The player should rarely ask, “what should I do?” because the product already answers it.

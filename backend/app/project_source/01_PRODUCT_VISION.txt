@@ -1,0 +1,70 @@
+AUTOFLIP.GG — PRODUCT VISION
+
+CORE IDEA
+AutoFlip is a board-first, guided execution engine for OSRS flipping.
+It is not a data site and not a margin checker.
+It reads the player’s situation, builds the best GE board it can, and tells the player exactly what to do next.
+
+PRIMARY AUDIENCE
+1) Primary: players who want GP but do not want to learn flipping.
+2) Secondary: experienced flippers who want to keep most of their results while spending far less time.
+
+CORE PROMISE
+- Spend less time flipping. More time playing.
+- Make almost as much money as expert flippers without doing all the work.
+- Fill your GE faster with less thinking.
+
+NORTH STAR
+A member account opens the GE, clicks Optimize, and is guided to a strong 8-slot board with simple explanations and clear next steps.
+
+WHAT WE ARE BUILDING
+AutoFlip manages the full board, not just item picks.
+It should answer:
+- What should I buy?
+- What should I replace?
+- What should I keep?
+- What should I sell now?
+- What should I do next?
+
+PRODUCT DOCTRINE
+- Beginner-first experience, expert-capable backend.
+- Action-first UI.
+- Board-native, not item-native.
+- Explain every important action in simple words a 15-year-old can understand.
+- Optimize for time saved, not theoretical max profit.
+- Website gives evidence and desire; plugin completes the board.
+
+FREE VS PAID BOUNDARY
+Website:
+- discovery
+- trust building
+- partial value
+- preview / shortlist / conviction
+- intentionally incomplete
+
+Plugin:
+- full 8-slot optimization
+- exact price + quantity guidance
+- replace / hold / cancel logic
+- guided execution inside RuneLite
+- future recovery workflow
+
+KEY DIFFERENTIATOR
+Competitors mostly stop at data, filters, and lists.
+AutoFlip owns the execution layer:
+- board construction
+- slot-by-slot runbooks
+- replace/cancel guidance
+- explainable action sequencing
+
+COMMUNICATION RULE
+Explain like the user is 15, but not stupid.
+Bad: “liquidity inefficiency due to spread instability”
+Good: “This item is too slow, so your money gets stuck.”
+
+TRUST RULES
+- No automation of gameplay.
+- No generated clicks or keypresses.
+- User places every offer.
+- AutoFlip guides, highlights, suggests, and explains.
+- Trust is part of the product, not an afterthought.

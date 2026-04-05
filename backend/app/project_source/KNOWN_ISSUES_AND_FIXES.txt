@@ -1,0 +1,22 @@
+AUTOFLIP.GG — KNOWN ISSUES AND ACTIVE RISKS
+
+OLDER TECHNICAL ISSUES ALREADY HANDLED
+- OCR cleanup improvements
+- slot parsing normalization
+- low-volume recommendation filtering
+
+CURRENT PRODUCT RISKS
+1. Too much UI complexity before the slot loop works.
+2. Website drifting into solving the paid problem.
+3. Explanations sounding too technical.
+4. Replacing slots too aggressively and causing churn.
+5. Trust damage if weak data is presented as certainty.
+6. Plugin safety confusion if execution feels too automated.
+
+CURRENT FIX DIRECTION
+- keep website partial
+- keep plugin guided, not automated
+- use thresholds to avoid churn
+- label weak confidence
+- keep action explanations simple
+- prioritize board completion loop over side features

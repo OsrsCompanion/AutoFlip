@@ -1,0 +1,292 @@
+AUTOFLIP.GG — RECOMMENDATION ENGINE
+
+PURPOSE
+The recommendation engine does not exist to rank interesting items.
+It exists to generate viable board candidates for the board optimizer.
+
+Its job is to find flips that are:
+- profitable after tax
+- liquid enough to actually move
+- stable enough to trust
+- sized realistically for the user’s capital and time horizon
+
+It should reduce the market down to a clean set of candidate Slot Plans.
+
+CORE ROLE
+The recommendation engine is upstream of the board optimizer.
+
+Flow:
+1. read market cache
+2. filter bad opportunities
+3. score viable opportunities
+4. estimate safe sizing
+5. emit normalized Flip Plan candidates
+
+The board optimizer then compares:
+- new Flip Plans
+- existing board positions
+- future recovery plans
+
+SOURCE OF TRUTH
+Use the derived market cache as the only market source for recommendation logic.
+Do not compute recommendation logic from raw UI state or browser-side tables.
+
+REQUIRED INPUTS
+From cache:
+- item id
+- item name
+- buy
+- sell
+- profit_after_tax
+- roi_pct_after_tax
+- snapshot_volume_5m
+- volume_1h
+- day_volume
+- week_volume
+- buy_limit
+- spread_gp
+- spread_pct
+- freshness_ts
+- volatility_1h
+- volatility_24h
+- stability_score
+- fill_speed_band
+- max_deployable_gp
+- confidence_band
+
+From player/system state:
+- available budget
+- slots available
+- hours away
+- risk mode / preset
+- banned items / preferences if present
+
+CORE FILTERS
+An item should only survive filtering if it passes all required checks.
+
+1. POST-TAX PROFITABILITY
+- profit_after_tax must be positive
+- roi_pct_after_tax must clear minimum viable threshold
+
+2. FRESHNESS
+- stale items should be removed or heavily penalized
+- old or weak margins should not be treated like live opportunities
+
+3. LIQUIDITY
+- volume must be high enough for the intended trade size
+- large spread alone is never enough
+- avoid low-volume traps and fake margins
+
+4. TIME FIT
+- if the user is only away briefly, reject slow-turn items
+- if the user is away longer, allow slower but more stable items
+
+5. BUY-LIMIT FIT
+- if the item cannot absorb meaningful capital within the user horizon, penalize or reject it
+- do not recommend oversized allocations that look good on paper but cannot actually be deployed
+
+6. STABILITY
+- highly unstable items should be penalized or removed unless risk mode allows them
+- confidence should come from data quality, liquidity, and stability
+
+SCORING GOAL
+The score should estimate how useful this item is as part of the user’s board.
+
+The recommendation engine is not trying to find the mathematically perfect item.
+It is trying to surface strong candidates that:
+- make good money
+- free capital at a reasonable speed
+- are trustworthy enough to act on
+
+LAYER-1 SCORING MODEL
+Start simple.
+
+score =
+profit_per_hour
+× fill_probability
+× stability_factor
+
+Definitions:
+- profit_per_hour = expected_profit / expected_time_to_liquidity
+- fill_probability = estimated chance the position can fill in the user’s horizon
+- stability_factor = simple penalty based on volatility, freshness, and spread reliability
+
+This replaces the old item-only scoring model.
+Do NOT use:
+score = profit_per_item * volume_weight
+
+That older model is too narrow and ignores:
+- time
+- fill risk
+- stability
+- board usefulness
+
+EXPECTED PROFIT
+For Layer 1:
+expected_profit =
+profit_after_tax × suggested_quantity
+
+Use conservative quantity sizing.
+Do not assume full buy limit by default.
+
+EXPECTED TIME TO LIQUIDITY
+This should represent:
+- expected time to fill buy
+- expected time to fill sell
+- total time until GP is liquid again
+
+Use simple heuristics at first:
+- fast items = lower time
+- medium items = moderate time
+- slow items = high time
+
+Later this can be improved with stronger fill models.
+
+FILL PROBABILITY
+This should be a simple estimate of whether the recommended quantity can realistically move.
+
+Use:
+- recent volume
+- trade size relative to hourly volume
+- fill speed band
+- freshness / confidence signals
+
+Simple rule of thumb:
+- if quantity is too large relative to observed volume, reduce confidence sharply
+- if item is stale or unstable, reduce fill probability
+- if item is fast and fresh, raise fill probability
+
+STABILITY FACTOR
+This should be a readable penalty, not a black box.
+
+Inputs:
+- volatility_1h
+- volatility_24h
+- stability_score
+- freshness
+- spread consistency
+
+Example direction:
+- stable item = 1.0
+- somewhat unstable = 0.8
+- risky = 0.5 or filtered out
+
+HOURS-AWAY ADJUSTMENT
+Hours away must directly influence recommendations.
+
+Short horizon:
+- favor faster fills
+- favor stability
+- penalize slow-turn items more heavily
+
+Longer horizon:
+- allow slower but larger-capacity items
+- still respect liquidity and stability
+- do not over-prioritize raw ROI if capital will get stuck
+
+RISK MODE ADJUSTMENT
+Support simple presets:
+- Safe turnover
+- Balanced
+- Aggressive
+
+Safe turnover:
+- strongest liquidity/stability requirements
+- strongest churn avoidance
+- prefer easier fills
+
+Balanced:
+- default
+
+Aggressive:
+- allow more volatility
+- accept slower / riskier candidates when upside justifies it
+
+QUANTITY SIZING
+The recommendation engine should produce a conservative suggested_quantity.
+
+Suggested quantity should respect:
+- available budget
+- buy limit
+- max_deployable_gp
+- liquidity
+- risk concentration rules
+
+Basic approach:
+1. compute max affordable quantity
+2. cap by buy limit
+3. cap by liquidity-safe size
+4. cap by user/item concentration rule
+
+The output should be realistic.
+Do not recommend quantities that are unlikely to fill in practice.
+
+OUTPUT OBJECT
+The recommendation engine should emit normalized Flip Plan candidates.
+
+Each candidate should include:
+- plan_type = flip
+- item_id
+- item_name
+- buy_price
+- sell_price
+- suggested_quantity
+- expected_profit
+- profit_after_tax_per_item
+- roi_pct_after_tax
+- expected_time_to_liquidity
+- profit_per_hour
+- fill_probability
+- stability_factor
+- confidence_band
+- max_deployable_gp
+- short_reason
+- scoring_metadata
+
+SHORT_REASON EXAMPLES
+Keep reasons simple and user-facing:
+- high volume and stable spread
+- good profit and fast turnover
+- strong fit for your short time window
+- safe item that can use a lot of your budget
+
+IMPORTANT RULE
+These are candidate plans, not final decisions.
+
+The recommendation engine does NOT decide:
+- keep
+- replace
+- cancel
+- collect
+- recovery priority
+
+Those belong to:
+- board optimizer
+- decision engine
+
+EXPLANATION SUPPORT
+Every candidate should carry enough structure so later systems can explain:
+- why it was considered
+- what made it strong
+- what tradeoffs it has
+
+This helps AI explain decisions without inventing reasons.
+
+NON-GOALS
+The recommendation engine should NOT:
+- rank items purely by margin
+- optimize the final full board by itself
+- invent explanations without backend support
+- ignore tax
+- recommend illiquid items just because the spread looks large
+
+FUTURE DIRECTION
+Later versions may add:
+- better empirical fill models
+- stronger sizing logic
+- category-aware recommendations
+- recovery-aware candidate competition
+- telemetry-informed confidence adjustments
+
+But the immediate goal is simple:
+produce good, trustworthy Flip Plan candidates for the board optimizer.

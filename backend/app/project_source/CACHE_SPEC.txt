@@ -1,0 +1,48 @@
+AUTOFLIP.GG — CACHE SPEC
+
+PURPOSE
+The market cache is the backend’s single source of truth for recommendation, board planning, UI explorer, and AI explanation context.
+
+BUILD RULE
+Rebuilt after each market snapshot.
+Do not recompute on page refresh, search, or UI interaction.
+
+CORE PER-ITEM FIELDS
+- id
+- name
+- buy
+- sell
+- profit_after_tax
+- roi_pct_after_tax
+- snapshot_volume_5m
+- volume_1h
+- day_volume
+- week_volume
+- month_volume
+- avg_daily_volume
+- buy_limit
+- high_alch_value
+
+NEW SUPPORT FIELDS
+- freshness_ts
+- last_snapshot_ts
+- spread_gp
+- spread_pct
+- volatility_1h
+- volatility_24h
+- stability_score
+- fill_speed_band
+- max_deployable_gp
+- confidence_band
+
+OPTIONAL / FUTURE SUPPORT FIELDS
+- category tags
+- empirical fill model helpers
+- player telemetry aggregates
+- recovery priority helpers
+
+DESIGN NOTES
+- Values should support both website evidence and plugin execution.
+- Post-tax values are default, not optional.
+- Cache should make “stale/bait margin” filtering possible.
+- Confidence should come from data quality + liquidity, not AI improvisation.

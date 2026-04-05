@@ -2,22 +2,84 @@ from __future__ import annotations
 
 import json
 import os
+import time
+from pathlib import Path
 from collections import defaultdict
 from urllib.error import URLError
 from urllib.request import Request, urlopen
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-DATA_DIR = os.path.join("data", "market_history")
-SNAPSHOT_DIR = os.path.join(DATA_DIR, "snapshots")
-ARCHIVE_DIR = os.path.join(DATA_DIR, "archive")
-MONTH_ARCHIVE_DIR = os.path.join(ARCHIVE_DIR, "month")
-EVENT_DIR = os.path.join(DATA_DIR, "events")
-TRACKED_ITEMS_PATH = os.path.join(DATA_DIR, "tracked_items.json")
-CURRENT_SNAPSHOT_STATE_PATH = os.path.join(DATA_DIR, "current_snapshot.json")
-CACHE_DIR = os.path.join("data", "cache")
-CACHE_PATH = os.path.join(CACHE_DIR, "market_cache.json")
-HIGH_ALCH_CACHE_PATH = os.path.join(CACHE_DIR, "high_alch_cache.json")
+APP_DIR = Path(__file__).resolve().parents[1]
+BACKEND_DIR = APP_DIR.parent
+
+
+def _candidate_data_roots() -> list[Path]:
+    roots: list[Path] = []
+    env_root = os.getenv("OSRS_FLIP_DATA_ROOT")
+    if env_root:
+        roots.append(Path(env_root).expanduser().resolve())
+    roots.extend([
+        (APP_DIR / "data").resolve(),
+        (BACKEND_DIR / "data").resolve(),
+    ])
+    deduped: list[Path] = []
+    seen: set[str] = set()
+    for root in roots:
+        key = str(root)
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(root)
+    return deduped
+
+
+def _data_root_score(root: Path) -> int:
+    history_root = root / "market_history"
+    score = 0
+    if history_root.exists():
+        score += 2
+    for rel in (
+        "market_history/current_snapshot.json",
+        "market_history/tracked_items.json",
+        "cache/market_cache.json",
+        "cache/high_alch_cache.json",
+    ):
+        if (root / rel).exists():
+            score += 4
+    for rel in (
+        "market_history/snapshots",
+        "market_history/archive/month",
+        "market_history/events",
+    ):
+        path = root / rel
+        if path.exists():
+            score += 2
+            try:
+                score += min(20, sum(1 for _ in path.iterdir()))
+            except Exception:
+                pass
+    return score
+
+
+def _resolve_data_root() -> Path:
+    candidates = _candidate_data_roots()
+    scored = sorted((( _data_root_score(root), index, root) for index, root in enumerate(candidates)), reverse=True)
+    best_score, _idx, best_root = scored[0]
+    return best_root if best_score > 0 else candidates[0]
+
+
+ACTIVE_DATA_ROOT = _resolve_data_root()
+DATA_DIR = str((ACTIVE_DATA_ROOT / "market_history").resolve())
+SNAPSHOT_DIR = str((Path(DATA_DIR) / "snapshots").resolve())
+ARCHIVE_DIR = str((Path(DATA_DIR) / "archive").resolve())
+MONTH_ARCHIVE_DIR = str((Path(ARCHIVE_DIR) / "month").resolve())
+EVENT_DIR = str((Path(DATA_DIR) / "events").resolve())
+TRACKED_ITEMS_PATH = str((Path(DATA_DIR) / "tracked_items.json").resolve())
+CURRENT_SNAPSHOT_STATE_PATH = str((Path(DATA_DIR) / "current_snapshot.json").resolve())
+CACHE_DIR = str((ACTIVE_DATA_ROOT / "cache").resolve())
+CACHE_PATH = str((Path(CACHE_DIR) / "market_cache.json").resolve())
+HIGH_ALCH_CACHE_PATH = str((Path(CACHE_DIR) / "high_alch_cache.json").resolve())
 MAPPING_CACHE_MAX_AGE_HOURS = 168
 MAPPING_ENDPOINT = "https://prices.runescape.wiki/api/v1/osrs/mapping"
 
@@ -44,6 +106,22 @@ def _ensure_dirs() -> None:
     os.makedirs(MONTH_ARCHIVE_DIR, exist_ok=True)
     os.makedirs(EVENT_DIR, exist_ok=True)
     os.makedirs(CACHE_DIR, exist_ok=True)
+
+
+def get_storage_debug_meta() -> dict[str, Any]:
+    candidates = [str(root) for root in _candidate_data_roots()]
+    return {
+        "active_data_root": str(ACTIVE_DATA_ROOT),
+        "data_candidates": candidates,
+        "snapshot_dir": SNAPSHOT_DIR,
+        "event_dir": EVENT_DIR,
+        "archive_dir": MONTH_ARCHIVE_DIR,
+        "cache_path": CACHE_PATH,
+        "cache_exists": os.path.exists(CACHE_PATH),
+        "snapshot_file_count": len([name for name in os.listdir(SNAPSHOT_DIR) if name.endswith(".jsonl")]) if os.path.isdir(SNAPSHOT_DIR) else 0,
+        "event_file_count": len([name for name in os.listdir(EVENT_DIR) if name.endswith(".jsonl")]) if os.path.isdir(EVENT_DIR) else 0,
+        "archive_file_count": len([name for name in os.listdir(MONTH_ARCHIVE_DIR) if name.endswith(".jsonl")]) if os.path.isdir(MONTH_ARCHIVE_DIR) else 0,
+    }
 
 
 def _bucket_for_time(dt: datetime | None = None) -> str:
@@ -155,6 +233,193 @@ def _iter_jsonl(path: str) -> list[dict[str, Any]]:
     except FileNotFoundError:
         pass
     return rows
+
+
+def _normalize_history_row(row: dict[str, Any]) -> dict[str, Any] | None:
+    if not isinstance(row, dict):
+        return None
+    item_id = _to_int(row.get("id"))
+    if item_id <= 0:
+        return None
+    snapshot_ts = row.get("snapshot_ts") or _epoch_to_iso(row.get("timestamp")) or _epoch_to_iso(row.get("latest_timestamp"))
+    if not snapshot_ts:
+        return None
+    low = row.get("low")
+    high = row.get("high")
+    price = row.get("price")
+    if low in (None, "") and price not in (None, ""):
+        low = price
+    if high in (None, "") and price not in (None, ""):
+        high = price
+    normalized = dict(row)
+    normalized["id"] = item_id
+    normalized["snapshot_ts"] = snapshot_ts
+    normalized["low"] = round(float(low or 0), 3)
+    normalized["high"] = round(float(high or 0), 3)
+    normalized["recent_volume"] = _to_int(row.get("recent_volume") or row.get("volume") or row.get("trade_volume"))
+    normalized["trade_volume"] = _to_int(row.get("trade_volume") or row.get("recent_volume") or row.get("volume"))
+    normalized["buy_limit"] = _to_int(row.get("buy_limit") or row.get("limit"))
+    normalized["sample_count"] = max(_to_int(row.get("sample_count")), 1)
+    normalized["is_compacted"] = bool(row.get("is_compacted", False))
+    return normalized
+
+
+def _jsonl_line_matches_item(line: str, item_id: int) -> bool:
+    marker = '"id"'
+    pos = line.find(marker)
+    if pos < 0:
+        return False
+    pos = line.find(':', pos + len(marker))
+    if pos < 0:
+        return False
+    pos += 1
+    while pos < len(line) and line[pos] in ' 	':
+        pos += 1
+    end = pos
+    while end < len(line) and line[end].isdigit():
+        end += 1
+    if end == pos:
+        return False
+    try:
+        return int(line[pos:end]) == item_id
+    except Exception:
+        return False
+
+
+def _iter_jsonl_for_item(path: str, item_id: int) -> tuple[list[dict[str, Any]], int, int]:
+    rows: list[dict[str, Any]] = []
+    scanned = 0
+    matched = 0
+    try:
+        with open(path, "r", encoding="utf-8") as handle:
+            for line in handle:
+                scanned += 1
+                if not _jsonl_line_matches_item(line, item_id):
+                    continue
+                try:
+                    raw = json.loads(line)
+                except Exception:
+                    continue
+                normalized = _normalize_history_row(raw)
+                if not normalized:
+                    continue
+                matched += 1
+                rows.append(normalized)
+    except FileNotFoundError:
+        return rows, scanned, matched
+    return rows, scanned, matched
+
+
+def _iter_history_files(base_dir: str, cutoff: datetime | None = None) -> list[str]:
+    if not os.path.isdir(base_dir):
+        return []
+    files: list[str] = []
+    cutoff_date = cutoff.date() if cutoff else None
+    for name in sorted(os.listdir(base_dir)):
+        if not name.endswith(".jsonl"):
+            continue
+        include = True
+        if cutoff_date is not None:
+            try:
+                file_date = datetime.strptime(name[:-6], "%Y-%m-%d").replace(tzinfo=UTC).date()
+                include = file_date >= cutoff_date
+            except Exception:
+                include = True
+        if include:
+            files.append(os.path.join(base_dir, name))
+    return files
+
+
+def _load_item_rows_from_files(item_id: int, files: list[str], cutoff: datetime | None = None) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    stats = {"files_scanned": 0, "rows_scanned": 0, "rows_matched": 0}
+    for path in files:
+        file_rows, scanned, matched = _iter_jsonl_for_item(path, item_id)
+        stats["files_scanned"] += 1
+        stats["rows_scanned"] += scanned
+        stats["rows_matched"] += matched
+        if cutoff is not None:
+            file_rows = [row for row in file_rows if (_parse_ts(row.get("snapshot_ts")) or cutoff) >= cutoff]
+        rows.extend(file_rows)
+    rows.sort(key=lambda row: row.get("snapshot_ts", ""))
+    return rows, stats
+
+
+def _dedupe_history_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    deduped: list[dict[str, Any]] = []
+    seen: set[tuple[str, int, int, int]] = set()
+    for row in rows:
+        key = (str(row.get("snapshot_ts") or ""), _to_int(row.get("id")), int(round(float(row.get("low") or 0))), int(round(float(row.get("high") or 0))))
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(row)
+    return deduped
+
+
+def _load_item_history_window(item_id: int, days: int, include_archive: bool = False, include_events: bool = False) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    cutoff = _utc_now() - timedelta(days=days)
+    phase_timings_ms: dict[str, int] = {}
+    phase_details: dict[str, Any] = {}
+
+    started = time.perf_counter()
+    snapshot_files = _iter_history_files(SNAPSHOT_DIR, cutoff=cutoff)
+    snapshot_rows, snapshot_stats = _load_item_rows_from_files(item_id, snapshot_files, cutoff=cutoff)
+    phase_timings_ms["snapshots_scan"] = int(round((time.perf_counter() - started) * 1000))
+    phase_details["snapshots"] = {"files": len(snapshot_files), **snapshot_stats}
+
+    rows = list(snapshot_rows)
+    total_files = snapshot_stats["files_scanned"]
+    total_scanned = snapshot_stats["rows_scanned"]
+    total_matched = snapshot_stats["rows_matched"]
+
+    raw_dir = os.path.join(DATA_DIR, "raw")
+    if os.path.isdir(raw_dir):
+        started = time.perf_counter()
+        raw_files = _iter_history_files(raw_dir, cutoff=cutoff)
+        raw_rows, raw_stats = _load_item_rows_from_files(item_id, raw_files, cutoff=cutoff)
+        rows.extend(raw_rows)
+        total_files += raw_stats["files_scanned"]
+        total_scanned += raw_stats["rows_scanned"]
+        total_matched += raw_stats["rows_matched"]
+        phase_timings_ms["raw_scan"] = int(round((time.perf_counter() - started) * 1000))
+        phase_details["raw"] = {"files": len(raw_files), **raw_stats}
+
+    if include_archive:
+        started = time.perf_counter()
+        archive_files = _iter_history_files(MONTH_ARCHIVE_DIR, cutoff=cutoff)
+        archive_rows, archive_stats = _load_item_rows_from_files(item_id, archive_files, cutoff=cutoff)
+        rows.extend(archive_rows)
+        total_files += archive_stats["files_scanned"]
+        total_scanned += archive_stats["rows_scanned"]
+        total_matched += archive_stats["rows_matched"]
+        phase_timings_ms["archive_scan"] = int(round((time.perf_counter() - started) * 1000))
+        phase_details["archive"] = {"files": len(archive_files), **archive_stats}
+
+    if include_events:
+        started = time.perf_counter()
+        event_files = _iter_history_files(EVENT_DIR, cutoff=cutoff)
+        event_rows, event_stats = _load_item_rows_from_files(item_id, event_files, cutoff=cutoff)
+        rows.extend(event_rows)
+        total_files += event_stats["files_scanned"]
+        total_scanned += event_stats["rows_scanned"]
+        total_matched += event_stats["rows_matched"]
+        phase_timings_ms["events_scan"] = int(round((time.perf_counter() - started) * 1000))
+        phase_details["events"] = {"files": len(event_files), **event_stats}
+
+    started = time.perf_counter()
+    rows = _dedupe_history_rows(rows)
+    phase_timings_ms["dedupe"] = int(round((time.perf_counter() - started) * 1000))
+
+    meta = {
+        "active_history_root": DATA_DIR,
+        "files_scanned": total_files,
+        "rows_scanned": total_scanned,
+        "rows_matched": total_matched,
+        "phase_timings_ms": phase_timings_ms,
+        "phase_details": phase_details,
+    }
+    return rows, meta
 
 
 def _append_jsonl(path: str, rows: list[dict[str, Any]]) -> None:
@@ -1206,7 +1471,10 @@ def ensure_history_and_cache(items: list[dict[str, Any]], snapshot_bucket: str |
     bucket = append_snapshot(items, snapshot_bucket=snapshot_bucket)
     cache = load_market_cache()
     if cache.get("snapshot_bucket") != bucket or not cache.get("items"):
-        return build_market_cache(items, snapshot_bucket=bucket)
+        cache = build_market_cache(items, snapshot_bucket=bucket)
+    print(
+        f"[market_history] ensure_history_and_cache bucket={bucket} items={len(items)} cache_items={len(cache.get('items', []))} root={ACTIVE_DATA_ROOT}"
+    )
     return cache
 
 
@@ -1244,6 +1512,86 @@ def _normalize_history_point(row: dict[str, Any], point_mode: str = "snapshot") 
         "event_price": _to_int(row.get("price")),
         "source": row.get("source") or ("snapshot_5m" if point_mode == "snapshot" else point_mode),
     }
+
+
+def _build_exact_window_series(rows: list[dict[str, Any]], target_points: int, window_minutes: int, point_mode: str = "snapshot") -> list[dict[str, Any]]:
+    if not rows or target_points <= 0 or window_minutes <= 0:
+        return []
+    ordered = sorted((_normalize_history_row(row) or row for row in rows), key=lambda row: row.get("snapshot_ts", ""))
+    valid_rows = [row for row in ordered if _parse_ts(row.get("snapshot_ts"))]
+    if not valid_rows:
+        return []
+
+    bucket_seconds = window_minutes * 60
+    latest_ts = _parse_ts(valid_rows[-1].get("snapshot_ts")) or _utc_now()
+    latest_epoch = int(latest_ts.timestamp())
+    end_epoch = ((latest_epoch // bucket_seconds) + 1) * bucket_seconds
+    start_epoch = end_epoch - (target_points * bucket_seconds)
+
+    bucket_lows: list[list[float]] = [[] for _ in range(target_points)]
+    bucket_highs: list[list[float]] = [[] for _ in range(target_points)]
+    bucket_volumes = [0 for _ in range(target_points)]
+    bucket_trade_volumes = [0 for _ in range(target_points)]
+    bucket_limits = [0 for _ in range(target_points)]
+    bucket_samples = [0 for _ in range(target_points)]
+    bucket_min_low: list[list[int]] = [[] for _ in range(target_points)]
+    bucket_max_high: list[list[int]] = [[] for _ in range(target_points)]
+
+    for row in valid_rows:
+        ts = _parse_ts(row.get("snapshot_ts"))
+        if not ts:
+            continue
+        index = int((int(ts.timestamp()) - start_epoch) // bucket_seconds)
+        if index < 0 or index >= target_points:
+            continue
+        low = float(row.get("low") or 0)
+        high = float(row.get("high") or 0)
+        if low > 0:
+            bucket_lows[index].append(low)
+            bucket_min_low[index].append(int(round(low)))
+        if high > 0:
+            bucket_highs[index].append(high)
+            bucket_max_high[index].append(int(round(high)))
+        bucket_volumes[index] += _to_int(row.get("recent_volume") or row.get("volume"))
+        bucket_trade_volumes[index] += _to_int(row.get("trade_volume"))
+        bucket_limits[index] = max(bucket_limits[index], _to_int(row.get("buy_limit")))
+        bucket_samples[index] += max(_to_int(row.get("sample_count")), 1)
+
+    first_low = next((float(row.get("low") or 0) for row in valid_rows if float(row.get("low") or 0) > 0), 0.0)
+    first_high = next((float(row.get("high") or 0) for row in valid_rows if float(row.get("high") or 0) > 0), 0.0)
+    carry_low = first_low
+    carry_high = first_high if first_high > 0 else first_low
+    carry_limit = next((_to_int(row.get("buy_limit")) for row in valid_rows if _to_int(row.get("buy_limit")) > 0), 0)
+
+    points: list[dict[str, Any]] = []
+    for index in range(target_points):
+        bucket_start = datetime.fromtimestamp(start_epoch + (index * bucket_seconds), tz=UTC)
+        lows = bucket_lows[index]
+        highs = bucket_highs[index]
+        if lows:
+            carry_low = round(sum(lows) / len(lows), 3)
+        if highs:
+            carry_high = round(sum(highs) / len(highs), 3)
+        if bucket_limits[index] > 0:
+            carry_limit = bucket_limits[index]
+        low_value = carry_low if carry_low > 0 else 0
+        high_value = carry_high if carry_high > 0 else low_value
+        points.append({
+            "snapshot_ts": bucket_start.isoformat(),
+            "low": low_value,
+            "high": high_value,
+            "recent_volume": bucket_volumes[index],
+            "volume": bucket_volumes[index] or bucket_trade_volumes[index],
+            "trade_volume": bucket_trade_volumes[index],
+            "buy_limit": carry_limit,
+            "sample_count": max(bucket_samples[index], 1),
+            "min_low": min(bucket_min_low[index]) if bucket_min_low[index] else int(round(low_value)) if low_value > 0 else 0,
+            "max_high": max(bucket_max_high[index]) if bucket_max_high[index] else int(round(high_value)) if high_value > 0 else 0,
+            "is_compacted": not bool(lows or highs),
+            "point_mode": point_mode,
+            "source": f"{point_mode}_exact_288",
+        })
+    return points
 
 
 def _bucket_history(rows: list[dict[str, Any]], target_points: int, point_mode: str = "snapshot") -> list[dict[str, Any]]:
@@ -1284,19 +1632,16 @@ def _bucket_history(rows: list[dict[str, Any]], target_points: int, point_mode: 
 
 
 def _build_intraday_hybrid_history(item_id: int, target_points: int = 960) -> dict[str, Any]:
-    snapshot_rows = [row for row in _load_raw_history(days=1) if _to_int(row.get("id")) == item_id]
-    event_rows = [row for row in _load_event_history(days=1) if _to_int(row.get("id")) == item_id]
-
+    rows, debug_meta = _load_item_history_window(item_id=item_id, days=1, include_archive=False, include_events=True)
     points: list[dict[str, Any]] = []
-    for row in snapshot_rows:
-        points.append(_normalize_history_point(row, point_mode="snapshot"))
-    for row in event_rows:
-        points.append(_normalize_history_point(row, point_mode="trade_event"))
+    for row in rows:
+        point_mode = "trade_event" if row.get("side") else "snapshot"
+        points.append(_normalize_history_point(row, point_mode=point_mode))
 
     points.sort(key=lambda row: (str(row.get("snapshot_ts") or ""), 0 if row.get("point_mode") == "snapshot" else 1))
     raw_point_count = len(points)
-    if raw_point_count > target_points:
-        points = _bucket_history(points, target_points=target_points, point_mode="intraday_hybrid")
+    if raw_point_count:
+        points = _build_exact_window_series(points, target_points=target_points, window_minutes=5, point_mode="intraday_hybrid")
 
     return {
         "points": points,
@@ -1306,53 +1651,62 @@ def _build_intraday_hybrid_history(item_id: int, target_points: int = 960) -> di
         "window_strategy": "trade_events_plus_snapshot_anchors",
         "storage_mode": "event+snapshot",
         "contains_trade_events": any(point.get("point_mode") == "trade_event" for point in points),
+        **debug_meta,
     }
 
 
 def get_item_history_payload(item_id: int, window: str = "month") -> dict[str, Any]:
+    started = time.perf_counter()
     if window == "day":
-        payload = _build_intraday_hybrid_history(item_id=item_id, target_points=960)
-        if payload.get("points"):
-            return payload
-        rows = [row for row in _load_raw_history(days=1) if _to_int(row.get("id")) == item_id]
-        rows.sort(key=lambda row: row.get("snapshot_ts", ""))
-        points = _bucket_history(rows, 288, point_mode="snapshot")
-        return {
-            "points": points,
-            "raw_point_count": len(rows),
-            "target_points": 288,
-            "point_source": "snapshot_5m",
-            "window_strategy": "snapshot_only_fallback",
-            "storage_mode": "snapshot_only",
-            "contains_trade_events": False,
-        }
-
-    if window == "week":
-        rows = [row for row in _load_raw_history(days=7) if _to_int(row.get("id")) == item_id]
-        rows.sort(key=lambda row: row.get("snapshot_ts", ""))
-        points = _bucket_history(rows, 288, point_mode="snapshot")
-        return {
-            "points": points,
+        payload = _build_intraday_hybrid_history(item_id=item_id, target_points=288)
+        if not payload.get("points"):
+            rows, debug_meta = _load_item_history_window(item_id=item_id, days=1, include_archive=False, include_events=False)
+            payload = {
+                "points": _build_exact_window_series(rows, 288, 5, point_mode="snapshot"),
+                "raw_point_count": len(rows),
+                "target_points": 288,
+                "point_source": "snapshot_5m",
+                "window_strategy": "snapshot_only_fallback",
+                "storage_mode": "snapshot_only",
+                "contains_trade_events": False,
+                **debug_meta,
+            }
+    elif window == "week":
+        rows, debug_meta = _load_item_history_window(item_id=item_id, days=7, include_archive=False, include_events=False)
+        payload = {
+            "points": _build_exact_window_series(rows, 288, 35, point_mode="snapshot"),
             "raw_point_count": len(rows),
             "target_points": 288,
             "point_source": "snapshot_5m",
             "window_strategy": "raw_snapshot_rebucketed",
             "storage_mode": "snapshot_only",
             "contains_trade_events": False,
+            **debug_meta,
+        }
+    else:
+        rows, debug_meta = _load_item_history_window(item_id=item_id, days=RETENTION_DAYS, include_archive=True, include_events=False)
+        payload = {
+            "points": _build_exact_window_series(rows, 288, 150, point_mode="snapshot"),
+            "raw_point_count": len(rows),
+            "target_points": 288,
+            "point_source": "archive_plus_snapshot",
+            "window_strategy": "compacted_archive_plus_recent_raw",
+            "storage_mode": "archive+snapshot",
+            "contains_trade_events": False,
+            **debug_meta,
         }
 
-    rows = [row for row in load_history_records(days=RETENTION_DAYS) if _to_int(row.get("id")) == item_id]
-    rows.sort(key=lambda row: row.get("snapshot_ts", ""))
-    points = _bucket_history(rows, 288, point_mode="snapshot")
-    return {
-        "points": points,
-        "raw_point_count": len(rows),
-        "target_points": 288,
-        "point_source": "archive_plus_snapshot",
-        "window_strategy": "compacted_archive_plus_recent_raw",
-        "storage_mode": "archive+snapshot",
-        "contains_trade_events": False,
-    }
+    points = payload.get("points") or []
+    timestamps = [point.get("snapshot_ts") for point in points if point.get("snapshot_ts")]
+    payload.update(get_storage_debug_meta())
+    payload["first_point_ts"] = timestamps[0] if timestamps else None
+    payload["last_point_ts"] = timestamps[-1] if timestamps else None
+    payload["point_count"] = len(points)
+    payload.setdefault("phase_timings_ms", {})["total"] = int(round((time.perf_counter() - started) * 1000))
+    print(
+        f"[market_history] history item={item_id} window={window} points={len(points)} raw={payload.get('raw_point_count', 0)} files={payload.get('files_scanned', 0)} rows={payload.get('rows_scanned', 0)} matched={payload.get('rows_matched', 0)} total_ms={payload.get('phase_timings_ms', {}).get('total', 0)} root={ACTIVE_DATA_ROOT}"
+    )
+    return payload
 
 
 def get_item_history(item_id: int, window: str = "month") -> list[dict[str, Any]]:

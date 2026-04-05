@@ -1,0 +1,46 @@
+AUTOFLIP.GG — UI DESIGN
+
+UI NORTH STAR
+One board, one next action.
+The UI should always answer: what should I do next?
+
+PRIMARY UX RULES
+- board-first, not tab-first
+- action first
+- recognition over recall
+- simple words
+- visible progress
+- plugin does the real execution work
+
+CORE SLOT CARD TEMPLATE
+1. action verb
+2. item name
+3. quantity
+4. price
+5. short reason
+6. timer / fill speed / revisit hint
+
+BOARD ELEMENTS
+- board completion progress (ex: 3/8, 6/8, 8/8)
+- highlighted next slot
+- clear state labels: BUY / SELL / WAIT / REPLACE / COLLECT
+- confidence in plain language: Stable / Fast fill / Risky
+
+WEBSITE ROLE
+- evidence builder
+- shortlist / watchlist / trust
+- limited preview only
+- should not feel like the full workspace
+
+PLUGIN ROLE
+- execution surface
+- slot runbooks
+- copy-first price / quantity flow
+- minimal context switching
+
+IMPORTANT UI CHANGES TO KEEP IN MIND
+- hide advanced AI/API settings from default path
+- avoid empty “context not loaded” experiences in main flow
+- prefer named risk presets over sliders by default
+- show post-tax values by default
+- use “Unlock slots 4–8” instead of vague upgrade language

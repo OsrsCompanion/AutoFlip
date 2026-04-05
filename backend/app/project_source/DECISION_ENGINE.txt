@@ -1,0 +1,44 @@
+AUTOFLIP.GG — DECISION ENGINE
+
+ROLE
+Turn board comparisons into actionable slot decisions.
+
+SUPPORTED ACTIONS
+- buy
+- sell
+- hold
+- wait
+- replace
+- cancel
+- collect
+- completed
+
+UPDATED LOGIC DIRECTION
+Do not decide in isolation.
+A slot decision should come from comparing:
+- current board state
+- alternative board state
+- user horizon
+- capital usage
+
+LAYER-1 REPLACEMENT RULE
+Replace only when the new candidate is clearly better.
+Start with a simple threshold-based rule to avoid churn.
+Example:
+- replace if candidate_score > current_score * 1.15
+
+CANCEL / REPRICE LOGIC
+- if edge collapses below viable threshold, exit
+- if offer is still good but off-market, prefer reprice over full cancel
+- if slot is stuck and opportunity cost is high, replace
+
+EXPLANATION RULE
+Every output should include:
+- action
+- short reason
+- simple gain statement
+
+EXAMPLE
+Action: replace
+Reason: current item is too slow
+Gain: better profit and faster selling

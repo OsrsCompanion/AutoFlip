@@ -1,0 +1,49 @@
+AUTOFLIP.GG — COMPETITIVE ANALYSIS
+
+MARKET TRUTH
+The OSRS flipping market is saturated with data tools but still under-serves decision execution.
+Most tools show margins, charts, filters, and alerts.
+Few tools answer: what do I do next, with this board, right now?
+
+WHAT COMPETITORS GENERALLY DO WELL
+- charts and watchlists
+- margin visibility
+- profit tracking
+- alerts
+- some in-client convenience
+
+WHAT THEY USUALLY DO NOT SOLVE
+- fill probability in a user-friendly way
+- exact next-step guidance
+- board-level capital allocation
+- slot-by-slot replacement logic
+- trustworthy explanations for cancel / rotate / wait decisions
+
+KEY USER PAINS OBSERVED
+- stale or bait margins
+- no fill-time confidence
+- execution ambiguity (price / qty / cancel rule)
+- analysis paralysis
+- trust issues around accuracy and latency
+- fear of crossing the automation / bannable boundary
+
+STRATEGIC TAKEAWAYS
+1. Data is no longer the moat.
+2. Execution guidance is the moat.
+3. Trust must be visible.
+4. Board-native UX beats item-native UX.
+5. Time saved is a stronger sales pitch than theoretical max profit.
+
+POSITIONING
+Competitors mostly say:
+- here is what looks good
+- here are the numbers
+
+AutoFlip should say:
+- here is your board
+- here is your next move
+- here is why
+
+DEFENSIBLE ADVANTAGE
+AutoFlip’s edge is not more research.
+It is an explainable, action-first, 8-slot operating system for trading capital.

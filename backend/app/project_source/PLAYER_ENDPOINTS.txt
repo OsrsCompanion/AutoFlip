@@ -1,0 +1,48 @@
+AUTOFLIP.GG — PLAYER ENDPOINTS
+
+BASE PREFIX
+/api/player
+
+CURRENT CORE ENDPOINTS
+1) POST /api/player/session
+2) POST /api/player/ge-slots
+3) PUT /api/player/preferences
+4) POST /api/player/holdings
+5) POST /api/player/events
+6) GET /api/player/state
+7) GET /api/player/alerts
+8) POST /api/player/ai/advise
+
+CURRENT REQUIRED CONCEPTS
+- player profile / session
+- preferences
+- ge_slots
+- holdings
+- events
+- alerts
+- last_sync
+
+UPDATED DESIGN NOTES
+The board optimizer now needs clean, merged player state for:
+- liquid gp
+- active GE slot usage
+- user horizon (hours away)
+- risk mode / preset
+- future recovery items
+
+FUTURE CONTRACT EXTENSION (DO NOT BUILD YET UNLESS NEEDED)
+Potential new field groups:
+- recovery_items[]
+  - item_id
+  - item_name
+  - quantity
+  - avg_cost_optional
+  - user_marked_reason_optional
+  - marked_at
+- slot_action_history[]
+- board_summary
+
+IMPORTANT CONTRACT RULE
+Do not redesign route boundaries casually.
+Keep sender/plugin work targeting this contract.
+Add fields in a forward-compatible way.

@@ -1,0 +1,57 @@
+AUTOFLIP.GG — CORE FEATURES
+
+1. BOARD OPTIMIZER
+- Builds the best possible GE board for the user’s budget, away-time, and slot count.
+- Treats the GE as a portfolio of up to 8 active plans.
+- Compares current board vs better board, not just item vs item.
+
+2. SLOT RUNBOOKS
+Each slot should show:
+- action (BUY / SELL / WAIT / CANCEL / REPLACE / COLLECT)
+- item
+- exact quantity
+- exact price
+- short reason
+- timer / expected revisit / fill speed
+
+3. GUIDED EXECUTION ENGINE
+- Step-by-step instructions inside RuneLite.
+- Copy-first mechanics for price and quantity.
+- Human-in-the-loop only.
+- Designed to reduce thinking and context switching.
+
+4. RECOMMENDATION ENGINE
+- Finds viable flips using market cache.
+- Filters for tax-aware profitability, liquidity, stability, and budget fit.
+- Produces candidate Slot Plans for the board optimizer.
+
+5. SLOT MANAGEMENT
+- Detect keep / replace / cancel / hold / completed states.
+- Avoid dead slots and avoid churn.
+- Output clear next actions.
+
+6. SIMPLE EXPLANATIONS
+Every important action must answer:
+- what to do
+- why it is better
+- what the user gains
+
+7. MARKET EXPLORER (WEBSITE SUPPORT FEATURE)
+- search, watch, inspect, shortlist
+- tax-aware ROI and liquidity
+- evidence builder, not the final workflow
+
+8. FAVORITES / WATCHLISTS
+- persistent personal tracking
+- helps users move from interest to conviction
+- remains secondary to board guidance
+
+9. AI COPILOT
+- explains board decisions in simple language
+- answers user questions using structured board + player context
+- never becomes the primary execution surface
+
+10. FUTURE: RECOVERY WORKFLOW
+- user-marked items can enter a recovery queue
+- system decides when selling them frees capital efficiently
+- recovery plans compete with flips for slot space

@@ -1,0 +1,38 @@
+AUTOFLIP.GG — DATA RULES
+
+1. SOURCE OF TRUTH
+Use OSRS Wiki real-time pricing ecosystem as primary market source.
+Build and keep your own history.
+Do not rely on competitor UI scraping for core logic.
+
+2. POST-TAX DEFAULTS
+All meaningful profitability comparisons should use post-tax values by default.
+Gross spread may exist for inspection, but should not be the main decision metric.
+
+3. FRESHNESS RULE
+Freshness matters.
+A margin that is old, thin, or unstable should not be treated like a live opportunity.
+
+4. LIQUIDITY RULE
+Never promote a flip only because the spread looks big.
+Liquidity and expected fill speed are first-class constraints.
+
+5. BUY-LIMIT RULE
+Buy limits affect deployable capacity and expected throughput.
+Do not recommend large allocations that cannot actually be cycled in the user’s horizon.
+
+6. HISTORY RULE
+Recent history is for:
+- stability
+- volatility
+- time-fit
+- confidence labeling
+Not for pretending to predict perfectly.
+
+7. TRUST RULE
+If data quality is weak, label it.
+Do not hide weak confidence behind polished explanations.
+
+8. USER-STATE SEPARATION RULE
+Market data and player data stay separate in storage and contract.
+They can be merged into one read model for decision making, but should not share the same raw store.

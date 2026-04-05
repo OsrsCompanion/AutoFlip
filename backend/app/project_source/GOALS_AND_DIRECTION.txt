@@ -1,0 +1,37 @@
+AUTOFLIP.GG — GOALS AND DIRECTION
+
+CURRENT GOALS
+1. Build a trustworthy board optimizer.
+2. Produce simple next-step instructions.
+3. Reduce thinking and context switching.
+4. Preserve a strong free/paid boundary.
+5. Convert website trust into plugin usage.
+
+UPDATED PRODUCT DIRECTION
+- beginner-first
+- board-first
+- explanation-first
+- time-saving over theoretical perfection
+
+SHORT TERM
+- finalize Slot Plan model (simple version)
+- improve recommendation filters
+- add action-first outputs
+- prepare slot runbook UI
+
+MID TERM
+- stronger board comparison logic
+- better fill probability
+- churn controls / replacement thresholds
+- plugin execution loop
+
+LONG TERM
+- recovery workflow
+- richer telemetry-informed fill models
+- smarter board sequencing
+- stronger trust / provenance surfaces
+
+NON-GOALS RIGHT NOW
+- heavy ML prediction
+- overbuilt quant math before core loop is stable
+- making the website solve the full paid problem

@@ -1,0 +1,30 @@
+AUTOFLIP.GG — RECEIVING ARCHITECTURE
+
+PURPOSE
+This project is the receiving + decision side of the system.
+It should accept player-state updates while preserving a stable market-data pipeline.
+
+ARCHITECTURE RULES
+1. Market data remains cache-first.
+2. Player data remains separate from market data.
+3. UI should read a merged decision-ready state from one backend endpoint.
+4. AI should receive structured state assembled by the backend.
+5. Sender/plugin details should not leak into the receiving-side contract.
+
+UPDATED PRODUCT DIRECTION
+The receiver is no longer just preparing data for charts and recommendations.
+It is preparing state for a board optimizer and slot runbooks.
+
+MERGED READ MODEL MUST EVENTUALLY SUPPORT
+- profile
+- session
+- preferences
+- ge_slots
+- holdings
+- alerts
+- board plan
+- next actions
+- future recovery queue
+
+WHY THIS MATTERS
+It keeps the architecture stable while letting the product evolve from recommendation site to board management system.

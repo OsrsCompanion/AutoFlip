@@ -1,0 +1,39 @@
+AUTOFLIP.GG — CURRENT ARCHITECTURE DIRECTION
+
+CORE PRINCIPLES
+- Single-pass data pipeline
+- Compute once per snapshot
+- Board-first decision output
+- Action-first UX
+- Structured explanations
+
+SYSTEM FLOW
+1. Fetch fresh market data
+2. Update raw + compacted history
+3. Rebuild derived market cache
+4. Generate viable candidate plans
+5. Compare against current board
+6. Output best next actions
+7. Feed same explanation objects to UI + AI
+
+KEY SHIFT FROM OLDER DIRECTION
+OLD:
+- recommendation list
+- ROI-first sorted items
+
+NEW:
+- board optimizer
+- slot runbooks
+- compare portfolio vs portfolio
+
+UI SURFACES
+Website:
+- explorer / evidence / preview
+
+Plugin:
+- board / slot actions / execution loop
+
+FUTURE SAFE EXTENSIONS
+- recovery queue
+- player-specific alerts
+- telemetry-informed fill models

@@ -1,0 +1,58 @@
+AUTOFLIP.GG — PLUGIN ARCHITECTURE
+
+PURPOSE
+The plugin is the paid execution layer and the real product moat.
+It should turn board decisions into fast, simple, trustworthy user actions inside RuneLite.
+
+CORE PRINCIPLES
+- Guided, not automated.
+- Approved-client friendly posture.
+- Board-first flow.
+- Minimal typing.
+- Minimal context switching.
+
+CORE COMPONENTS
+1. BOARD PANEL
+- Shows the current 8-slot plan.
+- Highlights the single best next action.
+- Shows board completion progress.
+
+2. SLOT RUNBOOK VIEW
+For each slot:
+- action
+- item
+- quantity
+- price
+- short reason
+- timer / revisit hint
+- confidence / fill speed label
+
+3. GE DETECTOR / STATE SYNC
+- reads current GE slot state
+- detects progress changes
+- knows when a slot is active, filled, completed, or stuck
+
+4. ACTION GUIDANCE
+- highlights the next step
+- supports copy-first price/quantity workflow
+- no simulated clicks
+- no automatic typing
+
+5. EVENT LISTENER
+- detects offer changes
+- advances the runbook
+- updates board state after user actions
+
+6. API SYNC LAYER
+- sends player state, GE slot state, holdings, and preferences
+- pulls board plan, replacement decisions, and alerts
+
+7. TRUST / SAFETY SURFACE
+- explicit copy: no automation, no auto-clicking, no generated inputs
+- show what data is read and what is not
+
+FUTURE PATCHES
+- AutoFlip Recovery entry from item menu interactions
+- bank / inventory recovery queue
+- smarter stuck-offer management
+- alert directives as workflow interrupts

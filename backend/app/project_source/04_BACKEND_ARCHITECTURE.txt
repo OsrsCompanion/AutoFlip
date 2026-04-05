@@ -1,0 +1,83 @@
+AUTOFLIP.GG — BACKEND ARCHITECTURE
+
+TOP-LEVEL MODEL
+Compute once per snapshot, reuse everywhere.
+The backend is a cache-first market + player-state engine that produces board decisions, not just data.
+
+LAYERS
+1. DATA INGESTION
+- Source: OSRS Wiki real-time prices ecosystem
+- Snapshot cadence: about every 5 minutes
+- Goal: fresh prices, fresh liquidity, bounded cost
+
+2. HISTORY LAYER
+- raw 5-minute snapshots for recent history
+- compacted buckets for older windows
+- supports day/week/month reconstruction
+- supports volatility and stability inputs
+
+3. DERIVED CACHE LAYER
+Built after each snapshot.
+Single source of truth for:
+- prices
+- post-tax profit
+- roi_pct
+- rolling liquidity fields
+- stability / volatility helpers
+- fill speed helpers
+- buy limit references
+- last snapshot freshness metadata
+
+4. CANDIDATE GENERATION LAYER
+- recommendation engine finds viable opportunities
+- filters bad/stale/illiquid items
+- creates normalized Slot Plan candidates
+
+5. BOARD OPTIMIZER
+This is the strategic core.
+It compares complete board states, not just items.
+Plan types:
+- Flip Plan
+- Continue Plan
+- Replace Plan
+- Future: Recovery Liquidation Plan
+
+Board objective:
+- maximize useful profit over the user’s horizon
+- penalize stuck capital
+- penalize risk / instability
+- penalize unnecessary churn
+
+Immediate implementation rule:
+- stage this in layers
+- start simple
+- keep architecture ready for full portfolio optimization
+
+6. DECISION LAYER
+Outputs:
+- buy / sell / hold / replace / cancel / collect
+- quantity
+- price
+- timer / revisit hint
+- explanation fields
+
+7. PLAYER STATE LAYER
+Separate from market truth.
+Stores:
+- preferences
+- GE slots
+- holdings
+- alerts
+- event history
+- future recovery queue
+
+8. AI ENRICHMENT LAYER
+- backend assembles structured state
+- AI receives board-aware, player-aware context
+- AI explains decisions; backend decides them
+
+CORE RULES
+- Market data remains separate from player data.
+- Browser should not recreate core optimization logic.
+- AI should not invent reasons; it should use backend-produced explanation objects.
+- Website and plugin consume the same core market truth.
