@@ -43,6 +43,19 @@
       .shell-account-actions { justify-content:flex-start; }
     }
     body.favorites-collapsed .wrap { margin: 0 auto; }
+
+    body.debug-embed .favorites-sidebar,
+    body.debug-embed .ai-copilot-sidebar,
+    body.debug-embed .shell-header,
+    body.debug-embed .tabs,
+    body.debug-embed #overviewTab,
+    body.debug-embed #tradingTab,
+    body.debug-embed #marketTab,
+    body.debug-embed #personalTab { display:none !important; }
+    body.debug-embed .wrap { width:min(100%, 1160px); max-width:none; padding:18px 18px 42px; }
+    body.debug-embed #debugTab { display:block !important; }
+    body.debug-embed .card { background: linear-gradient(180deg, rgba(35, 22, 14, 0.92), rgba(24, 15, 10, 0.92)); }
+
     .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
     .tab-btn, button { background: #b8892d; color: white; border: 0; border-radius: 10px; padding: 10px 14px; cursor: pointer; }
     .tab-btn.active, .range-btn.active { background: linear-gradient(180deg, #f0c46f, #c89532); color:#23160c; border-color: rgba(255, 236, 197, 0.34); }
@@ -69,6 +82,11 @@
     .ge-slot.empty { background: #24160e; }
     .slot-index { font-size: 12px; color: #d8c6a1; margin-bottom: 6px; }
     .slot-head { font-weight: 700; margin-bottom: 6px; }
+    .item-icon { width: 38px; height: 38px; object-fit: contain; image-rendering: pixelated; flex: 0 0 auto; filter: drop-shadow(0 5px 8px rgba(0,0,0,0.42)); }
+    .item-icon.small { width: 28px; height: 28px; }
+    .item-title-row { display:flex; align-items:center; gap:10px; min-width:0; }
+    .item-title-text { min-width:0; }
+    .item-title-text .slot-head, .item-title-text .detail-value { overflow:hidden; text-overflow:ellipsis; }
     .slot-state, .slot-meta, .slot-price, .slot-rec { font-size: 12px; color: #d9c7a4; margin: 2px 0; }
     .slot-decision { position: absolute; right: 8px; top: 8px; font-size: 11px; font-weight: bold; padding: 3px 6px; border-radius: 999px; }
     .slot-decision.keep { background: #14532d; color: #bbf7d0; }
@@ -95,17 +113,36 @@
     .chart-card-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
     .chart-title-block h2, .chart-title-block h3, .chart-title-block p { margin: 0; }
     .chart-title-block p { margin-top: 6px; }
-    .chart-wrap { position:relative; background:linear-gradient(180deg,#1b120d,#140c08); border:1px solid #6b4a22; border-radius:16px; margin-top:12px; padding: 14px; overflow:visible; box-shadow: inset 0 1px 0 rgba(255,226,170,0.04); }
-    .chart-frame { width: 100%; height: 860px; display:block; }
+    .chart-wrap { position:relative; background:linear-gradient(180deg,#1b120d,#140c08); border:1px solid #6b4a22; border-radius:16px; margin-top:12px; padding: 14px; overflow:hidden; box-shadow: inset 0 1px 0 rgba(255,226,170,0.04); }
+    .chart-frame { width: 100%; height: 940px; display:block; }
+    .market-chart-shell { grid-column: 1 / -1; max-width: 100%; }
+    body.market-chart-expanded {
+      --chart-left-space: calc(var(--left-rail-width) + 18px);
+      --chart-right-space: calc(var(--right-rail-width) + 18px);
+    }
+    body.market-chart-expanded.favorites-collapsed { --chart-left-space: 36px; }
+    body.market-chart-expanded.ai-copilot-collapsed { --chart-right-space: 36px; }
+    body.market-chart-expanded .wrap {
+      box-sizing: border-box;
+      width: calc(100vw - var(--chart-left-space) - var(--chart-right-space) - 24px);
+      max-width: none;
+      margin-left: calc(var(--chart-left-space) + 12px);
+      margin-right: calc(var(--chart-right-space) + 12px);
+      padding-left: 12px;
+      padding-right: 12px;
+    }
+    body.market-chart-expanded .market-layout.selection-active { display:block; }
+    body.market-chart-expanded .market-detail-shell { margin-bottom:18px; }
+    body.market-chart-expanded .market-chart-shell { width:100%; max-width:none; }
     .chart-legend { display:flex; gap:18px; flex-wrap:wrap; align-items:center; margin-top:12px; color:#dccba8; font-size:14px; }
     .legend-swatch { width:18px; height:4px; border-radius:999px; display:inline-block; margin-right:8px; vertical-align:middle; }
     .legend-bar { width:18px; height:10px; border-radius:3px; display:inline-block; margin-right:8px; vertical-align:middle; }
     .chart-footnote { margin-top: 8px; }
-    .chart-tooltip { position:absolute; pointer-events:none; min-width:170px; max-width:240px; background:rgba(24,14,8,0.96); border:1px solid rgba(212,167,67,0.42); border-radius:12px; padding:10px 12px; box-shadow:0 12px 28px rgba(0,0,0,0.35); color:#eef7ff; font-size:13px; line-height:1.45; z-index:20; opacity:0; transition:opacity 0.12s ease; }
+    .chart-tooltip { position:absolute; pointer-events:none; min-width:96px; max-width:150px; background:rgba(24,14,8,0.96); border:1px solid rgba(212,167,67,0.42); border-radius:8px; padding:5px 7px; box-shadow:0 12px 28px rgba(0,0,0,0.35); color:#eef7ff; font-size:11px; line-height:1.25; z-index:20; opacity:0; transition:opacity 0.12s ease; }
     .chart-tooltip.visible { opacity:1; }
     .chart-tooltip .label { color:#d7b06a; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; }
     .chart-tooltip .value { color:#f8fafc; font-size:15px; }
-    .chart-tooltip .row { margin-top:6px; }
+    .chart-tooltip .row { margin-top:2px; }
     .market-results .recommendation { padding: 10px 12px; }
     .market-trust-row{ display:flex; gap:8px; flex-wrap:wrap; margin:10px 0 4px; }
     .market-trust-pill{ display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; border:1px solid rgba(212,167,67,0.18); background:rgba(40,25,15,0.86); color:#f1dfb2; font-size:12px; font-weight:700; }
@@ -119,6 +156,29 @@
     .market-table tbody tr:hover { background:rgba(138,93,34,0.18); }
     .market-table tbody tr.selected { background:rgba(171,118,44,0.2); }
     .chart-shell-note{ margin-top:10px; color:#d8c6a1; font-size:13px; }
+
+    .smart-market-strip { display:grid; grid-template-columns: repeat(6, minmax(130px, 1fr)); gap:10px; margin-top:14px; }
+    .smart-market-pill { background:linear-gradient(180deg,rgba(57,35,18,0.95),rgba(31,19,12,0.94)); border:1px solid rgba(184,137,45,0.28); border-radius:14px; padding:12px 14px; box-shadow: inset 0 1px 0 rgba(255,226,170,0.04); }
+    .smart-market-pill .k { color:#d7b06a; font-size:11px; text-transform:uppercase; letter-spacing:.06em; margin-bottom:5px; }
+    .smart-market-pill .v { color:#f6ead1; font-size:20px; line-height:1.1; font-weight:800; }
+    .smart-market-pill .s { color:#d8c6a1; font-size:12px; margin-top:5px; }
+    .smart-market-pill.good .v { color:#78d45f; }
+    .smart-market-pill.watch .v { color:#fbbf24; }
+    .smart-market-pill.risk .v { color:#fb7185; }
+    .smart-insight-row { display:grid; grid-template-columns: repeat(4, minmax(170px, 1fr)); gap:10px; margin-top:12px; }
+    .smart-insight-card { border:1px solid rgba(184,137,45,0.22); background:rgba(20,12,8,0.7); border-radius:14px; padding:12px 14px; }
+    .smart-insight-card strong { display:block; color:#f5c56b; margin-bottom:5px; }
+    .smart-insight-card span { color:#d8c6a1; font-size:13px; }
+    .smart-action-panel { display:grid; grid-template-columns: 1.3fr repeat(4, minmax(110px, .6fr)); gap:14px; align-items:center; margin-top:12px; padding:16px; border:1px solid rgba(184,137,45,0.28); border-radius:16px; background:linear-gradient(90deg,rgba(57,35,18,0.9),rgba(23,14,9,0.9)); }
+    .smart-action-panel .action-title { color:#f6ead1; font-weight:800; font-size:18px; margin-bottom:5px; }
+    .smart-action-panel .action-copy { color:#d8c6a1; }
+    .smart-action-panel .metric-label { color:#d7b06a; font-size:12px; text-transform:uppercase; letter-spacing:.05em; }
+    .smart-action-panel .metric-value { color:#f6ead1; font-size:22px; font-weight:800; margin-top:4px; }
+    .smart-action-panel .metric-value.buy { color:#74aedd; }
+    .smart-action-panel .metric-value.sell { color:#fb923c; }
+    .smart-action-panel .metric-value.good { color:#78d45f; }
+    .smart-action-panel .metric-value.watch { color:#fbbf24; }
+    .smart-action-panel .metric-value.risk { color:#fb7185; }
 
     .market-results-panel { min-width: 0; }
     .detail-topbar { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:10px; flex-wrap:wrap; }
@@ -277,7 +337,7 @@
     .settings-helper-grid{ display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:10px; margin: 10px 0 14px; }
     .settings-helper-card{ padding:12px; border-radius:12px; border:1px solid rgba(212,167,67,0.18); background:rgba(28,18,12,0.62); }
     .settings-helper-card strong{ display:block; color:#f6ead1; margin-bottom:4px; }
-    .settings-helper-card span{ color:#d8c6a1; font-size:13px; line-height:1.45; }
+    .settings-helper-card span{ color:#d8c6a1; font-size:11px; line-height:1.25; }
     .field-helper{ margin:-6px 0 10px; color:#bfa682; font-size:12px; line-height:1.45; }
     .context-chip{
       display:inline-flex;
@@ -390,6 +450,8 @@
     .trade-plan-slot-right { display:flex; align-items:center; justify-content:center; gap:8px; }
     .trade-plan-slot-title-row { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
     .trade-plan-slot .slot-head { font-size:18px; color:#f8fafc; }
+    .trade-plan-slot .item-icon { width:44px; height:44px; padding:4px; border-radius:12px; background:rgba(8,13,22,0.48); border:1px solid rgba(246,199,104,0.16); }
+    .trade-plan-ghost .item-icon { width:34px; height:34px; padding:3px; border-radius:10px; background:rgba(8,13,22,0.42); border:1px solid rgba(246,199,104,0.14); }
     .trade-plan-purpose-wrap { display:flex; flex-direction:column; align-items:center; gap:4px; }
     .trade-plan-purpose {
       width: auto;
@@ -606,7 +668,7 @@
     @media (max-width: 1180px) { .trade-plan-grid { grid-template-columns: repeat(2, minmax(260px, 1fr)); } }
     @media (max-width: 900px) { .trade-plan-grid { grid-template-columns: 1fr; } }
 
-    @media (max-width: 1100px) { .market-layout, .market-layout.selection-active { grid-template-columns: 1fr; } .chart-frame { height: 620px; } .favorites-sidebar, .ai-sidebar { position: static !important; width: auto !important; height: auto !important; border-right: 0; border-left: 0; border-bottom: 1px solid rgba(184,137,45,0.18); box-shadow:none; transform:none !important; padding-right:14px; } .favorites-edge-hitbox, .favorites-toggle-btn, .ai-edge-hitbox, .ai-toggle-btn { display:none; } .wrap, body.favorites-collapsed .wrap, body.ai-copilot-collapsed .wrap { margin: 0 auto; } body { padding-bottom: 0; } }
+    @media (max-width: 1100px) { .market-layout, .market-layout.selection-active { grid-template-columns: 1fr; } .chart-frame { height: 680px; } .smart-market-strip, .smart-insight-row, .smart-action-panel { grid-template-columns: 1fr; } .favorites-sidebar, .ai-sidebar { position: static !important; width: auto !important; height: auto !important; border-right: 0; border-left: 0; border-bottom: 1px solid rgba(184,137,45,0.18); box-shadow:none; transform:none !important; padding-right:14px; } .favorites-edge-hitbox, .favorites-toggle-btn, .ai-edge-hitbox, .ai-toggle-btn { display:none; } .wrap, body.favorites-collapsed .wrap, body.ai-copilot-collapsed .wrap { margin: 0 auto; } body { padding-bottom: 0; } }
 
     @media (max-width: 1700px) {
       :root { --center-safe-side: 280px; }
@@ -1795,7 +1857,434 @@ body.premium-skin-arcane .shell-avatar-badge::after {
 
 
 
+
+
+/* Compact selected-item detail box: keep chart wide, keep info dense. */
+body.market-chart-expanded .market-detail-shell {
+  width: min(960px, 100%);
+  max-width: 960px;
+  margin-right: auto;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+}
+body.market-chart-expanded .market-detail-shell .detail-topbar {
+  margin-bottom: 6px;
+}
+body.market-chart-expanded .market-detail-shell .detail-topbar h3 {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.2;
+}
+body.market-chart-expanded .market-detail-shell .detail-grid {
+  grid-template-columns: repeat(3, minmax(150px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+body.market-chart-expanded .market-detail-shell .detail-stat {
+  padding: 8px 10px;
+  min-height: 0;
+}
+body.market-chart-expanded .market-detail-shell .detail-label {
+  font-size: 10px;
+  margin-bottom: 4px;
+}
+body.market-chart-expanded .market-detail-shell .detail-value {
+  font-size: 15px;
+  line-height: 1.15;
+}
+body.market-chart-expanded .market-detail-shell .detail-subvalue {
+  font-size: 11px;
+  line-height: 1.25;
+  margin-top: 3px;
+}
+body.market-chart-expanded .market-chart-shell {
+  width: 100%;
+  max-width: none;
+}
+@media (max-width: 900px) {
+  body.market-chart-expanded .market-detail-shell { width: 100%; max-width: none; }
+  body.market-chart-expanded .market-detail-shell .detail-grid { grid-template-columns: 1fr 1fr; }
+}
+
+
+/* AUTOFLIP PATCH: point-anchored buy/sell callouts */
+.chart-tooltip.point-callout-mode {
+  left: 0 !important;
+  top: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+  pointer-events: none;
+}
+.chart-tooltip.point-callout-mode .point-callout {
+  position: absolute;
+  z-index: 34;
+  white-space: nowrap;
+  padding: 5px 8px;
+  border-radius: 5px;
+  color: #fff7ed;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.05;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.36);
+}
+.chart-tooltip.point-callout-mode .point-callout small {
+  margin-left: 5px;
+  font-size: 10px;
+  font-weight: 800;
+  opacity: 0.88;
+}
+.chart-tooltip.point-callout-mode .point-callout.sell {
+  background: #f97316;
+  transform: translate(-50%, calc(-100% - 8px));
+}
+.chart-tooltip.point-callout-mode .point-callout.sell::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  transform: translateX(-50%);
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid #f97316;
+}
+.chart-tooltip.point-callout-mode .point-callout.buy {
+  background: #2f7fc6;
+  transform: translate(-50%, 8px);
+}
+.chart-tooltip.point-callout-mode .point-callout.buy::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -6px;
+  transform: translateX(-50%);
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 6px solid #2f7fc6;
+}
+
+
+/* AUTOFLIP PATCH: graph hard refresh button */
+.graph-refresh-btn {
+  position: relative;
+  width: 42px;
+  min-width: 42px;
+  height: 42px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 900;
+  border-radius: 12px;
+}
+
+.graph-refresh-btn .refresh-hover-label {
+  position: absolute;
+  right: 50%;
+  top: calc(100% + 10px);
+  transform: translateX(50%);
+  background: rgba(24,15,10,0.97);
+  color: #f6e7c1;
+  border: 1px solid rgba(240,190,98,0.32);
+  border-radius: 10px;
+  padding: 8px 10px;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 700;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.14s ease;
+  z-index: 60;
+  box-shadow: 0 12px 22px rgba(0,0,0,0.32);
+}
+
+.graph-refresh-btn:not(.refreshing):hover .refresh-hover-label {
+  opacity: 1;
+}
+
+.graph-refresh-btn.refreshing {
+  animation: graphRefreshSpin 0.8s linear infinite;
+}
+
+@keyframes graphRefreshSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+
+
+/* AUTOFLIP PATCH: trendline toggle */
+.graph-trendline-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.15;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.graph-trendline-btn.active {
+  background: linear-gradient(180deg, #f0c46f, #c89532);
+  color: #23160c;
+  border-color: rgba(255,236,197,0.42);
+}
+
+/* AUTOFLIP PATCH: graph refresh polish + line fades */
+.graph-refresh-btn.refreshing .refresh-hover-label,
+.graph-refresh-btn.refreshing:hover .refresh-hover-label {
+  opacity: 0 !important;
+}
+
+.graph-refresh-btn.refreshing {
+  pointer-events: none;
+}
+
+
+
+    /* AUTOFLIP PATCH: clean 4x2 planner wired to board recommendation cache */
+    .af-plan-hero { display:flex; justify-content:space-between; gap:18px; align-items:flex-start; margin-bottom:16px; }
+    .af-plan-eyebrow { color:#e0ac47; font-size:12px; font-weight:900; text-transform:uppercase; letter-spacing:.08em; margin-bottom:6px; }
+    .af-plan-hero h2 { margin:0; font-size:28px; }
+    .af-plan-actions { display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+    .af-input-grid { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:14px; margin-bottom:16px; }
+    .af-input-grid label { display:block; font-weight:800; color:#fff2d9; margin-bottom:6px; }
+    .af-input-grid input, .af-input-grid select { margin:0; }
+    .af-input-help { color:#bfa682; font-size:12px; margin-top:5px; }
+    .af-summary-grid { display:grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap:12px; margin-bottom:16px; }
+    .af-summary-card { background:rgba(20,12,8,.78); border:1px solid rgba(212,167,67,.22); border-radius:14px; padding:14px; }
+    .af-summary-label { color:#d8c6a1; font-size:14px; }
+    .af-summary-value { color:#facc15; font-size:24px; font-weight:900; margin-top:4px; }
+    .af-ge-head { display:flex; justify-content:space-between; align-items:flex-start; gap:14px; flex-wrap:wrap; margin-bottom:14px; }
+    .af-ge-head h2 { margin:0 0 6px; }
+    .af-ge-badge { display:inline-flex; align-items:center; padding:8px 14px; border-radius:999px; border:1px solid rgba(240,190,98,.28); background:rgba(90,58,24,.42); color:#f3d38a; font-weight:900; }
+    .af-ge-grid { display:grid; grid-template-columns: repeat(4, minmax(220px, 1fr)); gap:12px; }
+    .af-ge-card { min-height:196px; border:1px solid rgba(212,167,67,.22); border-radius:16px; padding:12px; background:linear-gradient(180deg,rgba(24,14,8,.9),rgba(14,8,5,.94)); position:relative; overflow:hidden; }
+    .af-ge-card.empty { border-style:dashed; display:flex; align-items:center; justify-content:center; text-align:center; color:#d8c6a1; }
+    .af-ge-slot-num { position:absolute; left:10px; top:10px; border:1px solid rgba(240,190,98,.35); border-radius:8px; min-width:24px; height:24px; display:flex; align-items:center; justify-content:center; color:#f3d38a; font-weight:900; background:rgba(25,15,9,.92); }
+    .af-ge-main { display:grid; grid-template-columns:72px 1fr; gap:12px; align-items:center; margin-top:22px; }
+    .af-ge-icon { width:68px; height:68px; object-fit:contain; image-rendering:pixelated; padding:7px; border-radius:12px; background:rgba(0,0,0,.22); border:1px solid rgba(240,190,98,.14); }
+    .af-ge-item { color:#fff2d9; font-weight:900; font-size:16px; line-height:1.2; }
+    .af-ge-sub { color:#d8c6a1; font-size:12px; margin-top:5px; }
+    .af-ge-stats { display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:12px; }
+    .af-ge-stat { border:1px solid rgba(212,167,67,.14); border-radius:10px; padding:8px; background:rgba(46,26,12,.52); }
+    .af-ge-stat .k { color:#d7b06a; font-size:10px; text-transform:uppercase; letter-spacing:.06em; }
+    .af-ge-stat .v { color:#f6ead1; font-weight:900; margin-top:3px; }
+    .af-ge-profit { color:#86efac !important; }
+    .af-ge-speed { margin-top:10px; display:flex; justify-content:space-between; gap:8px; align-items:center; color:#86efac; font-weight:800; }
+    .af-confidence { color:#74d86b; letter-spacing:3px; font-size:12px; white-space:nowrap; }
+    .af-plan-tip { margin-top:12px; color:#d8c6a1; }
+    @media (max-width: 1200px){ .af-ge-grid { grid-template-columns: repeat(2, minmax(220px,1fr)); } .af-input-grid,.af-summary-grid{grid-template-columns:1fr 1fr;} }
+    @media (max-width: 720px){ .af-ge-grid,.af-input-grid,.af-summary-grid{grid-template-columns:1fr;} .af-plan-hero{flex-direction:column;} }
+
+
+/* AUTOFLIP UI POLISH PATCH 20260513 */
+.af-polish-summary {
+  margin: 10px 0 18px;
+  padding: 12px 14px;
+  border: 1px solid rgba(134,239,172,.22);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(22, 44, 24, .42), rgba(18, 27, 16, .30));
+  color: #d9fddf;
+  font-weight: 800;
+  line-height: 1.35;
+}
+.af-polish-summary .muted {
+  display: block;
+  margin-top: 3px;
+  color: #d8c6a1;
+  font-weight: 500;
+}
+.af-polished-board {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(220px, 1fr)) !important;
+  gap: 14px !important;
+}
+.af-polished-slot {
+  min-height: 245px !important;
+  padding: 16px !important;
+  border-radius: 18px !important;
+  border: 1px solid rgba(212,167,67,.28) !important;
+  background:
+    radial-gradient(circle at 22% 16%, rgba(246,199,104,.08), transparent 34%),
+    linear-gradient(180deg, rgba(25,14,8,.96), rgba(14,8,5,.98)) !important;
+  box-shadow: 0 14px 30px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,231,185,.04) !important;
+}
+.af-polished-slot.af-empty-slot {
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  text-align:center !important;
+  border-style: dashed !important;
+  opacity:.82;
+}
+.af-slot-rank {
+  position:absolute;
+  top:10px;
+  left:10px;
+  width:26px;
+  height:26px;
+  border-radius:9px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:13px;
+  font-weight:900;
+  color:#2a1808;
+  background:linear-gradient(180deg,#f0c46f,#b8892d);
+  box-shadow:0 6px 14px rgba(0,0,0,.28);
+}
+.af-clean-head {
+  display:grid;
+  grid-template-columns:76px 1fr;
+  gap:14px;
+  align-items:center;
+  margin: 18px 0 14px;
+}
+.af-clean-icon {
+  width:76px;
+  height:76px;
+  object-fit:contain;
+  image-rendering:pixelated;
+  border-radius:16px;
+  padding:8px;
+  background:rgba(6,8,10,.45);
+  border:1px solid rgba(246,199,104,.18);
+  filter:drop-shadow(0 8px 12px rgba(0,0,0,.42));
+}
+
+.af-clean-title-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  width:100%;
+}
+
+.af-clean-name-wrap{
+  min-width:0;
+  flex:1;
+}
+
+.af-clean-name {
+  color:#fff4dd;
+  font-size:18px;
+  font-weight:900;
+  line-height:1.12;
+  margin-bottom:5px;
+}
+.af-clean-qty {
+  color:#d8c6a1;
+  font-size:13px;
+  font-weight:700;
+}
+.af-clean-prices {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin: 10px 0;
+}
+.af-clean-price {
+  border-radius:13px;
+  padding:10px 11px;
+  background:rgba(54,28,12,.72);
+  border:1px solid rgba(212,167,67,.16);
+}
+.af-clean-price span {
+  display:block;
+  color:#d7b06a;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  margin-bottom:4px;
+}
+.af-clean-price strong {
+  display:block;
+  color:#fff1cf;
+  font-size:17px;
+  font-weight:900;
+}
+.af-clean-profit {
+  margin-top:12px;
+  padding:12px;
+  border-radius:14px;
+  background:linear-gradient(180deg, rgba(22,80,38,.34), rgba(13,44,24,.22));
+  border:1px solid rgba(134,239,172,.20);
+}
+.af-clean-profit span {
+  display:block;
+  color:#bff7c8;
+  font-size:12px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+}
+.af-clean-profit strong {
+  display:block;
+  margin-top:4px;
+  color:#86efac;
+  font-size:24px;
+  font-weight:950;
+}
+.af-clean-foot {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-top:12px;
+  color:#d8c6a1;
+  font-size:13px;
+}
+.af-liquidity-pill {
+  color:#86efac;
+  font-weight:900;
+}
+.af-roi-subtle {
+  opacity:.78;
+  font-weight:700;
+}
+@media (max-width: 1180px) {
+  .af-polished-board { grid-template-columns: repeat(2, minmax(240px, 1fr)) !important; }
+}
+@media (max-width: 760px) {
+  .af-polished-board { grid-template-columns: 1fr !important; }
+}
+
+
+    .view-market-data-btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      min-height:26px;
+      padding:5px 10px;
+      border-radius:999px;
+      border:1px solid rgba(116, 220, 132, .34);
+      background:rgba(18, 48, 25, .74);
+      color:#9df5a8;
+      font-size:12px;
+      font-weight:900;
+      line-height:1;
+      text-decoration:none;
+      cursor:pointer;
+      margin-left:auto;
+      white-space:nowrap;
+    }
+    .view-market-data-btn:hover{
+      border-color:rgba(157,245,168,.82);
+      background:rgba(29, 75, 38, .92);
+      color:#efffee;
+    }
+
 </style>
+  <link rel="stylesheet" href="/assets/autoflip-professional.css" />
 </head>
 <body>
   <aside class="favorites-sidebar" id="favoritesSidebar">
@@ -1879,6 +2368,8 @@ body.premium-skin-arcane .shell-avatar-badge::after {
             <a href="security.html">Security</a>
             <div class="menu-sep"></div>
             <a href="settings.html">Personal Settings</a>
+            <a href="debug.html" id="profileDebugAction" hidden>Debug</a>
+            <div class="menu-sep" id="profileDebugSep" hidden></div>
             <div class="menu-sep"></div>
             <a href="../login.html" id="profileAuthAction" data-login-href="../login.html">Log in</a>
           </div>
@@ -1893,8 +2384,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
       <button class="tab-btn active" data-tab="overviewTab">Overview</button>
       <button class="tab-btn" data-tab="tradingTab">Auto Flip</button>
       <button class="tab-btn" data-tab="marketTab">Market &amp; Stats</button>
-      <button class="tab-btn" data-tab="personalTab">Personal Settings</button>
-      <button class="tab-btn" data-tab="debugTab">Debug</button>
+      
     </div>
 
     <div id="overviewTab" class="tab-panel active overview-shell">
@@ -2301,7 +2791,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
       &lt;/div&gt;
       &lt;div class=&quot;card&quot; style=&quot;border-color: rgba(251,191,36,.3);&quot;&gt;
         &lt;h2 class=&quot;panel-title&quot;&gt;Pro Plugin&lt;/h2&gt;
-        &lt;div class=&quot;price-box&quot;&gt;&lt;div class=&quot;price-main&quot;&gt;$5&lt;/div&gt;&lt;div class=&quot;price-sub&quot;&gt;per month&lt;/div&gt;&lt;/div&gt;
+        &lt;div class=&quot;price-box&quot;&gt;&lt;div class=&quot;price-main&quot;&gt;$4.99&lt;/div&gt;&lt;div class=&quot;price-sub&quot;&gt;per month&lt;/div&gt;&lt;/div&gt;
         &lt;div class=&quot;stack&quot; style=&quot;margin-top:14px;&quot;&gt;
           &lt;div class=&quot;tag lock&quot;&gt;Full 8-slot optimization&lt;/div&gt;
           &lt;div class=&quot;tag lock&quot;&gt;Player-aware planning&lt;/div&gt;
@@ -2645,6 +3135,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
 
     function renderSlots() {
       const root = document.getElementById(&#x27;slotPreview&#x27;);
+      bindMarketDataButtons(root);
       const filled = state.recommendations.slice(0, 3);
       const slots = [];
       for (let i = 0; i &lt; 8; i += 1) {
@@ -2685,91 +3176,80 @@ body.premium-skin-arcane .shell-avatar-badge::after {
     </div>
 
     <div id="tradingTab" class="tab-panel">
-      <div class="row">
-        <div class="card grow">
-          <h2>Optimization Inputs</h2>
-          <div class="settings-helper-grid">
-            <div class="settings-helper-card"><strong>Website role</strong><span>Use these inputs to shape discovery, previews, and trade ranking.</span></div>
-            <div class="settings-helper-card"><strong>Plugin role</strong><span>The same profile powers full optimization, exact quantities, and execution guidance after upgrade.</span></div>
-            <div class="settings-helper-card"><strong>Save once</strong><span>Your budget, time horizon, and risk preferences carry across the product.</span></div>
-          </div>
-          <label for="budget">Budget target (gp)</label>
-          <p class="field-helper">Used for website previews now and plugin deployment logic later.</p>
-          <input id="budget" type="text" placeholder="15k, 1.8m, 25m" />
-          <label for="hoursAway">How long you will be away</label>
-          <p class="field-helper">Longer windows bias toward steadier ideas and slower-turn opportunities.</p>
-          <select id="hoursAway">
-            <option value="0">Under 4</option>
-            <option value="4">4</option><option value="8">8</option><option value="12">12</option><option value="16">16</option>
-            <option value="20">20</option><option value="24">24</option><option value="28">28</option><option value="32">32</option>
-            <option value="36">36</option><option value="40">40</option><option value="44">44</option><option value="48">48</option>
-          </select>
-          <label for="riskPercent">Risk preference</label>
-          <p class="field-helper">Lower values lean safer. Higher values allow more aggressive plugin optimization later.</p>
-          <div class="risk-slider-wrap">
-            <div class="risk-slider-scale">
-              <span>0% Risk</span>
-              <strong id="riskPercentValue">0% risk</strong>
-              <span>100% Risk</span>
-            </div>
-            <input id="riskPercent" class="risk-slider" type="range" min="0" max="100" step="1" value="0" />
-          </div>
-          <div class="row">
-            <button id="saveSettingsBtn">Save Settings</button>
-            <button id="refreshBtn">Refresh</button>
-          </div>
-          <p id="settingsStatus" class="muted">Optimization profile not loaded yet.</p>
-          <p id="status" class="muted">Idle</p>
+      <div class="card af-plan-hero">
+        <div>
+          <div class="af-plan-eyebrow">AutoFlip Planner</div>
+          <h2>Build a clean GE trade grid</h2>
+          <p class="muted">Enter your budget, away time, and risk level. AutoFlip only fills slots with trades that fit your time window.</p>
         </div>
+        <div class="af-plan-actions">
+          <button id="refreshBtn" type="button">Refresh Plan</button>
+          <button id="saveSettingsBtn" type="button">Save Settings</button>
+        </div>
+      </div>
 
-        <div class="card grow">
-          <h2>Profile Summary</h2>
-          <div class="grid">
-            <div><div class="muted">Offers Found</div><div id="offerCount" class="value">0</div></div>
-            <div><div class="muted">Capture Mode</div><div id="captureMode" class="value">-</div></div>
-            <div><div class="muted">Anchor</div><div id="anchorText" class="value">-</div></div>
-            <div><div class="muted">Unused Website Preview Slots</div><div id="remainingSlots" class="value">-</div></div>
-            <div><div class="muted">Preview Budget Allocation</div><div id="perSlotBudget" class="value">-</div></div>
-            <div><div class="muted">Keep / Hold / Replace / Cancel / Completed</div><div id="decisionCounts" class="value">-</div></div>
+      <div class="card">
+        <div class="af-input-grid">
+          <div>
+            <label for="budget">Budget</label>
+            <input id="budget" type="text" placeholder="1.5m, 750k, 10000000" />
+            <div class="af-input-help">Supports k / m / b shorthand.</div>
+          </div>
+          <div>
+            <label for="hoursAway">How long will you be gone?</label>
+            <select id="hoursAway">
+              <option value="4">4 hours</option>
+              <option value="8">8 hours</option>
+              <option value="12">12 hours</option>
+              <option value="16">16 hours</option>
+              <option value="20">20 hours</option>
+              <option value="24">24 hours</option>
+              <option value="48">48 hours</option>
+            </select>
+            <div class="af-input-help">Hard filter: no trade can exceed this window.</div>
+          </div>
+          <div>
+            <label for="riskPercent">Risk level</label>
+            <select id="riskPercent">
+              <option value="0">Safe</option>
+              <option value="45" selected>Balanced</option>
+              <option value="75">Aggressive</option>
+            </select>
+            <div id="riskPercentValue" class="af-input-help">45% risk</div>
           </div>
         </div>
       </div>
 
-      <div class="row">
-        <div class="card grow trade-plan-card">
-          <h2>GE Trade Grid</h2>
-          <div id="tradePlanOverlayBadge" class="trade-plan-overlay-badge">Overlay: Algorithm</div>
-          <p class="muted">GE-style 2x4 workspace. Live detected trades stay in place, while empty slots can show algorithm or AI ghost recommendations depending on the last action you triggered.</p>
-          <div id="tradingTradePlanSlots" class="trade-plan-grid"></div>
-        </div>
-      </div>
-    
-<div class="row"><div class="card grow"><h2>Recommendations Workspace</h2>
-      <div class="row">
-        <div class="card grow">
-          <h2>Recommendation Controls</h2>
-          <div class="row">
-            <div style="min-width:220px;">
-              <label for="itemsPerCategory">Items per Category</label>
-              <input id="itemsPerCategory" type="number" min="1" max="50" value="10" />
-            </div>
-            <div style="display:flex; align-items:flex-end;"><button id="refreshRecommendationsBtn">Refresh Recommendations</button></div>
-          </div>
-          <p id="recommendationsMeta" class="muted">ROI-sorted categories. Changing the item count only re-slices the latest cached recommendation data.</p>
-          <p id="recommendationsContext" class="muted">Context not loaded yet.</p>
-        </div>
+      <div class="af-summary-grid">
+        <div class="af-summary-card"><div class="af-summary-label">Offers found</div><div id="offerCount" class="af-summary-value">0</div></div>
+        <div class="af-summary-card"><div class="af-summary-label">Safe slots</div><div id="remainingSlots" class="af-summary-value">0/8</div></div>
+        <div class="af-summary-card"><div class="af-summary-label">Budget planned</div><div id="perSlotBudget" class="af-summary-value">0</div></div>
+        <div class="af-summary-card"><div class="af-summary-label">Plan status</div><div id="captureMode" class="af-summary-value">Ready</div></div>
       </div>
 
-      <div class="row">
-        <div class="card grow"><h2>High Value / Risky</h2><div id="highValueList"></div></div>
-        <div class="card grow"><h2>Overnight</h2><div id="overnightList"></div></div>
+      <div class="card trade-plan-card">
+        <div class="af-ge-head">
+          <div>
+            <h2>Recommended GE Trade Grid</h2>
+            <p class="muted">4x2 like the Grand Exchange. Empty slots mean AutoFlip did not find a trustworthy fit for your time window.</p>
+          </div>
+          <div id="tradePlanOverlayBadge" class="af-ge-badge">Best balance</div>
+        </div>
+        <div id="tradingTradePlanSlots" class="af-ge-grid"></div>
+        <p id="settingsStatus" class="muted af-plan-tip">Optimization profile not loaded yet.</p>
+        <p id="status" class="muted">Idle</p>
       </div>
-      <div class="row">
-        <div class="card grow"><h2>Anchors</h2><div id="anchorsList"></div></div>
-        <div class="card grow"><h2>Dump Detector</h2><div id="dumpList"></div></div>
-      </div>
-    </div></div>
-</div>
+
+      <input id="itemsPerCategory" type="hidden" value="24" />
+      <div id="recommendationsMeta" hidden></div>
+      <div id="recommendationsContext" hidden></div>
+      <div id="highValueList" hidden></div>
+      <div id="overnightList" hidden></div>
+      <div id="anchorsList" hidden></div>
+      <div id="dumpList" hidden></div>
+      <div id="anchorText" hidden>-</div>
+      <div id="decisionCounts" hidden>-</div>
+    </div>
 
     <div id="marketTab" class="tab-panel">
       <div class="row">
@@ -2828,27 +3308,59 @@ body.premium-skin-arcane .shell-avatar-badge::after {
                 <p id="chartPanelMeta" class="muted">Source: - • Cache freshness: -</p>
               </div>
               <div class="range-wrap">
+
+
+                <button
+                  id="graphHardRefreshBtn"
+                  class="graph-refresh-btn"
+                  type="button"
+                  aria-label="Hard Refresh Graph"
+                >
+                  ↻
+                  <span class="refresh-hover-label">Hard Refresh Graph</span>
+                </button>
+
+                <button
+                  id="graphTrendlineBtn"
+                  class="graph-refresh-btn graph-trendline-btn"
+                  type="button"
+                  aria-label="Toggle Trendline"
+                  aria-pressed="false"
+                  title="Toggle Trendline"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 17L9 12L13 15L20 7"></path>
+                    <path d="M4 20H20"></path>
+                  </svg>
+                  <span class="refresh-hover-label">Trendline</span>
+                </button>
+
                 <button class="range-btn" data-range="day">Day</button>
                 <button class="range-btn" data-range="week">Week</button>
                 <button class="range-btn active" data-range="month">Month</button>
+                <button class="range-btn" data-range="3month">3M</button>
+                <button class="range-btn" data-range="year">Year</button>
               </div>
             </div>
+            <div id="smartMarketStrip" class="smart-market-strip" aria-live="polite"></div>
+            <div id="smartInsightRow" class="smart-insight-row"></div>
             <div class="chart-wrap">
-              <svg id="historyChartSvg" class="chart-frame" viewBox="0 0 1720 860" preserveAspectRatio="none" aria-label="Market history chart"></svg>
+              <svg id="historyChartSvg" class="chart-frame" viewBox="0 0 2400 940" preserveAspectRatio="none" aria-label="Market history chart"></svg>
               <div id="chartTooltip" class="chart-tooltip" aria-hidden="true"></div>
             </div>
+            <div id="smartActionPanel" class="smart-action-panel"></div>
             <div class="chart-legend">
               <span><span class="legend-swatch" style="background:#74aedd;"></span>Buying low</span>
               <span><span class="legend-swatch" style="background:#fbbf24;"></span>Selling high</span>
               <span><span class="legend-bar" style="background:rgba(148,163,184,0.65);"></span>5m volume</span>
             </div>
-            <p class="muted chart-footnote">Day now prefers detected trade-event timing plus 5-minute snapshot anchors for a more active intraday feel. Week and Month stay on the cleaner snapshot view. Older data is still compacted once it moves past a week old.</p>
+            <p class="muted chart-footnote">Smart chart shows the real spread band, spike pressure, volume context, and a simple action read. It stays cache-first: no heavy raw-history rebuilds on page load.</p>
             <div class="chart-shell-note">Use this tab for discovery and validation. Exact deployment stays intentionally out of the website.</div>
           </div>
         </div>
       </div>
     </div>
-<div id="personalTab" class="tab-panel">
+<div id="personalTab" class="tab-panel" hidden aria-hidden="true" style="display:none !important;">
       <div class="row">
         <div class="card grow">
           <h2>Personal Settings</h2>
@@ -3042,6 +3554,70 @@ body.premium-skin-arcane .shell-avatar-badge::after {
 
   </div>
 
+
+  <footer class="af-footer-shell" aria-label="AutoFlip site footer">
+    <div class="af-footer-inner">
+      <div class="af-footer-main">
+        <section class="af-footer-col">
+          <div class="af-footer-brand-logo">
+            <img src="/assets/autoflip-brand/AppIcon_Favicon1.png" alt="AutoFlip logo" />
+            <div class="af-footer-brand-name">AutoFlip.gg</div>
+          </div>
+          <p class="af-footer-kicker">Smarter Grand Exchange flips. Less guessing. More confidence.</p>
+          <p class="af-footer-copy">AutoFlip helps OSRS players make better Grand Exchange decisions with AI-powered guidance, real-time market context, and a player-controlled workflow.</p>
+        </section>
+        <nav class="af-footer-col" aria-label="Product links">
+          <h3>Product</h3>
+          <div class="af-footer-links">
+            <a href="/app/#market-stats">Market Explorer</a>
+            <a href="/app/index.html#ai">AI Advisor</a>
+            <a href="/app/favorites.html">Favorites</a>
+            <a href="/pro.html">Plugin</a>
+            <a href="/pro.html#pricing">Pricing</a>
+            <a href="/app/index.html">Dashboard</a>
+          </div>
+        </nav>
+        <nav class="af-footer-col" aria-label="Resource links">
+          <h3>Resources</h3>
+          <div class="af-footer-links">
+            <a href="/faq.html">FAQ</a>
+            <a href="/mission.html">Mission</a>
+            <a href="/contact.html">Contact Support</a>
+            <a href="/faq.html#data-accuracy">Data & Accuracy</a>
+            <a href="/faq.html#safety-rules">Safety Rules</a>
+            <a href="/faq.html#terms-template">Terms / Privacy Template</a>
+          </div>
+        </nav>
+        <section class="af-footer-col af-footer-contact">
+          <h3>Contact & Community</h3>
+          <div class="af-contact-line">
+            <div class="af-contact-icon-img" aria-hidden="true">✉</div>
+            <div><strong>Email us</strong><a href="/contact.html">OsrsCompanionService@gmail.com</a></div>
+          </div>
+          <div class="af-contact-line">
+            <div class="af-contact-icon-img" aria-hidden="true">☎</div>
+            <div><strong>Call customer support</strong><a href="/contact.html">1-(503)-501-7554</a></div>
+          </div>
+          <a class="af-discord-card" href="/contact.html#discord" aria-label="Join our Discord community">
+            <img src="/assets/autoflip-brand/autoflip-community-blue.svg" alt="AutoFlip blue community logo" />
+            <span><strong>Join our Discord</strong><span>Get help, share flips, and stay up to date.</span></span>
+          </a>
+        </section>
+      </div>
+      <div class="af-footer-trust-row" aria-label="AutoFlip trust badges">
+        <div class="af-trust-badge"><img src="/assets/autoflip-brand/guided-not-automated.png" alt="Guided, not automated" /></div>
+        <div class="af-trust-badge"><img src="/assets/autoflip-brand/powered-by-osrs-wiki.png" alt="Powered by OSRS Wiki" /></div>
+        <div class="af-trust-badge"><img src="/assets/autoflip-brand/updates-every-5-min.png" alt="Updates every five minutes" /></div>
+        <div class="af-trust-badge"><img src="/assets/autoflip-brand/support-we-are-here-to-help.png" alt="Support, we are here to help" /></div>
+      </div>
+      <div class="af-footer-bottom">
+        <span>© 2026 AutoFlip.gg <b>|</b> Built for OSRS traders <b>|</b> No automation. No botting. No auto-clicking.</span>
+        <span><a href="/faq.html">FAQ</a> · <a href="/contact.html">Contact</a> · <a href="/mission.html">Mission</a></span>
+      </div>
+    </div>
+  </footer>
+
+
   <script>
     const resolveApiBase = () => {
       const candidates = [
@@ -3141,6 +3717,68 @@ body.premium-skin-arcane .shell-avatar-badge::after {
     const clearMarketGraphDebugBtn = document.getElementById("clearMarketGraphDebugBtn");
     const dumpGraphDataDebugBtn = document.getElementById("dumpGraphDataDebugBtn");
     const copyGraphDataDebugBtn = document.getElementById("copyGraphDataDebugBtn");
+
+    
+    const graphHardRefreshBtn = document.getElementById("graphHardRefreshBtn");
+    const graphTrendlineBtn = document.getElementById("graphTrendlineBtn");
+
+    let graphTrendlineEnabled =
+      localStorage.getItem("autoflipGraphTrendline") === "1";
+
+    function updateTrendlineButtonState() {
+      if (!graphTrendlineBtn) return;
+
+      graphTrendlineBtn.classList.toggle(
+        "active",
+        graphTrendlineEnabled
+      );
+
+      graphTrendlineBtn.setAttribute(
+        "aria-pressed",
+        graphTrendlineEnabled ? "true" : "false"
+      );
+    }
+
+    updateTrendlineButtonState();
+
+
+    const hardRefreshCurrentGraph = async () => {
+      if (!latestSelectedItemId) return;
+
+      const activeRange = document.querySelector(".range-btn.active")?.dataset.range || "month";
+      const cacheKey = getHistoryCacheKey(latestSelectedItemId, activeRange);
+
+      try {
+        graphHardRefreshBtn?.classList.add("refreshing");
+
+        marketHistoryPayloadCache.delete(cacheKey);
+
+        if (typeof marketValidHistoryPayloadByKey !== "undefined") {
+          marketValidHistoryPayloadByKey.delete(cacheKey);
+        }
+
+        try {
+          localStorage.removeItem(`market_history_payload_${cacheKey}`);
+        } catch {}
+
+        pushDebugEvent(marketGraphDebugState, "manual_graph_hard_refresh", {
+          item_id: Number(latestSelectedItemId || 0) || null,
+          range: activeRange,
+          cache_key: cacheKey,
+          refreshed_at: new Date().toISOString(),
+        });
+
+        renderMarketGraphDebug();
+
+        await selectMarketItem(latestSelectedItemId);
+
+      } finally {
+        setTimeout(() => {
+          graphHardRefreshBtn?.classList.remove("refreshing");
+        }, 350);
+      }
+    };
+
     const clearGraphDataDebugBtn = document.getElementById("clearGraphDataDebugBtn");
     const dumpTradePlanDebugBtn = document.getElementById("dumpTradePlanDebugBtn");
     const copyTradePlanDebugBtn = document.getElementById("copyTradePlanDebugBtn");
@@ -3187,6 +3825,9 @@ body.premium-skin-arcane .shell-avatar-badge::after {
     const chartPanelSubtitleEl = document.getElementById("chartPanelSubtitle");
     const chartPanelMetaEl = document.getElementById("chartPanelMeta");
     const historyChartSvgEl = document.getElementById("historyChartSvg");
+    const smartMarketStripEl = document.getElementById("smartMarketStrip");
+    const smartInsightRowEl = document.getElementById("smartInsightRow");
+    const smartActionPanelEl = document.getElementById("smartActionPanel");
     const chartTooltipEl = document.getElementById("chartTooltip");
     const chartWrapEl = document.querySelector(".chart-wrap");
     const itemsPerCategoryEl = document.getElementById("itemsPerCategory");
@@ -3210,6 +3851,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
     let latestExplorerItems = [];
     let latestSelectedItemId = null;
     let latestSelectedItem = null;
+    let marketChartResizeTimer = null;
     let marketSuggestionItems = [];
     let activeSuggestionIndex = -1;
     let latestExplorerPage = 1;
@@ -3354,7 +3996,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
     function normalizeRecommendationForAllocation(item, category = "auto") {
       if (!item) return null;
       const buyPrice = Number(item.buy_price || 0);
-      const buyLimit = Math.max(1, Number(item.buy_limit || item.suggested_quantity || 0));
+      const buyLimit = Math.max(1, Number(item.buy_limit || item.liquidity_safe_quantity || item.suggested_quantity || 0));
       const profitPerItem = Number(item.profit_per_item || 0);
       return {
         ...item,
@@ -3435,7 +4077,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
         const cycleQtyCap = buyLimit * cycleCount;
 
         if (item.is_live_trade || item.sticky_applied) {
-          quantity = Math.max(1, Number(item.allocated_quantity || item.suggested_quantity || 0));
+          quantity = Math.max(1, Number(item.allocated_quantity || item.liquidity_safe_quantity || item.suggested_quantity || 0));
           allocatedCost = quantity * buyPrice;
           expectedProfit = quantity * Number(item.profit_per_item || 0);
 
@@ -3606,6 +4248,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
           recent_volume: Number(market.volume_1h || market.recent_volume || 0),
           roi_pct: listedPrice > 0 ? ((Math.max(0, marketSell - listedPrice)) / listedPrice) * 100 : 0,
           buy_limit: buyLimit,
+          liquidity_safe_quantity: quantity,
           suggested_quantity: quantity,
           allocated_quantity: quantity,
           allocated_cost: quantity * (listedPrice || marketBuy || 0),
@@ -3644,9 +4287,22 @@ body.premium-skin-arcane .shell-avatar-badge::after {
     }
 
     function switchTab(tabId) {
+      if (tabId === "personalTab") tabId = "tradingTab";
       sessionStorage.setItem(ACTIVE_TAB_STORAGE_KEY, tabId);
       document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.tab === tabId));
-      document.querySelectorAll(".tab-panel").forEach(panel => panel.classList.toggle("active", panel.id === tabId));
+      document.querySelectorAll(".tab-panel").forEach(panel => {
+        const isActive = panel.id === tabId;
+        panel.classList.toggle("active", isActive);
+        if (panel.id === "personalTab") {
+          panel.hidden = true;
+          panel.setAttribute("aria-hidden", "true");
+          panel.style.display = "none";
+        } else {
+          panel.hidden = false;
+          panel.removeAttribute("aria-hidden");
+          panel.style.display = "";
+        }
+      });
       if (tabId === "recommendationsTab") runAutoRecommendations();
       if (tabId === "marketTab" && !latestExplorerHasActiveSearch) {
         clearMarketExplorerResults(true);
@@ -3660,9 +4316,10 @@ body.premium-skin-arcane .shell-avatar-badge::after {
     function restoreActiveTab() {
       const savedTab = sessionStorage.getItem(ACTIVE_TAB_STORAGE_KEY);
       const fallbackTab = "tradingTab";
+      const normalizedSavedTab = savedTab === "personalTab" ? fallbackTab : savedTab;
       const validTab =
-      savedTab && document.getElementById(savedTab)
-      ? savedTab
+      normalizedSavedTab && document.getElementById(normalizedSavedTab)
+      ? normalizedSavedTab
       : fallbackTab;
 
       switchTab(validTab);
@@ -3747,7 +4404,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
           currentName: name,
           recommendationName: nextTrade.name || "Next trade",
           statusText: `Completed slot • next trade queued`,
-          quantityText: formatCoins(nextTrade.allocated_quantity || nextTrade.buy_limit || nextTrade.suggested_quantity || 0),
+          quantityText: formatCoins(nextTrade.allocated_quantity || nextTrade.liquidity_safe_quantity || nextTrade.buy_limit || nextTrade.suggested_quantity || 0),
           listedText: formatCoins(nextTrade.buy_price || 0),
           targetValue: formatCoins(nextTrade.sell_price || 0),
           decisionText: "REPLACE",
@@ -3771,6 +4428,20 @@ body.premium-skin-arcane .shell-avatar-badge::after {
         comment: `This slot completed its previous trade (${name}) and is ready for the next recommendation once one fits your current board plan.`,
         itemId: offer?.item_id ?? offer?.id ?? market?.id ?? null,
       };
+    }
+
+
+    const ITEM_ICON_PLACEHOLDER_URL = "/static/item_icons/placeholder.png";
+
+    function itemIconUrl(item) {
+      const rawId = item?.item_id ?? item?.id ?? item?.itemId ?? item?.itemID;
+      const id = Number(rawId || 0);
+      return id > 0 ? `/static/item_icons/${encodeURIComponent(String(id))}.png` : ITEM_ICON_PLACEHOLDER_URL;
+    }
+
+    function itemIconHtml(item, extraClass = "") {
+      const classes = ["item-icon", extraClass].filter(Boolean).join(" ");
+      return `<img class="${escapeHtml(classes)}" src="${escapeHtml(itemIconUrl(item))}" alt="" loading="lazy" onerror="this.onerror=null;this.src='${ITEM_ICON_PLACEHOLDER_URL}'">`;
     }
 
     function getDisplayDecision(offer) {
@@ -3801,8 +4472,13 @@ body.premium-skin-arcane .shell-avatar-badge::after {
           slot.innerHTML += `
             <div class="slot-favorite">${favoriteButtonHtml({ id: offer.item_id ?? null, name: offer.item_name || "Unknown" })}</div>
             ${decision ? `<div class="slot-decision ${decision}">${decision.toUpperCase()}</div>` : ""}
-            <div class="slot-head">${offer.item_name || "Unknown"}</div>
-            <div class="slot-state">${offer.status_text || offer.state || "-"}</div>
+            <div class="item-title-row">
+              ${itemIconHtml(offer)}
+              <div class="item-title-text">
+                <div class="slot-head">${escapeHtml(offer.item_name || "Unknown")}</div>
+                <div class="slot-state">${escapeHtml(offer.status_text || offer.state || "-")}</div>
+              </div>
+            </div>
             <div class="slot-meta">Qty: ${offer.quantity_text || "-"}</div>
             <div class="slot-price">Listed: ${offer.coin_text || "-"}</div>
             <div class="slot-rec">Rec Buy: ${market.market_buy_price ? formatCoins(market.market_buy_price) : "-"}</div>
@@ -3936,7 +4612,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
     }
 
     function buildMarketHistoryCacheSnapshot(itemId) {
-      const ranges = ["day", "week", "month"];
+      const ranges = ["day", "week", "month", "3month", "year"];
       return ranges.map((range) => {
         const key = getHistoryCacheKey(itemId, range);
         const payload = marketHistoryPayloadCache.get(key);
@@ -4361,10 +5037,13 @@ body.premium-skin-arcane .shell-avatar-badge::after {
       return `
         <div class="trade-plan-slot" data-trade-board="${boardId}" data-trade-slot="${slotIndex}">
           <div class="trade-plan-slot-head">
-            <div class="trade-plan-slot-left">
-              <div class="slot-index">Slot ${slotIndex + 1}</div>
-              <div class="slot-head">${escapeHtml(selectedItem?.name || "Assigned item")}</div>
-              <div class="slot-state">Applied suggestion</div>
+            <div class="trade-plan-slot-left item-title-row">
+              ${itemIconHtml(selectedItem)}
+              <div class="item-title-text">
+                <div class="slot-index">Slot ${slotIndex + 1}</div>
+                <div class="slot-head">${escapeHtml(selectedItem?.name || "Assigned item")}</div>
+                <div class="slot-state">Applied suggestion</div>
+              </div>
             </div>
             <div class="trade-plan-slot-right">
               ${slotPurposeSelectHtml(boardId, slotIndex)}
@@ -4382,7 +5061,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
             </div>
             <div class="trade-plan-meta-card">
               <div class="trade-plan-meta-label">Qty / Limit</div>
-              <div class="trade-plan-meta-value">${formatCoins(selectedItem?.allocated_quantity || selectedItem?.buy_limit || selectedItem?.suggested_quantity || 0)}</div>
+              <div class="trade-plan-meta-value">${formatCoins(selectedItem?.allocated_quantity || selectedItem?.liquidity_safe_quantity || selectedItem?.buy_limit || selectedItem?.suggested_quantity || 0)}</div>
             </div>
             <div class="trade-plan-meta-card">
               <div class="trade-plan-meta-label">${boardId === "ai" ? "AI Edit" : "Target Sell"}</div>
@@ -4644,7 +5323,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
             status_text: "Applied suggestion",
             state: "applied",
             coin_text: formatCoins(appliedTrade.buy_price),
-            quantity_text: formatCoins(appliedTrade.buy_limit || appliedTrade.suggested_quantity || 0),
+            quantity_text: formatCoins(appliedTrade.allocated_quantity || appliedTrade.liquidity_safe_quantity || appliedTrade.buy_limit || appliedTrade.suggested_quantity || 0),
             item_id: appliedTrade.id ?? null,
           };
           isAppliedTrade = true;
@@ -4689,10 +5368,13 @@ body.premium-skin-arcane .shell-avatar-badge::after {
                 </div>
               ` : ``}
               <div class="trade-plan-slot-title-row">
-                <div class="trade-plan-slot-left">
-                  <div class="slot-index">Slot ${i + 1}</div>
-                  <div class="slot-head">${displayOffer ? escapeHtml(displayOffer.item_name || "Unknown") : "Empty slot"}</div>
-                  <div class="slot-state ${completedFlow ? "completed-flow" : ""}">${displayOffer ? escapeHtml(displayOffer.status_text || displayOffer.state || "-") : (slotCleared ? "Cleared from this plan" : "Waiting for assignment")}</div>
+                <div class="trade-plan-slot-left item-title-row">
+                  ${displayOffer ? itemIconHtml(displayOffer) : (ghost ? itemIconHtml(ghost) : "")}
+                  <div class="item-title-text">
+                    <div class="slot-index">Slot ${i + 1}</div>
+                    <div class="slot-head">${displayOffer ? escapeHtml(displayOffer.item_name || "Unknown") : "Empty slot"}</div>
+                    <div class="slot-state ${completedFlow ? "completed-flow" : ""}">${displayOffer ? escapeHtml(displayOffer.status_text || displayOffer.state || "-") : (slotCleared ? "Cleared from this plan" : "Waiting for assignment")}</div>
+                  </div>
                 </div>
                 <div class="trade-plan-slot-right">
                   ${displayOffer ? `${favoriteButtonHtml({ id: displayOffer.item_id ?? null, name: displayOffer.item_name || "Unknown" })}` : ""}
@@ -4712,7 +5394,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
               </div>
               <div class="trade-plan-meta-card">
                 <div class="trade-plan-meta-label">Qty / Limit</div>
-                <div class="trade-plan-meta-value">${displayOffer ? escapeHtml(displayOffer.quantity_text || "-") : (ghost ? formatCoins(ghost.allocated_quantity || ghost.buy_limit || ghost.suggested_quantity || 0) : "-")}</div>
+                <div class="trade-plan-meta-value">${displayOffer ? escapeHtml(displayOffer.quantity_text || "-") : (ghost ? formatCoins(ghost.allocated_quantity || ghost.liquidity_safe_quantity || ghost.buy_limit || ghost.suggested_quantity || 0) : "-")}</div>
               </div>
               <div class="trade-plan-meta-card">
                 <div class="trade-plan-meta-label">${completedFlow ? (completedFlow.mode === "redeploy_next" ? "Next Target" : "Target Sell") : (displayOffer?.state === "extend" ? "Add Qty" : (planBoardId === "ai" ? "AI Edit" : "Target Sell"))}</div>
@@ -4729,8 +5411,8 @@ body.premium-skin-arcane .shell-avatar-badge::after {
             ${!displayOffer && ghost && !slotCleared ? `
               <div class="trade-plan-ghost">
                 <div class="trade-plan-ghost-title">${planBoardId === "ai" ? "AI Ghost Trade" : "Ghost Trade"}</div>
-                <div><strong>${escapeHtml(ghost.name || "Unknown")}</strong></div>
-                <div class="muted" style="padding-right:56px; padding-bottom:6px;">Buy ${formatCoins(ghost.buy_price)} • Sell ${formatCoins(ghost.sell_price)} • Qty ${formatCoins(ghost.allocated_quantity || ghost.buy_limit || 0)} • ROI ${(Number(ghost.roi_pct || 0)).toFixed(2)}%</div>
+                <div class="item-title-row">${itemIconHtml(ghost, "small")}<strong>${escapeHtml(ghost.name || "Unknown")}</strong></div>
+                <div class="muted" style="padding-right:56px; padding-bottom:6px;">Buy ${formatCoins(ghost.buy_price)} • Sell ${formatCoins(ghost.sell_price)} • Qty ${formatCoins(ghost.allocated_quantity || ghost.liquidity_safe_quantity || ghost.buy_limit || 0)} • ROI ${(Number(ghost.roi_pct || 0)).toFixed(2)}%</div>
                 <button
                   class="ghost-swap-btn"
                   type="button"
@@ -4906,8 +5588,10 @@ body.premium-skin-arcane .shell-avatar-badge::after {
     }
 
     function setExplorerSelectionState(hasSelection) {
-      marketDetailShellEl.classList.toggle("hidden", !Boolean(hasSelection));
-      marketChartShellEl.classList.toggle("hidden", !Boolean(hasSelection));
+      const selected = Boolean(hasSelection);
+      marketDetailShellEl.classList.toggle("hidden", !selected);
+      marketChartShellEl.classList.toggle("hidden", !selected);
+      document.body.classList.toggle("market-chart-expanded", selected);
     }
 
     function setMarketResultsVisible(isVisible) {
@@ -5078,7 +5762,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
       if (!(itemId > 0)) return;
       await hydrateMarketDetailStats(item, activeRange, activeHistoryData);
       const selectedSnapshot = Number(latestSelectedItemId) === itemId ? (latestSelectedItem || item) : item;
-      const rangesToWarm = ["day", "week", "month"].filter((rangeName) => {
+      const rangesToWarm = ["day", "week", "month", "3month", "year"].filter((rangeName) => {
         if (rangeName === activeRange && activeHistoryData) return false;
         if (hasRangeSummary(selectedSnapshot, rangeName)) return false;
         const cachedPayload = getStoredHistoryPayload(itemId, rangeName);
@@ -5116,7 +5800,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
     async function warmMissingMarketHistoryPayloads(item, activeRange, activeHistoryData = null) {
       const itemId = Number(item?.id || 0);
       if (!(itemId > 0)) return;
-      const rangesToWarm = ["day", "week", "month"].filter((rangeName) => {
+      const rangesToWarm = ["day", "week", "month", "3month", "year"].filter((rangeName) => {
         if (rangeName === activeRange && activeHistoryData && hasRealHistoryPayload(activeHistoryData)) return false;
         const cachedPayload = getStoredHistoryPayload(itemId, rangeName);
         if (cachedPayload && hasRealHistoryPayload(cachedPayload)) return false;
@@ -5161,7 +5845,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
         drawHistoryChart([], "month", null);
         return;
       }
-      marketDetailTitleEl.innerHTML = `<span>${escapeHtml(item.name)}</span> ${favoriteButtonHtml({ id: item.id, name: item.name })}`;
+      marketDetailTitleEl.innerHTML = `<span class="item-title-row">${itemIconHtml(item)}<span>${escapeHtml(item.name)}</span></span> ${favoriteButtonHtml({ id: item.id, name: item.name })}`;
       chartPanelTitleEl.textContent = `${item.name} Market History`;
       chartPanelSubtitleEl.textContent = `Buy ${formatCoins(item.buy_price)} • Sell ${formatCoins(item.sell_price)} • ROI ${(Number(item.roi_pct || 0)).toFixed(2)}% • 5m Volume ${formatCoins(item.recent_volume)}`;
       const normalizedName = normalizeName(item?.name || "");
@@ -5195,6 +5879,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
       if (Number.isNaN(date.getTime())) return "-";
       if (range === "day") return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
       if (range === "week") return date.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
+      if (range === "year") return date.toLocaleDateString([], { month: "short", year: "2-digit" });
       return date.toLocaleDateString([], { month: "short", day: "numeric" });
     }
 
@@ -5203,6 +5888,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
       if (Number.isNaN(date.getTime())) return "-";
       if (range === "day") return date.toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
       if (range === "week") return date.toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+      if (range === "year") return date.toLocaleString([], { month: "short", day: "numeric", year: "numeric" });
       return date.toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
     }
 
@@ -5245,7 +5931,7 @@ body.premium-skin-arcane .shell-avatar-badge::after {
       const rawCount = Number(data.raw_point_count || 0);
       const compactNote = range === "day"
         ? (data.contains_trade_events ? "day view uses trade events + 5m anchors" : "day view fell back to 5m anchors")
-        : (range === "week" ? "week view stays on cleaner 5m snapshots" : "month view uses compacted older history + recent raw snapshots");
+        : (range === "week" ? "week view stays on cleaner 5m snapshots" : (range === "3month" ? "3M view uses compressed daily history" : (range === "year" ? "year view uses compressed weekly history" : "month view uses compacted older history + recent raw snapshots")));
       chartPanelMetaEl.textContent = `Source: ${source} • Cache freshness: ${freshness} • Snapshot bucket: ${bucket} • ${refreshState} • Plotted: ${plottedPoints} / Raw: ${rawCount} • ${compactNote}`;
     }
 
@@ -5552,24 +6238,44 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
     }
 
     function getTargetPointCount(range) {
+      if (range === "3month") return 93;
+      if (range === "year") return 53;
       return 288;
     }
 
     function getPointTimeMs(point, fallbackIndex = 0) {
       const raw = point?.snapshot_ts || point?.ts || point?.timestamp || point?.bucket;
       const date = new Date(raw);
-      if (Number.isNaN(date.getTime())) return fallbackIndex;
+      if (Number.isNaN(date.getTime())) return Number.NaN;
       return date.getTime();
     }
 
     function getRangeWindowMs(range) {
       if (range === "day") return 24 * 60 * 60 * 1000;
       if (range === "week") return 7 * 24 * 60 * 60 * 1000;
+      if (range === "3month") return 93 * 24 * 60 * 60 * 1000;
+      if (range === "year") return 365 * 24 * 60 * 60 * 1000;
       return 30 * 24 * 60 * 60 * 1000;
+    }
+
+    function getMaxChartLineGapMs(range) {
+      if (range === "day") return 18 * 60 * 1000;
+      if (range === "week") return 4 * 60 * 60 * 1000;
+      if (range === "month") return 36 * 60 * 60 * 1000;
+      if (range === "3month") return 4 * 24 * 60 * 60 * 1000;
+      if (range === "year") return 21 * 24 * 60 * 60 * 1000;
+      return 36 * 60 * 60 * 1000;
     }
 
     function normalizeHistoryPoints(points, range) {
       const clean = Array.isArray(points) ? points.filter(Boolean) : [];
+      if (range === "day") {
+        return clean.map(point => ({
+          ...point,
+          bucket_size: Number(point?.bucket_size || 1),
+          is_compacted: Boolean(point?.is_compacted || point?.compacted || Number(point?.bucket_size || 1) > 1),
+        }));
+      }
       const target = getTargetPointCount(range);
       if (clean.length <= target) {
         return clean.map(point => ({
@@ -5604,8 +6310,11 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
           ...anchor,
           low: Math.min(...lows),
           high: Math.max(...highs),
-          volume: Math.round(average(volumes)),
-          recent_volume: Math.round(average(volumes)),
+          // Volume must represent TOTAL activity inside the bucket,
+          // not average activity. Averaging destroys temporal semantics
+          // and causes misleading tiny bars on historical ranges.
+          volume: Math.round(volumes.reduce((a, b) => a + b, 0)),
+          recent_volume: Math.round(volumes.reduce((a, b) => a + b, 0)),
           is_gap: false,
           bucket_size: slice.length,
           is_compacted: slice.length > 1 || nonGapSlice.length > 1,
@@ -5614,18 +6323,38 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
       return out;
     }
 
-    function buildPolylineSegments(points, xForIndex, yForValue, accessor) {
+    function buildPolylineSegments(points, xForIndex, yForValue, accessor, pointTimes = [], range = "month") {
       const segments = [];
+      const maxGapMs = getMaxChartLineGapMs(range);
       let current = [];
+      let previousRenderableTime = null;
+
+
       points.forEach((point, i) => {
         const value = Number(accessor(point));
+        const pointTime = Number(pointTimes[i]);
+
         if (!isRenderablePoint(point) || !isRenderablePrice(value)) {
           if (current.length) segments.push(current.join(" "));
           current = [];
+          previousRenderableTime = null;
           return;
         }
+
+        if (
+          current.length &&
+          Number.isFinite(pointTime) &&
+          Number.isFinite(previousRenderableTime) &&
+          pointTime - previousRenderableTime > maxGapMs
+        ) {
+          segments.push(current.join(" "));
+          current = [];
+        }
+
         current.push(`${xForIndex(i).toFixed(2)},${yForValue(value).toFixed(2)}`);
+        if (Number.isFinite(pointTime)) previousRenderableTime = pointTime;
       });
+
       if (current.length) segments.push(current.join(" "));
       return segments;
     }
@@ -5659,10 +6388,18 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
       if (!isRenderablePoint(point)) return false;
       if (index === lastRealIndex) return true;
       if (String(point?.point_mode || "").toLowerCase() === "trade_event") return true;
-      const sourceHint = `${point?.source || ""} ${point?.point_source || ""} ${point?.point_mode || ""}`.toLowerCase();
-      const isCompacted = Boolean(point?.is_compacted || point?.compacted || Number(point?.bucket_size || 1) > 1 || sourceHint.includes("compact"));
-      if (!isCompacted) return true;
-      return false;
+
+      // Professional simple rule:
+      // Show every real point when the chart is already sparse.
+      // Thin only dense month/week/day raw clusters so the right side does not turn into a blob.
+      const totalPoints = Number(window.__lastHistoryPointCount || 0);
+      if (range === "3month" || range === "year") return true;
+      if (totalPoints <= 140) return true;
+
+      if (range === "month") return index % 3 === 0;
+      if (range === "week") return index % 2 === 0;
+
+      return true;
     }
 
     function renderHistoryLoadingPlaceholder(item, range = "month", message = "Loading history…") {
@@ -5673,31 +6410,140 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
       historyChartSvgEl.innerHTML = `<rect x="0" y="0" width="${width}" height="${height}" fill="#170e08" rx="16"></rect><text x="${width/2}" y="${height/2 - 16}" fill="#f3d49a" text-anchor="middle" font-size="28" font-family="Arial">${escapeHtml(item?.name || "Selected item")}</text><text x="${width/2}" y="${height/2 + 24}" fill="#d7b06a" text-anchor="middle" font-size="22" font-family="Arial">${escapeHtml(message)}</text>`;
     }
 
+    function getLatestRenderablePoint(points) {
+      for (let i = points.length - 1; i >= 0; i -= 1) {
+        if (isRenderablePoint(points[i])) return points[i];
+      }
+      return null;
+    }
+
+    function safePercent(value, fallback = "0.00") {
+      const num = Number(value || 0);
+      if (!Number.isFinite(num)) return fallback;
+      return num.toFixed(2);
+    }
+
+    function assessSmartMarket(item, points) {
+      const priced = (points || []).filter(p => isRenderablePoint(p));
+      const latest = getLatestRenderablePoint(priced);
+      if (!item && !latest) return null;
+      const latestLow = Number(latest?.low || item?.buy_price || 0);
+      const latestHigh = Number(latest?.high || item?.sell_price || 0);
+      const spread = Math.max(0, latestHigh - latestLow);
+      const roi = latestLow > 0 ? (spread / latestLow) * 100 : Number(item?.roi_pct || 0);
+      const volumes = priced.map(p => Number(p.volume ?? p.recent_volume ?? 0)).filter(v => Number.isFinite(v) && v >= 0);
+      const avgVolume = volumes.length ? average(volumes) : Number(item?.recent_volume || 0);
+      const maxVolume = volumes.length ? Math.max(...volumes) : avgVolume;
+      const recentVolume = Number(latest?.volume ?? latest?.recent_volume ?? item?.recent_volume ?? 0);
+      const lows = priced.map(p => Number(p.low)).filter(Number.isFinite);
+      const highs = priced.map(p => Number(p.high)).filter(Number.isFinite);
+      const minPrice = lows.length ? Math.min(...lows) : latestLow;
+      const maxPrice = highs.length ? Math.max(...highs) : latestHigh;
+      const rangePct = minPrice > 0 ? ((maxPrice - minPrice) / minPrice) * 100 : 0;
+      const spikeCount = priced.reduce((count, point, index) => {
+        if (index === 0) return count;
+        const prev = priced[index - 1];
+        const prevMid = (Number(prev.low) + Number(prev.high)) / 2;
+        const mid = (Number(point.low) + Number(point.high)) / 2;
+        if (!Number.isFinite(prevMid) || prevMid <= 0 || !Number.isFinite(mid)) return count;
+        return count + (Math.abs(mid - prevMid) / prevMid > 0.045 ? 1 : 0);
+      }, 0);
+      const volumeBand = recentVolume >= avgVolume * 1.35 ? "High" : (recentVolume >= avgVolume * 0.75 ? "Healthy" : "Light");
+      const stability = rangePct <= 4 && spikeCount <= 1 ? "Stable" : (rangePct <= 9 && spikeCount <= 3 ? "Watch" : "Risky");
+      const spreadBand = roi >= 1.2 ? "Healthy" : (roi >= 0.45 ? "Thin" : "Weak");
+      let quality = "WATCH";
+      if (spreadBand === "Healthy" && volumeBand !== "Light" && stability !== "Risky") quality = "GOOD";
+      if (spreadBand === "Weak" || stability === "Risky" || volumeBand === "Light") quality = "RISK";
+      const action = quality === "GOOD" ? "BUY" : (quality === "WATCH" ? "WAIT" : "AVOID");
+      const reason = quality === "GOOD"
+        ? "Healthy spread with enough volume to make the chart actionable."
+        : (quality === "WATCH" ? "The setup is usable, but one signal needs confirmation before acting." : "The chart is too unstable or too thin to trust right now.");
+      return { latestLow, latestHigh, spread, roi, avgVolume, recentVolume, maxVolume, minPrice, maxPrice, rangePct, spikeCount, volumeBand, stability, spreadBand, quality, action, reason };
+    }
+
+    function renderSmartMarketSummary(item, points, range) {
+      const signal = assessSmartMarket(item, points || []);
+      if (!signal) {
+        if (smartMarketStripEl) smartMarketStripEl.innerHTML = "";
+        if (smartInsightRowEl) smartInsightRowEl.innerHTML = "";
+        if (smartActionPanelEl) smartActionPanelEl.innerHTML = "";
+        return;
+      }
+      const tone = signal.quality === "GOOD" ? "good" : (signal.quality === "WATCH" ? "watch" : "risk");
+      const stabilityTone = signal.stability === "Stable" ? "good" : (signal.stability === "Watch" ? "watch" : "risk");
+      if (smartMarketStripEl) {
+        smartMarketStripEl.innerHTML = `
+          <div class="smart-market-pill"><div class="k">Buy Price</div><div class="v">${formatCoins(signal.latestLow)} gp</div><div class="s">Current buying low</div></div>
+          <div class="smart-market-pill"><div class="k">Sell Price</div><div class="v">${formatCoins(signal.latestHigh)} gp</div><div class="s">Current selling high</div></div>
+          <div class="smart-market-pill ${tone}"><div class="k">Flip Quality</div><div class="v">${signal.quality}</div><div class="s">${signal.spreadBand} spread</div></div>
+          <div class="smart-market-pill"><div class="k">Spread</div><div class="v">${formatCoins(signal.spread)} gp</div><div class="s">ROI ${safePercent(signal.roi)}%</div></div>
+          <div class="smart-market-pill ${stabilityTone}"><div class="k">Stability</div><div class="v">${signal.stability}</div><div class="s">Range ${safePercent(signal.rangePct)}%</div></div>
+          <div class="smart-market-pill"><div class="k">Volume</div><div class="v">${formatShortNumber(signal.recentVolume)}</div><div class="s">${signal.volumeBand} recent activity</div></div>
+        `;
+      }
+      if (smartInsightRowEl) {
+        smartInsightRowEl.innerHTML = `
+          <div class="smart-insight-card"><strong>Useful movement</strong><span>${signal.minPrice ? `${formatCoins(signal.minPrice)} - ${formatCoins(signal.maxPrice)} gp` : "Waiting for range"}</span></div>
+          <div class="smart-insight-card"><strong>Spread read</strong><span>${signal.spreadBand === "Healthy" ? "Enough margin to care about." : signal.spreadBand === "Thin" ? "Possible flip, but margin is tight." : "Margin is weak right now."}</span></div>
+          <div class="smart-insight-card"><strong>Spike read</strong><span>${signal.spikeCount ? `${signal.spikeCount} sharp move${signal.spikeCount === 1 ? "" : "s"} detected.` : "No major spike pressure detected."}</span></div>
+          <div class="smart-insight-card"><strong>Best use</strong><span>${range === "day" ? "Intraday confirmation before acting." : (range === "3month" || range === "year" ? "Long-term context check only." : "Context check before giving this a slot.")}</span></div>
+        `;
+      }
+      if (smartActionPanelEl) {
+        smartActionPanelEl.innerHTML = `
+          <div><div class="action-title">Smart read: ${signal.reason}</div><div class="action-copy">This chart is meant to reduce guessing: spread, volume, and stability decide whether the item deserves attention.</div></div>
+          <div><div class="metric-label">Action</div><div class="metric-value ${tone}">${signal.action}</div></div>
+          <div><div class="metric-label">Buy around</div><div class="metric-value buy">${formatCoins(signal.latestLow)}</div></div>
+          <div><div class="metric-label">Sell around</div><div class="metric-value sell">${formatCoins(signal.latestHigh)}</div></div>
+          <div><div class="metric-label">Why</div><div class="metric-value" style="font-size:15px;line-height:1.25;">${signal.volumeBand} volume + ${signal.spreadBand.toLowerCase()} spread</div></div>
+        `;
+      }
+    }
+
     function drawHistoryChart(points, range = "month", item = null) {
-      points = normalizeHistoryPoints(points, range);
-      const width = 1720;
-      const height = 860;
+      if (range !== "day") {
+        points = normalizeHistoryPoints(points, range);
+      } else {
+        points = Array.isArray(points) ? points.filter(Boolean) : [];
+      }
+      const baseWidth = 1720;
+      const height = 940;
       const leftPad = 92;
       const rightPad = 96;
       const topPad = 42;
-      const priceBottom = 540;
-      const volumeTop = 610;
-      const volumeBottom = 790;
+      const priceBottom = 600;
+      const volumeTop = 680;
+      const volumeBottom = 860;
+      const containerWidth = Math.max(
+        baseWidth,
+        Math.floor(chartWrapEl?.clientWidth || marketChartShellEl?.clientWidth || baseWidth)
+      );
+      const width = containerWidth;
       const innerWidth = width - leftPad - rightPad;
+      if (historyChartSvgEl) {
+        historyChartSvgEl.setAttribute("viewBox", `0 0 ${width} ${height}`);
+        historyChartSvgEl.style.minWidth = "0";
+        historyChartSvgEl.style.width = "100%";
+        historyChartSvgEl.style.height = `${height}px`;
+      }
 
       chartTooltipEl.classList.remove("visible");
       chartTooltipEl.setAttribute("aria-hidden", "true");
 
       if (!points || points.length === 0) {
+        renderSmartMarketSummary(item, [], range);
         historyChartSvgEl.innerHTML = `<rect x="0" y="0" width="${width}" height="${height}" fill="#170e08" rx="16"></rect><text x="${width/2}" y="${height/2}" fill="#d7b06a" text-anchor="middle" font-size="24" font-family="Arial">No history points yet for this range.</text>`;
         return;
       }
 
       const pricedPoints = points.filter(p => isRenderablePoint(p));
       if (!pricedPoints.length) {
+        renderSmartMarketSummary(item, [], range);
         historyChartSvgEl.innerHTML = `<rect x="0" y="0" width="${width}" height="${height}" fill="#170e08" rx="16"></rect><text x="${width/2}" y="${height/2}" fill="#d7b06a" text-anchor="middle" font-size="24" font-family="Arial">No captured data exists for this range yet.</text>`;
         return;
       }
+
+      renderSmartMarketSummary(item, points, range);
 
       const lows = pricedPoints.map(p => Number(p.low));
       const highs = pricedPoints.map(p => Number(p.high));
@@ -5725,13 +6571,26 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
       const windowStart = windowEnd - windowMs;
       const timeSpan = Math.max(windowEnd - windowStart, 1);
       const xForTime = timeMs => leftPad + ((Math.min(Math.max(timeMs, windowStart), windowEnd) - windowStart) / timeSpan) * innerWidth;
-      const xForIndex = i => {
+      const rawXForIndex = i => {
         const pointTime = pointTimes[i];
+
         if (!Number.isFinite(pointTime)) {
           return leftPad + (points.length === 1 ? innerWidth / 2 : (i * innerWidth) / Math.max(points.length - 1, 1));
         }
-        return xForTime(pointTime);
+
+        let x = xForTime(pointTime);
+
+        if (range === "day" && i > 0) {
+          const prevX = rawXForIndex(i - 1);
+          const minSpacing = 4;
+          if ((x - prevX) < minSpacing) {
+            x = prevX + minSpacing;
+          }
+        }
+
+        return x;
       };
+      const xForIndex = i => Math.min(width - rightPad, Math.max(leftPad, rawXForIndex(i)));
       const priceY = value => priceBottom - (((value - minVal) / priceSpan) * (priceBottom - topPad));
       const volumeY = value => volumeBottom - ((value / maxVolume) * (volumeBottom - volumeTop));
 
@@ -5751,7 +6610,7 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
       }
 
       svg += `<line x1="${leftPad}" y1="${topPad}" x2="${leftPad}" y2="${priceBottom}" stroke="rgba(191,219,254,0.55)" stroke-width="2"></line>`;
-      svg += `<line x1="${leftPad}" y1="${priceBottom}" x2="${width-rightPad}" y2="${priceBottom}" stroke="rgba(191,219,254,0.55)" stroke-width="2"></line>`;
+      // AUTOFLIP PATCH: removed hard price/volume divider for seamless fade
       svg += `<line x1="${leftPad}" y1="${volumeTop}" x2="${leftPad}" y2="${volumeBottom}" stroke="rgba(148,163,184,0.45)" stroke-width="2"></line>`;
       svg += `<line x1="${leftPad}" y1="${volumeBottom}" x2="${width-rightPad}" y2="${volumeBottom}" stroke="rgba(148,163,184,0.45)" stroke-width="2"></line>`;
       svg += `<text x="26" y="${(topPad+priceBottom)/2}" fill="#d8c6a1" font-size="20" transform="rotate(-90 26 ${(topPad+priceBottom)/2})" font-family="Arial">Price (gp)</text>`;
@@ -5766,18 +6625,238 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
         svg += `<rect x="${x - barWidth/2}" y="${y}" width="${barWidth}" height="${Math.max(volumeBottom - y, 2)}" fill="rgba(148,163,184,0.68)" rx="2"></rect>`;
       });
 
-      buildPolylineSegments(points, xForIndex, priceY, point => point.low).forEach(segment => {
-        svg += `<polyline points="${segment}" fill="none" stroke="#74aedd" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"></polyline>`;
+      const spreadBands = [];
+      let currentSpreadBand = [];
+      points.forEach((point, i) => {
+        if (!isRenderablePoint(point)) {
+          if (currentSpreadBand.length > 1) spreadBands.push(currentSpreadBand);
+          currentSpreadBand = [];
+          return;
+        }
+        const x = xForIndex(i);
+        currentSpreadBand.push([x, priceY(Number(point.low || 0)), priceY(Number(point.high || 0))]);
       });
-      buildPolylineSegments(points, xForIndex, priceY, point => point.high).forEach(segment => {
-        svg += `<polyline points="${segment}" fill="none" stroke="#fbbf24" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"></polyline>`;
+      if (currentSpreadBand.length > 1) spreadBands.push(currentSpreadBand);
+
+      spreadBands.forEach((band) => {
+        const top = band.map(([x, _lowY, highY]) => `${x.toFixed(2)},${highY.toFixed(2)}`).join(" ");
+        const bottom = band.slice().reverse().map(([x, lowY]) => `${x.toFixed(2)},${lowY.toFixed(2)}`).join(" ");
+        svg += `<polygon points="${top} ${bottom}" fill="rgba(251,191,36,0.08)" stroke="rgba(251,191,36,0.12)" stroke-width="1"></polygon>`;
       });
 
-      buildGapBridgeSegments(points, xForIndex, priceY, point => point.low).forEach(segment => {
-        svg += `<line x1="${segment.x1.toFixed(2)}" y1="${segment.y1.toFixed(2)}" x2="${segment.x2.toFixed(2)}" y2="${segment.y2.toFixed(2)}" stroke="#74aedd" stroke-width="3" stroke-linecap="round" opacity="0.9"></line>`;
+      // AUTOFLIP PATCH: cinematic buy/sell fades
+      svg += `
+        <defs>
+          <filter id="buyGlow" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="7" result="blur"></feGaussianBlur>
+          </filter>
+
+          <filter id="sellGlow" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="7" result="blur"></feGaussianBlur>
+          </filter>
+
+          <linearGradient id="buyLineFade" x1="0" y1="${topPad}" x2="0" y2="${volumeBottom}" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.16"></stop>
+            <stop offset="18%" stop-color="#60a5fa" stop-opacity="0.16"></stop>
+            <stop offset="52%" stop-color="#60a5fa" stop-opacity="0.05"></stop>
+            <stop offset="100%" stop-color="#60a5fa" stop-opacity="0"></stop>
+          </linearGradient>
+
+          <linearGradient id="sellLineFade" x1="0" y1="${topPad}" x2="0" y2="${volumeBottom}" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#facc15" stop-opacity="0.24"></stop>
+            <stop offset="18%" stop-color="#f59e0b" stop-opacity="0.14"></stop>
+            <stop offset="52%" stop-color="#f59e0b" stop-opacity="0.04"></stop>
+            <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"></stop>
+          </linearGradient>
+        </defs>
+      `;
+
+      const buildAreaFillPath = (segments) => {
+        const paths = [];
+
+        segments.forEach(segment => {
+          const pts = segment.split(" ").filter(Boolean);
+          if (pts.length < 2) return;
+
+          const first = pts[0].split(",");
+          const last = pts[pts.length - 1].split(",");
+
+          if (first.length !== 2 || last.length !== 2) return;
+
+          const firstX = first[0];
+          const lastX = last[0];
+
+          paths.push(
+            `M ${firstX},${volumeBottom + 90} L ${pts.join(" L ")} L ${lastX},${volumeBottom + 90} Z`
+          );
+        });
+
+        return paths.join(" ");
+      };
+
+      const buySegmentsForFade =
+        buildPolylineSegments(points, xForIndex, priceY, point => point.low, pointTimes, range);
+
+      const sellSegmentsForFade =
+        buildPolylineSegments(points, xForIndex, priceY, point => point.high, pointTimes, range);
+
+      const buyFadePath = buildAreaFillPath(buySegmentsForFade);
+      const sellFadePath = buildAreaFillPath(sellSegmentsForFade);
+
+      if (sellFadePath) {
+        svg += `<path d="${sellFadePath}" fill="url(#sellLineFade)" opacity="1"></path>`;
+        svg += `<path d="${sellFadePath}" fill="#f59e0b" opacity="0.025" filter="url(#sellGlow)"></path>`;
+      }
+
+      if (buyFadePath) {
+        svg += `<path d="${buyFadePath}" fill="url(#buyLineFade)" opacity="1"></path>`;
+        svg += `<path d="${buyFadePath}" fill="#60a5fa" opacity="0.025" filter="url(#buyGlow)"></path>`;
+      }
+
+      // AUTOFLIP PATCH: toggleable midpoint trendline
+      if (graphTrendlineEnabled) {
+
+        const trendPoints = [];
+
+        points.forEach((point, index) => {
+          if (!isRenderablePoint(point)) return;
+
+          const low = Number(point.low || 0);
+          const high = Number(point.high || 0);
+
+          if (
+            !Number.isFinite(low) ||
+            !Number.isFinite(high) ||
+            low <= 0 ||
+            high <= 0
+          ) {
+            return;
+          }
+
+          trendPoints.push({
+            x: xForIndex(index),
+            y: (low + high) / 2
+          });
+        });
+
+        if (trendPoints.length >= 2) {
+
+          const n = trendPoints.length;
+
+          let sumX = 0;
+          let sumY = 0;
+          let sumXY = 0;
+          let sumXX = 0;
+
+          trendPoints.forEach(p => {
+            sumX += p.x;
+            sumY += p.y;
+            sumXY += p.x * p.y;
+            sumXX += p.x * p.x;
+          });
+
+          const denominator =
+            (n * sumXX) - (sumX * sumX);
+
+          if (Math.abs(denominator) > 0.000001) {
+
+            const slope =
+              ((n * sumXY) - (sumX * sumY)) / denominator;
+
+            const intercept =
+              (sumY - (slope * sumX)) / n;
+
+            const startX = trendPoints[0].x;
+            const endX = trendPoints[trendPoints.length - 1].x;
+
+            const startY = priceY((slope * startX) + intercept);
+            const endY = priceY((slope * endX) + intercept);
+
+            if (
+              Number.isFinite(startY) &&
+              Number.isFinite(endY)
+            ) {
+
+              svg += `
+                <line
+                  x1="${startX}"
+                  y1="${startY}"
+                  x2="${endX}"
+                  y2="${endY}"
+                  stroke="rgba(191,219,254,0.42)"
+                  stroke-width="2"
+                  stroke-dasharray="10 8"
+                  stroke-linecap="round"
+                ></line>
+              `;
+            }
+          }
+        }
+      }
+
+
+      buildPolylineSegments(points, xForIndex, priceY, point => point.low, pointTimes, range).forEach(segment => {
+        svg += `<polyline points="${segment}" fill="none" stroke="#74aedd" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"></polyline>`;
       });
-      buildGapBridgeSegments(points, xForIndex, priceY, point => point.high).forEach(segment => {
-        svg += `<line x1="${segment.x1.toFixed(2)}" y1="${segment.y1.toFixed(2)}" x2="${segment.x2.toFixed(2)}" y2="${segment.y2.toFixed(2)}" stroke="#fbbf24" stroke-width="3" stroke-linecap="round" opacity="0.9"></line>`;
+      buildPolylineSegments(points, xForIndex, priceY, point => point.high, pointTimes, range).forEach(segment => {
+        svg += `<polyline points="${segment}" fill="none" stroke="#fbbf24" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"></polyline>`;
+      });
+
+      ([]).forEach(segment => {
+        svg += `<line x1="${segment.x1.toFixed(2)}" y1="${segment.y1.toFixed(2)}" x2="${segment.x2.toFixed(2)}" y2="${segment.y2.toFixed(2)}" stroke="#74aedd" stroke-width="2" stroke-linecap="round" opacity="0.9"></line>`;
+      });
+      ([]).forEach(segment => {
+        svg += `<line x1="${segment.x1.toFixed(2)}" y1="${segment.y1.toFixed(2)}" x2="${segment.x2.toFixed(2)}" y2="${segment.y2.toFixed(2)}" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" opacity="0.9"></line>`;
+      });
+
+      const smartSignal = assessSmartMarket(item, points);
+      let spikeOverlayPoints = [];
+      if (smartSignal && smartSignal.spikeCount > 0) {
+        const rawSpikes = [];
+
+        pricedPoints.forEach((point, localIndex) => {
+          if (localIndex === 0) return;
+          const prev = pricedPoints[localIndex - 1];
+          const prevMid = (Number(prev.low) + Number(prev.high)) / 2;
+          const mid = (Number(point.low) + Number(point.high)) / 2;
+          if (!Number.isFinite(prevMid) || prevMid <= 0 || !Number.isFinite(mid)) return;
+
+          const deltaPct = Math.abs(mid - prevMid) / prevMid;
+          if (deltaPct <= 0.07) return;
+
+          const originalIndex = points.indexOf(point);
+          const pointIndex = originalIndex >= 0 ? originalIndex : localIndex;
+          const pointTime = Number(pointTimes[pointIndex]);
+
+          rawSpikes.push({
+            x: xForIndex(pointIndex),
+            y: priceY(mid),
+            direction: mid >= prevMid ? "up" : "down",
+            deltaPct,
+            ts: Number.isFinite(pointTime) ? pointTime : pointIndex,
+          });
+        });
+
+        const maxMarkers = range === "day" ? 4 : (range === "week" ? 5 : (range === "month" ? 6 : 8));
+        const mergeWindowMs = range === "day"
+          ? 60 * 60 * 1000
+          : (range === "week" ? 6 * 60 * 60 * 1000 : (range === "month" ? 18 * 60 * 60 * 1000 : 3 * 24 * 60 * 60 * 1000));
+
+        const strongest = rawSpikes.sort((a, b) => b.deltaPct - a.deltaPct);
+        const selected = [];
+
+        strongest.forEach((spike) => {
+          if (selected.length >= maxMarkers) return;
+          const tooClose = selected.some(existing => Math.abs(existing.ts - spike.ts) < mergeWindowMs);
+          if (!tooClose) selected.push(spike);
+        });
+
+        spikeOverlayPoints = selected.sort((a, b) => a.ts - b.ts);
+      }
+
+      spikeOverlayPoints.forEach((spike) => {
+        const stroke = spike.direction === "up" ? "#f97316" : "#a855f7";
+        svg += `<circle cx="${spike.x.toFixed(2)}" cy="${spike.y.toFixed(2)}" r="5.2" fill="rgba(20,12,8,0.88)" stroke="${stroke}" stroke-width="2"></circle>`;
       });
 
       const lastRealIndex = (() => {
@@ -5787,6 +6866,9 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
         return -1;
       })();
 
+      let lastRenderedDotX = -Infinity;
+      const minDayDotSpacingPx = 6;
+
       points.forEach((point, i) => {
         if (!shouldRenderHistoryDot(point, i, lastRealIndex, range, pointTimes[i], latestKnownTime)) return;
         const x = xForIndex(i);
@@ -5795,8 +6877,13 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
         const lowY = priceY(low);
         const highY = priceY(high);
         const isLatest = i === lastRealIndex;
-        svg += `<circle cx="${x}" cy="${lowY}" r="${isLatest ? 7 : 4.5}" fill="#74aedd" stroke="${isLatest ? '#d7ebff' : 'none'}" stroke-width="${isLatest ? 2 : 0}"></circle>`;
-        svg += `<circle cx="${x}" cy="${highY}" r="${isLatest ? 7 : 4.5}" fill="#fbbf24" stroke="${isLatest ? '#fef3c7' : 'none'}" stroke-width="${isLatest ? 2 : 0}"></circle>`;
+        const showDayDot = range === "day" && (isLatest || Math.abs(x - lastRenderedDotX) >= minDayDotSpacingPx);
+
+        if (showDayDot || isLatest) {
+          svg += `<circle cx="${x}" cy="${lowY}" r="${isLatest ? 6.5 : 3.2}" fill="#74aedd" stroke="${isLatest ? '#d7ebff' : 'none'}" stroke-width="${isLatest ? 2 : 0}"></circle>`;
+          svg += `<circle cx="${x}" cy="${highY}" r="${isLatest ? 6.5 : 3.2}" fill="#fbbf24" stroke="${isLatest ? '#fef3c7' : 'none'}" stroke-width="${isLatest ? 2 : 0}"></circle>`;
+          if (range === "day") lastRenderedDotX = x;
+        }
       });
 
       const desiredLabels = range === "day" ? 6 : 7;
@@ -5835,6 +6922,8 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
         const x = xForIndex(i);
         const low = Number(point.low || 0);
         const high = Number(point.high || 0);
+        const lowY = priceY(low);
+        const highY = priceY(high);
         const vol = Number(point.volume || point.recent_volume || 0);
         const ts = point.snapshot_ts || point.ts || point.timestamp || point.bucket || "";
         const safeName = escapeHtml(item?.name || point.name || "Selected item");
@@ -5844,7 +6933,7 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
         const safeEventPrice = escapeHtml(formatCoins(point.event_price || 0));
         const safeTradeVolume = escapeHtml(formatCoins(point.trade_volume || 0));
         const isGap = point.is_gap || point.low == null || point.high == null;
-        svg += `<rect class="chart-hitbox" data-x="${x}" data-gap="${isGap ? 'true' : 'false'}" data-item="${safeName}" data-time="${safeTime}" data-low="${escapeHtml(formatCoins(low))}" data-high="${escapeHtml(formatCoins(high))}" data-volume="${escapeHtml(formatCoins(vol))}" data-point-mode="${safePointMode}" data-event-side="${safeEventSide}" data-event-price="${safeEventPrice}" data-trade-volume="${safeTradeVolume}" x="${Math.max(leftPad, x - Math.max(barWidth, 8))}" y="${topPad}" width="${Math.max(barWidth * 2.2, 12)}" height="${volumeBottom - topPad}" fill="transparent" style="cursor:crosshair;"></rect>`;
+        svg += `<rect class="chart-hitbox" data-x="${x}" data-gap="${isGap ? 'true' : 'false'}" data-item="${safeName}" data-time="${safeTime}" data-low="${escapeHtml(formatCoins(low))}" data-high="${escapeHtml(formatCoins(high))}" data-low-y="${Number.isFinite(lowY) ? lowY.toFixed(2) : ''}" data-high-y="${Number.isFinite(highY) ? highY.toFixed(2) : ''}" data-volume="${escapeHtml(formatCoins(vol))}" data-point-mode="${safePointMode}" data-event-side="${safeEventSide}" data-event-price="${safeEventPrice}" data-trade-volume="${safeTradeVolume}" x="${Math.max(leftPad, x - Math.max(barWidth, 8))}" y="${topPad}" width="${Math.max(barWidth * 2.2, 12)}" height="${volumeBottom - topPad}" fill="transparent" style="cursor:crosshair;"></rect>`;
       });
 
       historyChartSvgEl.innerHTML = svg;
@@ -5855,45 +6944,86 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
 
       const positionTooltip = (event, hitbox) => {
         const wrapRect = chartWrapEl.getBoundingClientRect();
-        const localX = event.clientX - wrapRect.left;
-        const localY = event.clientY - wrapRect.top;
-        chartTooltipEl.innerHTML = hitbox.dataset.gap === "true"
-          ? `
-          <div class="label">${hitbox.dataset.item} • ${String(range).toUpperCase()}</div>
-          <div class="row"><strong>Time:</strong> ${hitbox.dataset.time}</div>
-          <div class="row"><strong>Status:</strong> No data captured for this interval</div>
-        `
-          : `
-          <div class="label">${hitbox.dataset.item} • ${String(range).toUpperCase()}</div>
-          <div class="row"><strong>Time:</strong> ${hitbox.dataset.time}</div>
-          <div class="row"><strong>Buying low:</strong> ${hitbox.dataset.low} gp</div>
-          <div class="row"><strong>Selling high:</strong> ${hitbox.dataset.high} gp</div>
-          <div class="row"><strong>5m volume:</strong> ${hitbox.dataset.volume}</div>
-          <div class="row"><strong>Point source:</strong> ${hitbox.dataset.pointMode}</div>
-          ${hitbox.dataset.eventSide && hitbox.dataset.eventSide !== "-" ? `<div class="row"><strong>Detected trade:</strong> ${hitbox.dataset.eventSide} @ ${hitbox.dataset.eventPrice} gp</div>` : ""}
-          ${hitbox.dataset.tradeVolume && hitbox.dataset.tradeVolume !== "0" ? `<div class="row"><strong>Detected trade volume:</strong> ${hitbox.dataset.tradeVolume}</div>` : ""}
+        const svgRect = historyChartSvgEl.getBoundingClientRect();
+        const viewBox = historyChartSvgEl.viewBox && historyChartSvgEl.viewBox.baseVal;
+        const viewWidth = viewBox && viewBox.width ? viewBox.width : 2400;
+        const viewHeight = viewBox && viewBox.height ? viewBox.height : 940;
+
+        const svgX = Number(hitbox.dataset.x);
+        const lowY = Number(hitbox.dataset.lowY);
+        const highY = Number(hitbox.dataset.highY);
+        const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+        const localPoint = (svgY) => ({
+          x: clamp((svgRect.left - wrapRect.left) + ((svgX / viewWidth) * svgRect.width), 38, wrapRect.width - 38),
+          y: clamp((svgRect.top - wrapRect.top) + ((svgY / viewHeight) * svgRect.height), 26, wrapRect.height - 26)
+        });
+
+        if (hitbox.dataset.gap === "true" || !Number.isFinite(svgX) || !Number.isFinite(lowY) || !Number.isFinite(highY)) {
+          const fallbackX = Number.isFinite(svgX)
+            ? clamp((svgRect.left - wrapRect.left) + ((svgX / viewWidth) * svgRect.width), 80, wrapRect.width - 80)
+            : clamp(event.clientX - wrapRect.left, 80, wrapRect.width - 80);
+          chartTooltipEl.classList.remove("point-callout-mode");
+          chartTooltipEl.innerHTML = `
+          <div class="row">${hitbox.dataset.time}</div>
+          <div class="row">No data</div>
         `;
+          chartTooltipEl.style.left = `${fallbackX}px`;
+          chartTooltipEl.style.top = "18px";
+          chartTooltipEl.style.transform = "translateX(-50%)";
+          chartTooltipEl.classList.add("visible");
+          chartTooltipEl.setAttribute("aria-hidden", "false");
+          return;
+        }
+
+        const buyPoint = localPoint(lowY);
+        const sellPoint = localPoint(highY);
+
+        chartTooltipEl.classList.add("point-callout-mode");
+        chartTooltipEl.innerHTML = `
+          <div class="point-callout sell" style="left:${sellPoint.x}px;top:${sellPoint.y}px;">
+            ${hitbox.dataset.high}<small>Sell</small>
+          </div>
+          <div class="point-callout buy" style="left:${buyPoint.x}px;top:${buyPoint.y}px;">
+            ${hitbox.dataset.low}<small>Buy</small>
+          </div>
+        `;
+        chartTooltipEl.style.left = "0px";
+        chartTooltipEl.style.top = "0px";
+        chartTooltipEl.style.transform = "none";
         chartTooltipEl.classList.add("visible");
         chartTooltipEl.setAttribute("aria-hidden", "false");
-
-        const tooltipWidth = chartTooltipEl.offsetWidth || 220;
-        const tooltipHeight = chartTooltipEl.offsetHeight || 120;
-        const margin = 16;
-
-        const clampedLeft = Math.min(
-          Math.max(localX, (tooltipWidth / 2) + margin),
-          wrapRect.width - (tooltipWidth / 2) - margin
-        );
-
-        const prefersBelow = localY < (tooltipHeight + 50);
-        const topPx = prefersBelow
-          ? Math.min(localY + 18, wrapRect.height - tooltipHeight - margin)
-          : Math.max(localY - tooltipHeight - 18, margin);
-
-        chartTooltipEl.style.left = `${clampedLeft}px`;
-        chartTooltipEl.style.top = `${topPx}px`;
-        chartTooltipEl.style.transform = "translateX(-50%)";
       };
+
+      const nearestHitboxFromEvent = (event) => {
+        const svgRect = historyChartSvgEl.getBoundingClientRect();
+        const viewBox = historyChartSvgEl.viewBox && historyChartSvgEl.viewBox.baseVal;
+        const viewWidth = viewBox && viewBox.width ? viewBox.width : 2400;
+        const mouseSvgX = ((event.clientX - svgRect.left) / Math.max(svgRect.width, 1)) * viewWidth;
+        let nearest = null;
+        let nearestDistance = Infinity;
+        hitboxes.forEach(candidate => {
+          const candidateX = Number(candidate.dataset.x);
+          if (!Number.isFinite(candidateX)) return;
+          const distance = Math.abs(candidateX - mouseSvgX);
+          if (distance < nearestDistance) {
+            nearest = candidate;
+            nearestDistance = distance;
+          }
+        });
+        return nearest;
+      };
+
+      historyChartSvgEl.addEventListener("mousemove", event => {
+        const nearest = nearestHitboxFromEvent(event);
+        if (!nearest) return;
+        if (crosshairGroup) crosshairGroup.setAttribute("visibility", "visible");
+        if (crosshairLine) {
+          crosshairLine.setAttribute("x1", nearest.dataset.x);
+          crosshairLine.setAttribute("x2", nearest.dataset.x);
+        }
+        positionTooltip(event, nearest);
+      });
 
       hitboxes.forEach(hitbox => {
         hitbox.addEventListener("mouseenter", event => {
@@ -5914,13 +7044,14 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
         hitbox.addEventListener("mouseleave", () => {
           if (crosshairGroup) crosshairGroup.setAttribute("visibility", "hidden");
           chartTooltipEl.classList.remove("visible");
+          chartTooltipEl.classList.remove("point-callout-mode");
           chartTooltipEl.setAttribute("aria-hidden", "true");
         });
       });
     }
 
     function recommendationCard(item) {
-      const allocatedQty = Number(item.allocated_quantity || item.suggested_quantity || 0);
+      const allocatedQty = Number(item.allocated_quantity || item.liquidity_safe_quantity || item.suggested_quantity || 0);
       const allocatedCost = Number(item.allocated_cost || (allocatedQty * Number(item.buy_price || 0)) || 0);
       const expectedProfitTotal = Number(item.expected_profit_total || item.potential_profit || 0);
       const cycleCount = Number(item.cycle_count || 1);
@@ -6013,43 +7144,170 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
       }
     }
 
-    async function runAutoRecommendations() {
-      try {
-        const limit = Math.max(1, Math.min(50, Number(itemsPerCategoryEl.value || 10)));
-        const ctx = getUserDecisionContext();
-        const params = new URLSearchParams({
-          limit: String(limit),
-          budget: String(ctx.budget || 0),
-          hours_away: String(ctx.hoursAway || 0),
-          risk_percent: String(ctx.riskPercent || 0),
-        });
-        const response = await fetch(apiUrl(`/market/recommendations?${params.toString()}`));
-        const data = await readJsonResponse(response);
-        latestRecommendationsData = data;
-        activeTradePlanSource = "algo";
-        updateRiskSliderDisplay();
+    function normalizeBoardItemForUi(item) {
+      if (!item) return null;
+      const buy = Number(item.buy_price || item.buy || 0);
+      const sell = Number(item.sell_price || item.sell || 0);
+      const qty = Number(item.quantity || item.allocated_quantity || item.liquidity_safe_quantity || item.suggested_quantity || 0);
+      const profit = Number(item.expected_profit || (Number(item.profit_after_tax_per_item || item.profit_per_item || 0) * qty) || 0);
+      return {
+        ...item,
+        id: item.item_id ?? item.id ?? null,
+        name: item.item_name || item.name || "Unknown item",
+        buy_price: buy,
+        sell_price: sell,
+        allocated_quantity: qty,
+        expected_profit: profit,
+        roi_pct: Number(item.roi_pct_after_tax ?? item.roi_pct ?? 0),
+        expected_time_to_liquidity_hours: Number(item.expected_time_to_liquidity_hours ?? item.expected_time_to_liquidity ?? 0),
+        confidence_band: item.confidence_band || "medium",
+        fill_speed_band: item.fill_speed_band || "unknown",
+        icon_url: item.icon_url || (item.item_id ? `/static/item_icons/${item.item_id}.png` : ""),
+      };
+    }
 
-        const plan = buildBoardAllocationPlan();
-        remainingSlotsEl.textContent = String(plan.unusedSlots ?? 0);
-        perSlotBudgetEl.textContent = formatCoins(plan.totalAllocated ?? 0);
-        recommendationsMetaEl.textContent = `Board allocation • Budget ${formatCompactCoins(ctx.budget)} • Away ${ctx.hoursAway}h • Risk ${ctx.riskPercent}% • Focused slots ${plan.concentrationTarget} • Cycles ${plan.cycleCount}x • Expected board profit ${formatCoins(plan.totalExpectedProfit || 0)} • Cache snapshot: ${data.snapshot_bucket || "-"} • Cache updated: ${data.cache_updated_at || "-"}`;
-        renderAllTradePlanBoards();
+    function confidenceDots(band) {
+      const value = String(band || "medium").toLowerCase();
+      const count = value === "high" ? 4 : value === "low" ? 2 : 3;
+      return "●".repeat(count) + "○".repeat(Math.max(0, 5 - count));
+    }
 
-        const groups = {
-          high_value: getAllocationRowsForPurpose("High/Value Risky"),
-          overnight: getAllocationRowsForPurpose("Overnight"),
-          anchors: getAllocationRowsForPurpose("Anchor"),
-          dump: getAllocationRowsForPurpose("Dump detector"),
-        };
-        renderCategory(highValueListEl, groups.high_value || [], "No high-value allocations fit this board plan.");
-        renderCategory(overnightListEl, groups.overnight || [], "No overnight allocations fit this board plan.");
-        renderCategory(anchorsListEl, groups.anchors || [], "No anchor allocations fit this board plan.");
-        renderCategory(dumpListEl, groups.dump || [], "No dump allocations fit this board plan.");
-        debugEl.textContent = JSON.stringify({ context: ctx, allocation_plan: plan, recommendations: data }, null, 2);
-        if (autoFlipperDebugEl) autoFlipperDebugEl.textContent = JSON.stringify({ context: ctx, allocation_plan: plan }, null, 2);
-      } catch (error) {
-        if (debugEl) debugEl.textContent = String(error);
+
+    function itemSlug(value) {
+      return String(value || "")
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+    }
+
+    function canonicalMarketItemHref(item) {
+      const id = Number(item?.item_id ?? item?.id ?? item?.itemId ?? 0);
+      const name = String(item?.item_name ?? item?.name ?? "").trim();
+      const slug = itemSlug(item?.slug || name);
+      return `/market/item/${encodeURIComponent(slug || String(id || ""))}`;
+    }
+
+
+    function injectMarketButtonsIntoRealTradeGrid(grid) {
+      if (!grid) return;
+
+      grid.querySelectorAll(".af-ge-card").forEach(card => {
+        if (card.querySelector(".view-market-data-btn")) return;
+
+        const img = card.querySelector("img.af-ge-icon");
+        const src = img?.getAttribute("src") || "";
+        const match = src.match(/\/item_icons\/(\d+)\.png/i);
+        const itemId = match ? Number(match[1]) : 0;
+        if (!itemId) return;
+
+        const title = card.querySelector(".af-ge-item");
+        if (!title) return;
+
+        const foot = card.querySelector(".af-ge-foot") || card.querySelector(".af-clean-foot") || title;
+        const itemName = (title.textContent || "").trim();
+
+        const btn = document.createElement("a");
+        btn.className = "view-market-data-btn";
+        btn.href = canonicalMarketItemHref({ id: itemId, name: itemName });
+        btn.title = "View Market Data";
+        btn.setAttribute("aria-label", `View Market Data for ${itemName || "item"}`);
+        btn.dataset.marketItemId = String(itemId);
+        btn.dataset.marketItemName = itemName;
+        btn.textContent = "Market Data";
+
+        foot.appendChild(btn);
+      });
+    }
+
+    function renderCleanGeBoard(board, ctx = {}) {
+      if (!tradingTradePlanSlotsEl) return;
+      const maxSlots = 8;
+      const safeBoard = (Array.isArray(board) ? board : []).map(normalizeBoardItemForUi).filter(Boolean).slice(0, maxSlots);
+      const hours = Number(ctx.hoursAway || hoursAwayEl?.value || 0);
+      const html = [];
+      for (let i = 0; i < maxSlots; i += 1) {
+        const item = safeBoard[i];
+        if (!item) {
+          html.push(`
+            <div class="af-ge-card empty">
+              <div>
+                <strong>Slot ${i + 1}: Empty</strong><br/>
+                <span>No safe fit under ${hours || 0}h.</span>
+              </div>
+            </div>
+          `);
+          continue;
+        }
+        const icon = item.icon_url ? `<img class="af-ge-icon" src="${escapeHtml(item.icon_url)}" alt="${escapeHtml(item.name)}" onerror="this.style.visibility='hidden'" />` : `<div class="af-ge-icon"></div>`;
+        html.push(`
+          <div class="af-ge-card">
+            <div class="af-ge-slot-num">${i + 1}</div>
+            <div class="af-ge-main">
+              ${icon}
+              <div>
+                <div class="af-ge-item">${escapeHtml(item.name)}</div>
+                <div class="af-ge-sub">Qty ${formatCoins(item.allocated_quantity)} • ${escapeHtml(item.fill_speed_band)}</div>
+              </div>
+            </div>
+            <div class="af-ge-stats">
+              <div class="af-ge-stat"><div class="k">Buy</div><div class="v">${formatCoins(item.buy_price)}</div></div>
+              <div class="af-ge-stat"><div class="k">Sell</div><div class="v">${formatCoins(item.sell_price)}</div></div>
+              <div class="af-ge-stat"><div class="k">Profit</div><div class="v af-ge-profit">${formatCoins(item.expected_profit)}</div></div>
+              <div class="af-ge-stat"><div class="k">ROI</div><div class="v">${Number(item.roi_pct || 0).toFixed(2)}%</div></div>
+            </div>
+            <div class="af-ge-speed">
+              <span>⚡ ${Number(item.expected_time_to_liquidity_hours || 0).toFixed(0) || "?"}h max</span>
+              <span class="af-confidence">${confidenceDots(item.confidence_band)}</span>
+            </div>
+          </div>
+        `);
       }
+      tradingTradePlanSlotsEl.innerHTML = html.join("");
+      injectMarketButtonsIntoRealTradeGrid(tradingTradePlanSlotsEl);
+    }
+
+    async function runAutoRecommendations() {
+      const ctx = getUserDecisionContext();
+      const hardHours = Number(ctx.hoursAway || 0);
+      const limit = 24;
+      const params = new URLSearchParams({
+        limit: String(limit),
+        budget: String(ctx.budget || 0),
+        hours_away: String(hardHours),
+        risk_percent: String(ctx.riskPercent || 0),
+      });
+      const response = await fetch(apiUrl(`/market/recommendations?${params.toString()}`));
+      const data = await readJsonResponse(response);
+      const board = Array.isArray(data.board) ? data.board : (Array.isArray(data.top_candidates) ? data.top_candidates : (Array.isArray(data.recommendations) ? data.recommendations : []));
+      const filteredBoard = board
+        .map(normalizeBoardItemForUi)
+        .filter((item) => !hardHours || Number(item.expected_time_to_liquidity_hours || 0) <= hardHours)
+        .slice(0, 8);
+
+      latestRecommendationsData = {
+        ...data,
+        board: filteredBoard,
+        high_value: filteredBoard,
+        overnight: filteredBoard,
+        anchors: filteredBoard,
+        dump: [],
+      };
+      activeTradePlanSource = "algo";
+      updateRiskSliderDisplay();
+
+      const spentGp = Number(data.spent_gp || filteredBoard.reduce((sum, item) => sum + Number(item.buy_price || 0) * Number(item.allocated_quantity || 0), 0));
+      const expectedProfit = Number(data.expected_profit || filteredBoard.reduce((sum, item) => sum + Number(item.expected_profit || 0), 0));
+      offerCountEl.textContent = String(filteredBoard.length);
+      remainingSlotsEl.textContent = `${filteredBoard.length}/8`;
+      perSlotBudgetEl.textContent = formatCoins(spentGp || 0);
+      captureModeEl.textContent = filteredBoard.length ? "Ready" : "No fit";
+      if (tradePlanOverlayBadge) tradePlanOverlayBadge.textContent = `Best balance • ${hardHours || "any"}h max`;
+      if (recommendationsMetaEl) recommendationsMetaEl.textContent = `Board cache • ${filteredBoard.length}/8 slots • Expected profit ${formatCoins(expectedProfit)} • Candidates ${data.candidate_count ?? "-"}`;
+      renderCleanGeBoard(filteredBoard, ctx);
+      if (debugEl) debugEl.textContent = JSON.stringify({ context: ctx, board: filteredBoard, raw: data }, null, 2);
+      if (autoFlipperDebugEl) autoFlipperDebugEl.textContent = JSON.stringify({ context: ctx, board: filteredBoard, time_filter: data.time_filter || null }, null, 2);
+      return data;
     }
 
 
@@ -6077,6 +7335,35 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
       const key = getFavoriteKey(item);
       if (!key) return false;
       return loadFavorites().some(entry => getFavoriteKey(entry) === key);
+    }
+
+    
+    function marketDataButtonHtml(item){
+      const id = Number(item?.item_id ?? item?.id ?? item?.itemId ?? 0);
+      if (!id) return "";
+      const name = String(item?.item_name ?? item?.name ?? "");
+      const href = canonicalMarketItemHref({ id, name, slug: item?.slug });
+      return `<a class="view-market-data-btn" title="View Market Data" aria-label="View Market Data" href="${href}" data-market-item-id="${id}" data-market-item-name="${escapeHtml(name)}">📈</a>`;
+    }
+
+    function bindMarketDataButtons(root=document){
+      root.querySelectorAll("[data-market-item-id]").forEach(btn => {
+        if (btn.dataset.marketBound === "1") return;
+        btn.dataset.marketBound = "1";
+        btn.addEventListener("click", async (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          const itemId = Number(btn.dataset.marketItemId || 0);
+          if (!itemId) return;
+          const marketTab = document.querySelector('[data-tab="marketTab"], [data-tab-target="marketTab"], [href="#marketTab"]');
+          if (marketTab) marketTab.click();
+          if (typeof selectMarketItem === "function") {
+            await selectMarketItem(itemId);
+            return;
+          }
+          window.location.hash = `market-item-${itemId}`;
+        });
+      });
     }
 
     function favoriteButtonHtml(item, extraClass = "") {
@@ -6335,6 +7622,14 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
     }
 
 
+    function scheduleMarketChartRedraw() {
+      if (!document.body.classList.contains("market-chart-expanded") || !latestSelectedItemId) return;
+      if (marketChartResizeTimer) window.clearTimeout(marketChartResizeTimer);
+      marketChartResizeTimer = window.setTimeout(() => {
+        if (latestSelectedItemId) selectMarketItem(latestSelectedItemId).catch(() => {});
+      }, 280);
+    }
+
     function setFavoritesCollapsed(isCollapsed) {
       document.body.classList.toggle("favorites-collapsed", Boolean(isCollapsed));
       localStorage.setItem(FAVORITES_COLLAPSED_STORAGE_KEY, isCollapsed ? "true" : "false");
@@ -6346,6 +7641,7 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
       if (favoritesEdgeHitboxEl) {
         favoritesEdgeHitboxEl.setAttribute("title", isCollapsed ? "Expand favorites" : "Collapse favorites");
       }
+      scheduleMarketChartRedraw();
     }
 
     function toggleFavoritesCollapsed() {
@@ -6368,6 +7664,7 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
       if (aiEdgeHitboxEl) {
         aiEdgeHitboxEl.setAttribute("title", isCollapsed ? "Expand AI Copilot" : "Collapse AI Copilot");
       }
+      scheduleMarketChartRedraw();
     }
 
     function toggleAiCopilotCollapsed() {
@@ -7090,6 +8387,47 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
     }
 
 
+    async function hydrateCanonicalMarketItemPage() {
+      const match = window.location.pathname.match(/^\/market\/item\/([^/?#]+)/i);
+      if (!match) return false;
+
+      const slugOrId = decodeURIComponent(match[1] || "");
+      if (!slugOrId) return false;
+
+      try {
+        if (typeof switchTab === "function") switchTab("marketTab");
+        setMarketResultsVisible(true);
+        setExplorerSelectionState(false);
+        marketMetaEl.textContent = `Loading market page for ${slugOrId}…`;
+
+        const data = await fetchJsonWithTimeout(`/market/explorer/item/${encodeURIComponent(slugOrId)}`, {}, 6000);
+        const item = data?.item || (Array.isArray(data?.items) ? data.items[0] : null);
+        if (!item?.id) {
+          latestExplorerItems = [];
+          latestExplorerPage = 1;
+          renderMarketExplorerTable(latestExplorerItems);
+          clearMarketSelection();
+          marketMetaEl.textContent = `No market cache item matched "${slugOrId}".`;
+          return false;
+        }
+
+        latestExplorerHasActiveSearch = true;
+        latestExplorerPage = 1;
+        latestExplorerItems = [item];
+        if (marketSearchInputEl) marketSearchInputEl.value = item.name || item.item_name || slugOrId;
+        renderMarketExplorerTable(latestExplorerItems);
+        marketMetaEl.textContent = `${item.name || item.item_name || `Item ${item.id}`} • canonical market page`;
+        saveRecentMarketSearch(item);
+        await selectMarketItem(Number(item.id));
+        return true;
+      } catch (error) {
+        marketMetaEl.textContent = "Canonical market page failed to load from cache.";
+        if (debugEl) debugEl.textContent = String(error);
+        return false;
+      }
+    }
+
+
     function appendAdvisorMessage(role, htmlContent, variant = "") {
       if (!advisorReplyEl) return;
       const empty = advisorReplyEl.querySelector(".ai-chat-empty");
@@ -7199,33 +8537,12 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
 
     async function refresh() {
       refreshBtn.disabled = true;
-      statusEl.textContent = "Refreshing current offers...";
+      statusEl.textContent = "Refreshing recommendation cache plan...";
       statusEl.className = "warn";
       try {
-        const response = await fetch("/screen/capture-runelite-object-panel");
-        const data = await readJsonResponse(response);
-        offerCountEl.textContent = String(data.offer_count ?? 0);
-        captureModeEl.textContent = data.capture_mode || "-";
-        anchorTextEl.textContent = data.anchor?.normalized_text || data.anchor?.text || "-";
-        latestOffers = data.offers || [];
-        renderGeSlots(latestOffers);
-        await runAutoReview(data);
         await runAutoRecommendations();
-        if (window.autoFlipperDebugEl) {
-          const completedSlots = (latestOffers || []).map((offer, index) => {
-            if (!offer || !isCompletedOffer(offer)) return null;
-            return {
-              slot: index + 1,
-              item: offer.item_name || "Unknown",
-              flow: getCompletedOfferFlow(activeTradePlanSource || "algo", index, offer, new Set())?.mode || "completed",
-            };
-          }).filter(Boolean);
-          if (completedSlots.length) {
-            window.autoFlipperDebugEl.textContent = JSON.stringify({ completed_slots: completedSlots }, null, 2);
-          }
-        }
-        await searchMarketExplorer();
-        statusEl.textContent = "Refresh complete";
+        try { await searchMarketExplorer(); } catch (_ignored) {}
+        statusEl.textContent = "Plan refreshed";
         statusEl.className = "success";
       } catch (error) {
         statusEl.textContent = "Refresh failed";
@@ -7235,6 +8552,7 @@ async function fetchHistoryPayload(itemId, activeRange, options = {}) {
         refreshBtn.disabled = false;
       }
     }
+
 
     
 
@@ -7441,6 +8759,9 @@ ${buildSlotPurposeContextForAi()}`;
 
     budgetEl.addEventListener("blur", () => { formatBudgetField(); updateRiskSliderDisplay(); });
     document.querySelectorAll(".tab-btn").forEach(btn => btn.addEventListener("click", () => switchTab(btn.dataset.tab)));
+
+    window.addEventListener("resize", scheduleMarketChartRedraw);
+
     document.querySelectorAll(".range-btn").forEach(btn => btn.addEventListener("click", async () => {
       const nextRange = btn.dataset.range || "month";
       if (btn.classList.contains("active") && latestSelectedItemId) {
@@ -7466,6 +8787,26 @@ ${buildSlotPurposeContextForAi()}`;
     riskPercentEl?.addEventListener("input", updateRiskSliderDisplay);
     savePersonalBtn.addEventListener("click", () => saveAllSettings("personal"));
     refreshBtn.addEventListener("click", refresh);
+    
+    graphTrendlineBtn?.addEventListener("click", async () => {
+      graphTrendlineEnabled = !graphTrendlineEnabled;
+
+      localStorage.setItem(
+        "autoflipGraphTrendline",
+        graphTrendlineEnabled ? "1" : "0"
+      );
+
+      updateTrendlineButtonState();
+
+      // AUTOFLIP PATCH: rerender active chart through real selected-item history flow
+      if (latestSelectedItemId) {
+        await selectMarketItem(latestSelectedItemId);
+      }
+    });
+
+    graphHardRefreshBtn?.addEventListener("click", hardRefreshCurrentGraph);
+
+
     document.querySelectorAll("[data-ai-prompt]").forEach(btn => btn.addEventListener("click", () => {
       if (advisorPromptEl) {
         advisorPromptEl.value = btn.dataset.aiPrompt || "";
@@ -7741,19 +9082,32 @@ ${buildSlotPurposeContextForAi()}`;
     }
 
 
-    function updateProfileAuthAction() {
+    async function updateProfileAuthAction() {
       const authLink = document.getElementById("profileAuthAction");
+      const debugLink = document.getElementById("profileDebugAction");
+      const debugSep = document.getElementById("profileDebugSep");
       if (!authLink) return;
       const token = (localStorage.getItem("osrs_token") || "").trim();
+      let sessionUser = null;
       if (token) {
         authLink.textContent = "Log out";
         authLink.href = "#";
         authLink.dataset.mode = "logout";
+        try {
+          const res = await fetch("/auth/me?token=" + encodeURIComponent(token));
+          const data = await res.json().catch(() => ({}));
+          if (res.ok && data && data.user) sessionUser = data.user;
+        } catch (error) {
+          console.warn("Unable to verify profile menu session", error);
+        }
       } else {
         authLink.textContent = "Log in";
         authLink.href = authLink.dataset.loginHref || "../login.html";
         authLink.dataset.mode = "login";
       }
+      const isModerator = !!(sessionUser && (sessionUser.is_moderator || sessionUser.account_type === "moderator"));
+      if (debugLink) debugLink.hidden = !isModerator;
+      if (debugSep) debugSep.hidden = !isModerator;
     }
 
     async function handleProfileAuthAction(event) {
@@ -7776,6 +9130,21 @@ ${buildSlotPurposeContextForAi()}`;
     document.addEventListener("click", handleProfileAuthAction);
     window.addEventListener("storage", updateProfileAuthAction);
 
+
+    (function initializeDebugEmbedMode() {
+      const params = new URLSearchParams(window.location.search);
+      const isDebugEmbed = params.get("debug_embed") === "1";
+      if (!isDebugEmbed) return;
+      document.body.classList.add("debug-embed");
+      try { localStorage.setItem("osrs_active_tab", "debugTab"); } catch (error) {}
+      const debugDetails = document.querySelectorAll('#debugTab details.debug-collapsible');
+      debugDetails.forEach((details) => {
+        details.open = false;
+        const btn = details.querySelector('[data-debug-expand]');
+        if (btn) btn.textContent = 'Expand';
+      });
+    })();
+
     initializeFavoritesSidebarState();
     initializeAiCopilotSidebarState();
     setActiveTradePlanSource("algo", "Algorithm overlay active.");
@@ -7784,6 +9153,7 @@ ${buildSlotPurposeContextForAi()}`;
     loadSettings();
     renderGeSlots([]);
     bootstrapMarketExplorer();
+    hydrateCanonicalMarketItemPage();
     resizeOverviewFrame();
     updateProfileAuthAction();
     restoreActiveTab();
@@ -8488,5 +9858,338 @@ function bootSkinSystem(){
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', bootSkinSystem); else bootSkinSystem();
 })();
 </script>
+
+<script>
+(function(){
+  function openAutoFlipHashTab(){
+    var hash = (window.location.hash || "").toLowerCase();
+
+    if (hash !== "#market-stats" && hash !== "#market") {
+      return;
+    }
+
+    var marketBtn =
+      document.querySelector('#marketTab') ||
+      document.querySelector('[data-tab="market"]') ||
+      document.querySelector('[data-panel="market"]');
+
+    if (marketBtn) {
+      marketBtn.click();
+      setTimeout(function(){
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      }, 120);
+
+      console.log('AutoFlip market tab opened from footer link');
+    }
+  }
+
+  window.addEventListener('load', function(){
+    setTimeout(openAutoFlipHashTab, 350);
+  });
+
+  window.addEventListener('hashchange', function(){
+    setTimeout(openAutoFlipHashTab, 150);
+  });
+})();
+</script>
+
+
+<script>
+(() => {
+  // AUTOFLIP UI POLISH PATCH 20260513
+  const PATCH_ID = "autoflip-ui-polish-20260513";
+
+  function gp(value) {
+    const n = Number(value || 0);
+    return Number.isFinite(n) ? Math.round(n).toLocaleString() : "-";
+  }
+
+  function pct(value) {
+    const n = Number(value || 0);
+    return Number.isFinite(n) ? `${n.toFixed(2)}%` : "-";
+  }
+
+  function polishMarketDataButtonHtml(item) {
+    const id = Number(item?.item_id ?? item?.id ?? item?.itemId ?? 0);
+    if (!id) return "";
+    return `<button class="view-market-data-btn" title="View Market Data" aria-label="View Market Data" data-market-item-id="${id}">📈</button>`;
+  }
+
+  function hoursLabel(item, fallbackHours) {
+    const h = Number(item?.expected_time_to_liquidity_hours ?? item?.expected_time_to_liquidity ?? 0);
+    if (Number.isFinite(h) && h > 0) {
+      if (h <= 1) return "Fast liquidity";
+      if (h <= 4) return "Same-session";
+      return `${Math.ceil(h)}h fit`;
+    }
+    return fallbackHours ? `${fallbackHours}h fit` : "Time-fit";
+  }
+
+  function findPlannerCard() {
+    const headings = Array.from(document.querySelectorAll("h1,h2,h3"));
+    const h = headings.find(x => /Recommended GE Trade Grid/i.test(x.textContent || ""));
+    return h ? h.closest(".card, section, div") : null;
+  }
+
+  function findGrid(panel) {
+    if (!panel) return null;
+    return Array.from(panel.querySelectorAll("div")).find(el => {
+      const kids = Array.from(el.children || []);
+      return kids.length >= 5 && kids.length <= 10 && kids.some(k => /Slot\s+\d/i.test(k.textContent || ""));
+    });
+  }
+
+  function getInputs() {
+    const budgetRaw = document.querySelector("#budget")?.value || "0";
+    const hoursRaw = document.querySelector("#hoursAway")?.value || document.querySelector("[name='hoursAway']")?.value || "4";
+    const riskRaw =
+      document.querySelector("#riskPercent")?.value ||
+      document.querySelector("#riskLevel")?.value ||
+      document.querySelector("[name='risk']")?.value ||
+      "45";
+    return {
+      budgetRaw,
+      hours: Number(hoursRaw || 0) || 0,
+      risk: Number(riskRaw || 45) || 45,
+    };
+  }
+
+
+  function injectPolishMarketButtons(grid) {
+    if (!grid) return;
+    grid.querySelectorAll(".af-clean-title-row[data-polish-market-item-id]").forEach(row => {
+      if (row.querySelector(".view-market-data-btn")) return;
+
+      const itemId = Number(row.dataset.polishMarketItemId || 0);
+      if (!itemId) return;
+
+      const itemName = (row.querySelector(".af-clean-name")?.textContent || "").trim();
+      const btn = document.createElement("a");
+      btn.className = "view-market-data-btn";
+      btn.href = canonicalMarketItemHref({ id: itemId, name: itemName });
+      btn.title = "View Market Data";
+      btn.setAttribute("aria-label", "View Market Data");
+      btn.dataset.marketItemId = String(itemId);
+      btn.dataset.marketItemName = itemName;
+      btn.textContent = "📈";
+
+      row.appendChild(btn);
+    });
+  }
+
+  function renderCleanBoard(board, meta = {}) {
+    const panel = findPlannerCard();
+    const grid = findGrid(panel);
+    if (!panel || !grid) return false;
+
+    const inputs = getInputs();
+    const maxHours = inputs.hours || Number(meta.hours_away || 0) || 4;
+    const safe = Array.isArray(board) ? board.filter(item => {
+      const qty = Number(item.quantity ?? item.allocated_quantity ?? item.liquidity_safe_quantity ?? 0);
+      const profit = Number(item.expected_profit ?? 0);
+      const capital = Number(item.capital_required ?? 0);
+      const h = Number(item.expected_time_to_liquidity_hours ?? item.expected_time_to_liquidity ?? 0);
+      if (!qty || qty < 2) return false;
+      if (profit < 250) return false;
+      if (capital < 25000) return false;
+      if (maxHours > 0 && h > 0 && h > maxHours) return false;
+      return true;
+    }).slice(0, 8) : [];
+
+    let summary = panel.querySelector(".af-polish-summary");
+    if (!summary) {
+      summary = document.createElement("div");
+      summary.className = "af-polish-summary";
+      const h = Array.from(panel.querySelectorAll("h1,h2,h3")).find(x => /Recommended GE Trade Grid/i.test(x.textContent || ""));
+      if (h && h.parentNode) h.parentNode.insertBefore(summary, h.nextSibling);
+    }
+    summary.innerHTML = `AutoFlip found ${safe.length} trade${safe.length === 1 ? "" : "s"} that fit your ${maxHours || "selected"} hour window.<span class="muted">Empty slots mean the planner refused weak or too-slow filler trades.</span>`;
+
+    grid.classList.add("af-polished-board");
+    const cards = [];
+    for (let i = 0; i < 8; i += 1) {
+      const item = safe[i];
+      if (!item) {
+        cards.push(`
+          <div class="af-polished-slot af-empty-slot">
+            <div>
+              <div class="af-slot-rank">${i + 1}</div>
+              <strong>Slot ${i + 1}: Empty</strong>
+              <div class="muted">No trustworthy fit under ${maxHours || "this"}h.</div>
+            </div>
+          </div>
+        `);
+        continue;
+      }
+
+      const itemId = item.item_id ?? item.id ?? "";
+      const icon = item.icon_url || (itemId ? `/static/item_icons/${itemId}.png` : "/assets/favicon.png");
+      const name = item.item_name || item.name || "Unknown item";
+      const qty = Number(item.quantity ?? item.allocated_quantity ?? item.liquidity_safe_quantity ?? 0);
+      cards.push(`
+        <div class="af-polished-slot">
+          <div class="af-slot-rank">${i + 1}</div>
+          <div class="af-clean-head">
+            <img class="af-clean-icon" src="${icon}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">
+            <div class="af-clean-name-wrap">
+              <div class="af-clean-title-row" data-polish-market-item-id="${itemId}">
+                <div class="af-clean-name">${name}</div>
+              </div>
+              <div class="af-clean-qty">Qty ${gp(qty)} · ${item.fill_speed_band || "time-fit"}</div>
+            </div>
+          </div>
+          <div class="af-clean-prices">
+            <div class="af-clean-price"><span>Buy</span><strong>${gp(item.buy_price ?? item.buy)}</strong></div>
+            <div class="af-clean-price"><span>Sell</span><strong>${gp(item.sell_price ?? item.sell)}</strong></div>
+          </div>
+          <div class="af-clean-profit"><span>Expected profit</span><strong>${gp(item.expected_profit)}</strong></div>
+          <div class="af-clean-foot">
+            <span class="af-liquidity-pill">⚡ ${hoursLabel(item, maxHours)}</span>
+            <span class="af-roi-subtle">ROI ${pct(item.roi_pct_after_tax ?? item.roi_pct)}</span>
+          </div>
+        </div>
+      `);
+    }
+
+    grid.innerHTML = cards.join("");
+    injectPolishMarketButtons(grid);
+
+    const offers = document.querySelector("#offerCount");
+    const safeSlots = Array.from(document.querySelectorAll(".value")).find(x => /\/8/.test(x.textContent || ""));
+    if (offers) offers.textContent = String(safe.length);
+    if (safeSlots) safeSlots.textContent = `${safe.length}/8`;
+
+    return true;
+  }
+
+  async function refreshCleanBoard() {
+    const inputs = getInputs();
+    const params = new URLSearchParams({
+      limit: "24",
+      budget: String((window.parseBudgetInput ? window.parseBudgetInput(inputs.budgetRaw) : Number(String(inputs.budgetRaw).replace(/[^0-9.]/g, ""))) || 10000000),
+      hours_away: String(inputs.hours || 4),
+      risk_percent: String(inputs.risk || 45),
+    });
+
+    try {
+      const response = await fetch(`/market/recommendations?${params.toString()}`, { cache: "no-store" });
+      const payload = await response.json();
+      const board = payload.board || payload.top_candidates || payload.recommendations || [];
+      renderCleanBoard(board, payload);
+      const status = document.querySelector("#status");
+      if (status) status.textContent = "Plan refreshed";
+    } catch (err) {
+      console.error(`[${PATCH_ID}] refresh failed`, err);
+    }
+  }
+
+  function wireButtons() {
+    Array.from(document.querySelectorAll("button")).forEach(btn => {
+      const text = (btn.textContent || "").trim();
+      if (/Refresh Plan|Refresh$/i.test(text) && !btn.dataset.afPolishRefresh) {
+        btn.dataset.afPolishRefresh = "1";
+        btn.addEventListener("click", () => setTimeout(refreshCleanBoard, 150));
+      }
+      if (/Save Settings/i.test(text) && !btn.dataset.afPolishSave) {
+        btn.dataset.afPolishSave = "1";
+        btn.addEventListener("click", () => setTimeout(refreshCleanBoard, 250));
+      }
+    });
+  }
+
+  let timer = null;
+  function schedule() {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      wireButtons();
+      refreshCleanBoard();
+    }, 250);
+  }
+
+  document.addEventListener("click", async (event) => {
+    const btn = event.target.closest?.("[data-market-item-id]");
+    if (!btn) return;
+    if (btn.tagName === "A" && btn.getAttribute("href")) return;
+    event.preventDefault();
+    event.stopPropagation();
+
+    const itemId = Number(btn.dataset.marketItemId || 0);
+    const itemName = String(btn.dataset.marketItemName || "").trim();
+    if (!itemId && !itemName) return;
+
+    if (typeof switchTab === "function") {
+      switchTab("marketTab");
+    } else {
+      const marketBtn = document.querySelector('[data-tab="marketTab"]');
+      if (marketBtn) marketBtn.click();
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    try {
+      const input = document.querySelector("#marketSearchInput");
+      if (input && itemName) {
+        input.value = itemName;
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+
+      let selectedId = itemId;
+
+      if (itemName && typeof fetchJsonWithTimeout === "function") {
+        const data = await fetchJsonWithTimeout(`/market/explorer/search?q=${encodeURIComponent(itemName)}&limit=250`, {}, 6000);
+        const items = Array.isArray(data?.items)
+          ? data.items
+          : Array.isArray(data?.results)
+            ? data.results
+            : Array.isArray(data)
+              ? data
+              : [];
+
+        const exact = items.find(x => String(x?.name || "").toLowerCase() === itemName.toLowerCase()) || items[0];
+        if (exact?.id) selectedId = Number(exact.id);
+
+        if (typeof renderMarketExplorerResults === "function") {
+          latestExplorerItems = items;
+          latestExplorerPage = 1;
+          renderMarketExplorerResults();
+        }
+      }
+
+      if (typeof selectMarketItem === "function" && selectedId) {
+        await selectMarketItem(Number(selectedId));
+        await new Promise(resolve => setTimeout(resolve, 250));
+
+        const target =
+          document.querySelector("#marketChartShell") ||
+          document.querySelector("#marketDetailShell") ||
+          document.querySelector("#marketResultsShell");
+
+        if (target) {
+          target.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+        return;
+      }
+
+      const searchBtn = document.querySelector("#marketSearchBtn");
+      if (searchBtn) searchBtn.click();
+
+    } catch (error) {
+      console.warn("Market Data lookup failed", error);
+    }
+
+    window.location.hash = `market-item-${itemId || encodeURIComponent(itemName)}`;
+  });
+
+  document.addEventListener("DOMContentLoaded", schedule);
+  window.addEventListener("load", schedule);
+  new MutationObserver(() => {
+    wireButtons();
+  }).observe(document.documentElement, { childList: true, subtree: true });
+})();
+</script>
+
 </body>
 </html>

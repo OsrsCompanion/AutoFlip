@@ -66,11 +66,32 @@
     .chart-title-block h2, .chart-title-block h3, .chart-title-block p { margin: 0; }
     .chart-title-block p { margin-top: 6px; }
     .chart-wrap { position:relative; background:linear-gradient(180deg,#1b120d,#140c08); border:1px solid #6b4a22; border-radius:16px; margin-top:12px; padding: 14px; overflow:visible; box-shadow: inset 0 1px 0 rgba(255,226,170,0.04); }
-    .chart-frame { width: 100%; height: 860px; display:block; }
+    .chart-frame { width: 100%; height: 940px; display:block; }
     .chart-legend { display:flex; gap:18px; flex-wrap:wrap; align-items:center; margin-top:12px; color:#dccba8; font-size:14px; }
     .legend-swatch { width:18px; height:4px; border-radius:999px; display:inline-block; margin-right:8px; vertical-align:middle; }
     .legend-bar { width:18px; height:10px; border-radius:3px; display:inline-block; margin-right:8px; vertical-align:middle; }
     .chart-footnote { margin-top: 8px; }
+
+    .smart-market-strip { display:grid; grid-template-columns: repeat(6, minmax(130px, 1fr)); gap:10px; margin-top:14px; }
+    .smart-market-pill { background:linear-gradient(180deg,rgba(57,35,18,0.95),rgba(31,19,12,0.94)); border:1px solid rgba(184,137,45,0.28); border-radius:14px; padding:12px 14px; box-shadow: inset 0 1px 0 rgba(255,226,170,0.04); }
+    .smart-market-pill .k { color:#d7b06a; font-size:11px; text-transform:uppercase; letter-spacing:.06em; margin-bottom:5px; }
+    .smart-market-pill .v { color:#f6ead1; font-size:20px; line-height:1.1; font-weight:800; }
+    .smart-market-pill .s { color:#d8c6a1; font-size:12px; margin-top:5px; }
+    .smart-market-pill.good .v { color:#78d45f; }
+    .smart-market-pill.watch .v { color:#fbbf24; }
+    .smart-market-pill.risk .v { color:#fb7185; }
+    .smart-insight-row { display:grid; grid-template-columns: repeat(4, minmax(170px, 1fr)); gap:10px; margin-top:12px; }
+    .smart-insight-card { border:1px solid rgba(184,137,45,0.22); background:rgba(20,12,8,0.7); border-radius:14px; padding:12px 14px; }
+    .smart-insight-card strong { display:block; color:#f5c56b; margin-bottom:5px; }
+    .smart-insight-card span { color:#d8c6a1; font-size:13px; }
+    .smart-action-panel { display:grid; grid-template-columns: 1.3fr repeat(4, minmax(110px, .6fr)); gap:14px; align-items:center; margin-top:12px; padding:16px; border:1px solid rgba(184,137,45,0.28); border-radius:16px; background:linear-gradient(90deg,rgba(57,35,18,0.9),rgba(23,14,9,0.9)); }
+    .smart-action-panel .action-title { color:#f6ead1; font-weight:800; font-size:18px; margin-bottom:5px; }
+    .smart-action-panel .action-copy { color:#d8c6a1; }
+    .smart-action-panel .metric-label { color:#d7b06a; font-size:12px; text-transform:uppercase; letter-spacing:.05em; }
+    .smart-action-panel .metric-value { color:#f6ead1; font-size:22px; font-weight:800; margin-top:4px; }
+    .smart-action-panel .metric-value.buy { color:#74aedd; }
+    .smart-action-panel .metric-value.sell { color:#fb923c; }
+    .smart-action-panel .metric-value.good { color:#78d45f; }
     .chart-tooltip { position:absolute; pointer-events:none; min-width:170px; max-width:240px; background:rgba(24,14,8,0.96); border:1px solid rgba(212,167,67,0.42); border-radius:12px; padding:10px 12px; box-shadow:0 12px 28px rgba(0,0,0,0.35); color:#eef7ff; font-size:13px; line-height:1.45; z-index:20; opacity:0; transition:opacity 0.12s ease; }
     .chart-tooltip.visible { opacity:1; }
     .chart-tooltip .label { color:#d7b06a; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; }
@@ -576,7 +597,7 @@
     @media (max-width: 1500px) { .trade-plan-grid { grid-template-columns: repeat(2, minmax(280px, 1fr)); } }
     @media (max-width: 900px) { .trade-plan-grid { grid-template-columns: 1fr; } }
 
-    @media (max-width: 1100px) { .market-layout, .market-layout.selection-active { grid-template-columns: 1fr; } .chart-frame { height: 620px; } .favorites-sidebar, .ai-sidebar { position: static !important; width: auto !important; height: auto !important; border-right: 0; border-left: 0; border-bottom: 1px solid rgba(184,137,45,0.18); box-shadow:none; transform:none !important; padding-right:14px; } .favorites-edge-hitbox, .favorites-toggle-btn, .ai-edge-hitbox, .ai-toggle-btn { display:none; } .wrap, body.favorites-collapsed .wrap, body.ai-copilot-collapsed .wrap { margin: 0 auto; } body { padding-bottom: 0; } }
+    @media (max-width: 1100px) { .market-layout, .market-layout.selection-active { grid-template-columns: 1fr; } .chart-frame { height: 680px; } .smart-market-strip, .smart-insight-row, .smart-action-panel { grid-template-columns: 1fr; } .favorites-sidebar, .ai-sidebar { position: static !important; width: auto !important; height: auto !important; border-right: 0; border-left: 0; border-bottom: 1px solid rgba(184,137,45,0.18); box-shadow:none; transform:none !important; padding-right:14px; } .favorites-edge-hitbox, .favorites-toggle-btn, .ai-edge-hitbox, .ai-toggle-btn { display:none; } .wrap, body.favorites-collapsed .wrap, body.ai-copilot-collapsed .wrap { margin: 0 auto; } body { padding-bottom: 0; } }
 
     @media (max-width: 1700px) {
       :root { --center-safe-side: 280px; }
@@ -1821,7 +1842,7 @@
       &lt;/div&gt;
       &lt;div class=&quot;card&quot; style=&quot;border-color: rgba(251,191,36,.3);&quot;&gt;
         &lt;h2 class=&quot;panel-title&quot;&gt;Pro Plugin&lt;/h2&gt;
-        &lt;div class=&quot;price-box&quot;&gt;&lt;div class=&quot;price-main&quot;&gt;$5&lt;/div&gt;&lt;div class=&quot;price-sub&quot;&gt;per month&lt;/div&gt;&lt;/div&gt;
+        &lt;div class=&quot;price-box&quot;&gt;&lt;div class=&quot;price-main&quot;&gt;$4.99&lt;/div&gt;&lt;div class=&quot;price-sub&quot;&gt;per month&lt;/div&gt;&lt;/div&gt;
         &lt;div class=&quot;stack&quot; style=&quot;margin-top:14px;&quot;&gt;
           &lt;div class=&quot;tag lock&quot;&gt;Full 8-slot optimization&lt;/div&gt;
           &lt;div class=&quot;tag lock&quot;&gt;Player-aware planning&lt;/div&gt;
@@ -2349,20 +2370,23 @@
               </div>
               <div class="range-wrap">
                 <button class="range-btn" data-range="day">Day</button>
-                <button class="range-btn" data-range="week">Week</button>
-                <button class="range-btn active" data-range="month">Month</button>
+                <button class="range-btn active" data-range="week">Week</button>
+                <button class="range-btn" data-range="month">Month</button>
               </div>
             </div>
+            <div id="smartMarketStrip" class="smart-market-strip" aria-live="polite"></div>
+            <div id="smartInsightRow" class="smart-insight-row"></div>
             <div class="chart-wrap">
-              <svg id="historyChartSvg" class="chart-frame" viewBox="0 0 1720 860" preserveAspectRatio="none" aria-label="Market history chart"></svg>
+              <svg id="historyChartSvg" class="chart-frame" viewBox="0 0 1720 940" preserveAspectRatio="none" aria-label="Market history chart"></svg>
               <div id="chartTooltip" class="chart-tooltip" aria-hidden="true"></div>
             </div>
+            <div id="smartActionPanel" class="smart-action-panel"></div>
             <div class="chart-legend">
               <span><span class="legend-swatch" style="background:#74aedd;"></span>Buying low</span>
               <span><span class="legend-swatch" style="background:#fbbf24;"></span>Selling high</span>
               <span><span class="legend-bar" style="background:rgba(148,163,184,0.65);"></span>5m volume</span>
             </div>
-            <p class="muted chart-footnote">Day now prefers detected trade-event timing plus 5-minute snapshot anchors for a more active intraday feel. Week and Month stay on the cleaner snapshot view. Older data is still compacted once it moves past a week old.</p>
+            <p class="muted chart-footnote">Smart chart shows the real spread band, spike pressure, volume context, and a simple action read. It stays cache-first: no heavy raw-history rebuilds on page load.</p>
             <div class="chart-shell-note">Use this tab for discovery and validation. Exact deployment stays intentionally out of the website.</div>
           </div>
         </div>
@@ -2549,6 +2573,9 @@
     const chartPanelSubtitleEl = document.getElementById("chartPanelSubtitle");
     const chartPanelMetaEl = document.getElementById("chartPanelMeta");
     const historyChartSvgEl = document.getElementById("historyChartSvg");
+    const smartMarketStripEl = document.getElementById("smartMarketStrip");
+    const smartInsightRowEl = document.getElementById("smartInsightRow");
+    const smartActionPanelEl = document.getElementById("smartActionPanel");
     const chartTooltipEl = document.getElementById("chartTooltip");
     const chartWrapEl = document.querySelector(".chart-wrap");
     const itemsPerCategoryEl = document.getElementById("itemsPerCategory");
@@ -4210,28 +4237,121 @@
       return segments;
     }
 
-    function drawHistoryChart(points, range = "month", item = null) {
+
+    function getLatestRenderablePoint(points) {
+      for (let i = points.length - 1; i >= 0; i -= 1) {
+        if (isRenderablePoint(points[i])) return points[i];
+      }
+      return null;
+    }
+
+    function safePercent(value, fallback = "0.00") {
+      const num = Number(value || 0);
+      if (!Number.isFinite(num)) return fallback;
+      return num.toFixed(2);
+    }
+
+    function assessSmartMarket(item, points) {
+      const priced = (points || []).filter(p => isRenderablePoint(p));
+      const latest = getLatestRenderablePoint(priced);
+      if (!item && !latest) return null;
+      const latestLow = Number(latest?.low || item?.buy_price || 0);
+      const latestHigh = Number(latest?.high || item?.sell_price || 0);
+      const spread = Math.max(0, latestHigh - latestLow);
+      const roi = latestLow > 0 ? (spread / latestLow) * 100 : Number(item?.roi_pct || 0);
+      const volumes = priced.map(p => Number(p.volume ?? p.recent_volume ?? 0)).filter(v => Number.isFinite(v) && v >= 0);
+      const avgVolume = volumes.length ? average(volumes) : Number(item?.recent_volume || 0);
+      const maxVolume = volumes.length ? Math.max(...volumes) : avgVolume;
+      const recentVolume = Number(latest?.volume ?? latest?.recent_volume ?? item?.recent_volume ?? 0);
+      const lows = priced.map(p => Number(p.low)).filter(Number.isFinite);
+      const highs = priced.map(p => Number(p.high)).filter(Number.isFinite);
+      const minPrice = lows.length ? Math.min(...lows) : latestLow;
+      const maxPrice = highs.length ? Math.max(...highs) : latestHigh;
+      const rangePct = minPrice > 0 ? ((maxPrice - minPrice) / minPrice) * 100 : 0;
+      const spikeCount = priced.reduce((count, point, index) => {
+        if (index === 0) return count;
+        const prev = priced[index - 1];
+        const prevMid = (Number(prev.low) + Number(prev.high)) / 2;
+        const mid = (Number(point.low) + Number(point.high)) / 2;
+        if (!Number.isFinite(prevMid) || prevMid <= 0 || !Number.isFinite(mid)) return count;
+        return count + (Math.abs(mid - prevMid) / prevMid > 0.045 ? 1 : 0);
+      }, 0);
+      const volumeBand = recentVolume >= avgVolume * 1.35 ? "High" : (recentVolume >= avgVolume * 0.75 ? "Healthy" : "Light");
+      const stability = rangePct <= 4 && spikeCount <= 1 ? "Stable" : (rangePct <= 9 && spikeCount <= 3 ? "Watch" : "Risky");
+      const spreadBand = roi >= 1.2 ? "Healthy" : (roi >= 0.45 ? "Thin" : "Weak");
+      let quality = "WATCH";
+      if (spreadBand === "Healthy" && volumeBand !== "Light" && stability !== "Risky") quality = "GOOD";
+      if (spreadBand === "Weak" || stability === "Risky" || volumeBand === "Light") quality = "RISK";
+      const action = quality === "GOOD" ? "BUY" : (quality === "WATCH" ? "WAIT" : "AVOID");
+      const reason = quality === "GOOD"
+        ? "Healthy spread with enough volume to make the chart actionable."
+        : (quality === "WATCH" ? "The setup is usable, but one signal needs confirmation before acting." : "The chart is too unstable or too thin to trust right now.");
+      return { latestLow, latestHigh, spread, roi, avgVolume, recentVolume, maxVolume, minPrice, maxPrice, rangePct, spikeCount, volumeBand, stability, spreadBand, quality, action, reason };
+    }
+
+    function renderSmartMarketSummary(item, points, range) {
+      const signal = assessSmartMarket(item, points || []);
+      if (!signal) {
+        if (smartMarketStripEl) smartMarketStripEl.innerHTML = "";
+        if (smartInsightRowEl) smartInsightRowEl.innerHTML = "";
+        if (smartActionPanelEl) smartActionPanelEl.innerHTML = "";
+        return;
+      }
+      const tone = signal.quality === "GOOD" ? "good" : (signal.quality === "WATCH" ? "watch" : "risk");
+      const stabilityTone = signal.stability === "Stable" ? "good" : (signal.stability === "Watch" ? "watch" : "risk");
+      if (smartMarketStripEl) {
+        smartMarketStripEl.innerHTML = `
+          <div class="smart-market-pill"><div class="k">Buy Price</div><div class="v">${formatCoins(signal.latestLow)} gp</div><div class="s">Current buying low</div></div>
+          <div class="smart-market-pill"><div class="k">Sell Price</div><div class="v">${formatCoins(signal.latestHigh)} gp</div><div class="s">Current selling high</div></div>
+          <div class="smart-market-pill ${tone}"><div class="k">Flip Quality</div><div class="v">${signal.quality}</div><div class="s">${signal.spreadBand} spread</div></div>
+          <div class="smart-market-pill"><div class="k">Spread</div><div class="v">${formatCoins(signal.spread)} gp</div><div class="s">ROI ${safePercent(signal.roi)}%</div></div>
+          <div class="smart-market-pill ${stabilityTone}"><div class="k">Stability</div><div class="v">${signal.stability}</div><div class="s">Range ${safePercent(signal.rangePct)}%</div></div>
+          <div class="smart-market-pill"><div class="k">Volume</div><div class="v">${formatShortNumber(signal.recentVolume)}</div><div class="s">${signal.volumeBand} recent activity</div></div>
+        `;
+      }
+      if (smartInsightRowEl) {
+        smartInsightRowEl.innerHTML = `
+          <div class="smart-insight-card"><strong>Useful movement</strong><span>${signal.minPrice ? `${formatCoins(signal.minPrice)} - ${formatCoins(signal.maxPrice)} gp` : "Waiting for range"}</span></div>
+          <div class="smart-insight-card"><strong>Spread read</strong><span>${signal.spreadBand === "Healthy" ? "Enough margin to care about." : signal.spreadBand === "Thin" ? "Possible flip, but margin is tight." : "Margin is weak right now."}</span></div>
+          <div class="smart-insight-card"><strong>Spike read</strong><span>${signal.spikeCount ? `${signal.spikeCount} sharp move${signal.spikeCount === 1 ? "" : "s"} detected.` : "No major spike pressure detected."}</span></div>
+          <div class="smart-insight-card"><strong>Best use</strong><span>${range === "day" ? "Intraday confirmation before acting." : "Context check before giving this a slot."}</span></div>
+        `;
+      }
+      if (smartActionPanelEl) {
+        smartActionPanelEl.innerHTML = `
+          <div><div class="action-title">Smart read: ${signal.reason}</div><div class="action-copy">This chart is meant to reduce guessing: spread, volume, and stability decide whether the item deserves attention.</div></div>
+          <div><div class="metric-label">Action</div><div class="metric-value ${tone}">${signal.action}</div></div>
+          <div><div class="metric-label">Buy around</div><div class="metric-value buy">${formatCoins(signal.latestLow)}</div></div>
+          <div><div class="metric-label">Sell around</div><div class="metric-value sell">${formatCoins(signal.latestHigh)}</div></div>
+          <div><div class="metric-label">Why</div><div class="metric-value" style="font-size:15px;line-height:1.25;">${signal.volumeBand} volume + ${signal.spreadBand.toLowerCase()} spread</div></div>
+        `;
+      }
+    }
+
+    function drawHistoryChart(points, range = "week", item = null) {
       points = normalizeHistoryPoints(points, range);
       const width = 1720;
-      const height = 860;
+      const height = 940;
       const leftPad = 92;
       const rightPad = 96;
       const topPad = 42;
-      const priceBottom = 540;
-      const volumeTop = 610;
-      const volumeBottom = 790;
+      const priceBottom = 600;
+      const volumeTop = 680;
+      const volumeBottom = 860;
       const innerWidth = width - leftPad - rightPad;
 
       chartTooltipEl.classList.remove("visible");
       chartTooltipEl.setAttribute("aria-hidden", "true");
 
       if (!points || points.length === 0) {
+        renderSmartMarketSummary(item, [], range);
         historyChartSvgEl.innerHTML = `<rect x="0" y="0" width="${width}" height="${height}" fill="#170e08" rx="16"></rect><text x="${width/2}" y="${height/2}" fill="#d7b06a" text-anchor="middle" font-size="24" font-family="Arial">No history points yet for this range.</text>`;
         return;
       }
 
       const pricedPoints = points.filter(p => isRenderablePoint(p));
       if (!pricedPoints.length) {
+        renderSmartMarketSummary(item, [], range);
         historyChartSvgEl.innerHTML = `<rect x="0" y="0" width="${width}" height="${height}" fill="#170e08" rx="16"></rect><text x="${width/2}" y="${height/2}" fill="#d7b06a" text-anchor="middle" font-size="24" font-family="Arial">No captured data exists for this range yet.</text>`;
         return;
       }
@@ -4247,6 +4367,7 @@
       maxVal += padVal;
       const priceSpan = Math.max(maxVal - minVal, 1);
       const maxVolume = Math.max(...volumes, 1);
+      renderSmartMarketSummary(item, points, range);
 
       const pointTimes = points.map((point, index) => getPointTimeMs(point, index));
       const minTime = Math.min(...pointTimes);
@@ -4286,13 +4407,45 @@
       svg += `<text x="26" y="${(topPad+priceBottom)/2}" fill="#d8c6a1" font-size="20" transform="rotate(-90 26 ${(topPad+priceBottom)/2})" font-family="Arial">Price (gp)</text>`;
       svg += `<text x="${width-18}" y="${(volumeTop+volumeBottom)/2}" fill="#d8c6a1" font-size="20" transform="rotate(-90 ${width-18} ${(volumeTop+volumeBottom)/2})" font-family="Arial">5m volume</text>`;
 
+      const spreadTop = [];
+      const spreadBottom = [];
+      points.forEach((point, i) => {
+        if (!isRenderablePoint(point)) return;
+        const low = Number(point.low);
+        const high = Number(point.high);
+        if (!isRenderablePrice(low) || !isRenderablePrice(high)) return;
+        spreadTop.push(`${xForIndex(i).toFixed(2)},${priceY(high).toFixed(2)}`);
+        spreadBottom.unshift(`${xForIndex(i).toFixed(2)},${priceY(low).toFixed(2)}`);
+      });
+      if (spreadTop.length > 1 && spreadBottom.length > 1) {
+        svg += `<polygon points="${spreadTop.concat(spreadBottom).join(" ")}" fill="rgba(251,191,36,0.13)" stroke="rgba(251,191,36,0.18)" stroke-width="1"></polygon>`;
+      }
+
+      const smartSignal = assessSmartMarket(item, points);
+      if (smartSignal && smartSignal.spikeCount > 0) {
+        const mids = pricedPoints.map(p => ((Number(p.low) + Number(p.high)) / 2));
+        points.forEach((point, i) => {
+          if (i === 0 || !isRenderablePoint(point)) return;
+          const prev = points[i - 1];
+          if (!isRenderablePoint(prev)) return;
+          const prevMid = (Number(prev.low) + Number(prev.high)) / 2;
+          const mid = (Number(point.low) + Number(point.high)) / 2;
+          if (!Number.isFinite(prevMid) || prevMid <= 0 || !Number.isFinite(mid)) return;
+          if (Math.abs(mid - prevMid) / prevMid > 0.045) {
+            const x = xForIndex(i);
+            svg += `<rect x="${x - 8}" y="${topPad}" width="16" height="${priceBottom - topPad}" fill="rgba(248,113,113,0.11)" rx="6"></rect>`;
+            svg += `<text x="${x + 12}" y="${topPad + 28}" fill="#fb7185" font-size="18" font-weight="700" font-family="Arial">Spike</text>`;
+          }
+        });
+      }
+
       const barWidth = Math.max(innerWidth / Math.max(points.length * 1.35, 24), 2.2);
       points.forEach((point, i) => {
         const x = xForIndex(i);
         const vol = Number(point.volume ?? point.recent_volume ?? 0);
         if (!Number.isFinite(vol) || vol <= 0 || !isRenderablePoint(point)) return;
         const y = volumeY(vol);
-        svg += `<rect x="${x - barWidth/2}" y="${y}" width="${barWidth}" height="${Math.max(volumeBottom - y, 2)}" fill="rgba(148,163,184,0.68)" rx="2"></rect>`;
+        svg += `<rect x="${x - barWidth/2}" y="${y}" width="${barWidth}" height="${Math.max(volumeBottom - y, 2)}" fill="${vol >= (maxVolume * 0.55) ? 'rgba(34,197,94,0.68)' : 'rgba(148,163,184,0.56)'}" rx="2"></rect>`;
       });
 
       buildPolylineSegments(points, xForIndex, priceY, point => point.low).forEach(segment => {
@@ -5325,7 +5478,7 @@
       setExplorerSelectionState(Boolean(selected));
       renderMarketDetail(selected);
       if (!selected) return;
-      const activeRange = document.querySelector(".range-btn.active")?.dataset.range || "month";
+      const activeRange = document.querySelector(".range-btn.active")?.dataset.range || "week";
       try {
         const data = await fetchJsonWithTimeout(`/market/explorer/history/${itemId}?range=${activeRange}`);
         const normalized = normalizeHistoryPoints(data.points || [], activeRange);

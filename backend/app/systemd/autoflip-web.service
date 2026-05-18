@@ -1,0 +1,20 @@
+[Unit]
+Description=AutoFlip web/API server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=osrscompanion
+Group=osrscompanion
+WorkingDirectory=/home/osrscompanion/osrs-flip-assistant
+Environment=PYTHONPATH=/home/osrscompanion/osrs-flip-assistant
+Environment=OSRS_FLIP_DATA_ROOT=/mnt/nvme/autoflip-data
+ExecStart=/home/osrscompanion/osrs-flip-assistant/venv/bin/python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+Restart=always
+RestartSec=5
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

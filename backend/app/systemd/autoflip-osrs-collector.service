@@ -1,0 +1,20 @@
+[Unit]
+Description=AutoFlip OSRS market collector
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=osrscompanion
+Group=osrscompanion
+WorkingDirectory=/home/osrscompanion/osrs-flip-assistant
+Environment=PYTHONPATH=/home/osrscompanion/osrs-flip-assistant
+Environment=OSRS_FLIP_DATA_ROOT=/mnt/nvme/autoflip-data
+ExecStart=/home/osrscompanion/osrs-flip-assistant/venv/bin/python3 -m app.services.collector_runner
+Restart=always
+RestartSec=10
+KillSignal=SIGTERM
+TimeoutStopSec=60
+
+[Install]
+WantedBy=multi-user.target

@@ -5,6 +5,7 @@ import os
 import time
 from pathlib import Path
 from collections import defaultdict
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from urllib.error import URLError
 from urllib.request import Request, urlopen
 from datetime import UTC, datetime, timedelta
@@ -20,6 +21,7 @@ def _candidate_data_roots() -> list[Path]:
     if env_root:
         roots.append(Path(env_root).expanduser().resolve())
     roots.extend([
+        Path("/mnt/nvme/autoflip-data").resolve(),
         (APP_DIR / "data").resolve(),
         (BACKEND_DIR / "data").resolve(),
     ])
@@ -83,6 +85,32 @@ HIGH_ALCH_CACHE_PATH = str((Path(CACHE_DIR) / "high_alch_cache.json").resolve())
 MAPPING_CACHE_MAX_AGE_HOURS = 168
 MAPPING_ENDPOINT = "https://prices.runescape.wiki/api/v1/osrs/mapping"
 
+HISTORY_GRAPH_CACHE_DIR = str((Path(CACHE_DIR) / "history_graphs").resolve())
+HISTORY_GRAPH_CACHE_WINDOWS = ("day", "week", "month", "3month", "year")
+
+# WINDOW_ALIASES_GRAPH_HOTFIX
+HISTORY_GRAPH_WINDOW_ALIASES = {
+    "3m": "3month",
+    "3mo": "3month",
+    "90d": "3month",
+    "1y": "year",
+    "12m": "year",
+}
+
+
+def _normalize_history_window(window: str) -> str:
+    normalized = str(window or "month").strip().lower()
+    normalized = HISTORY_GRAPH_WINDOW_ALIASES.get(normalized, normalized)
+    return normalized if normalized in HISTORY_GRAPH_CACHE_WINDOWS else "month"
+
+HISTORY_GRAPH_CACHE_MAX_ITEMS = int(os.getenv("OSRS_GRAPH_CACHE_MAX_ITEMS", "20"))
+HISTORY_GRAPH_CACHE_INTERVAL_SECONDS = int(os.getenv("OSRS_GRAPH_CACHE_INTERVAL_SECONDS", "900"))
+HISTORY_GRAPH_CACHE_WORKERS = max(1, int(os.getenv("OSRS_GRAPH_CACHE_WORKERS", str(max(1, (os.cpu_count() or 2) - 1)))))
+HISTORY_GRAPH_CACHE_PROGRESS_PATH = str((Path(HISTORY_GRAPH_CACHE_DIR) / "cache_progress.json").resolve())
+_HISTORY_PAYLOAD_CACHE: dict[tuple[int, str], tuple[float, dict[str, Any]]] = {}
+_HISTORY_PAYLOAD_CACHE_TTL_SECONDS = 30
+_HISTORY_PAYLOAD_CACHE_MAX_ITEMS = 256
+
 RETENTION_DAYS = 31
 RAW_RETENTION_DAYS = 7
 MIN_TRACKED_VOLUME = 1000
@@ -106,6 +134,8 @@ def _ensure_dirs() -> None:
     os.makedirs(MONTH_ARCHIVE_DIR, exist_ok=True)
     os.makedirs(EVENT_DIR, exist_ok=True)
     os.makedirs(CACHE_DIR, exist_ok=True)
+    for window in HISTORY_GRAPH_CACHE_WINDOWS:
+        os.makedirs(os.path.join(HISTORY_GRAPH_CACHE_DIR, window), exist_ok=True)
 
 
 def get_storage_debug_meta() -> dict[str, Any]:
@@ -216,8 +246,7 @@ def _write_json(path: str, payload: Any) -> None:
     os.replace(tmp_path, path)
 
 
-def _iter_jsonl(path: str) -> list[dict[str, Any]]:
-    rows: list[dict[str, Any]] = []
+def _iter_jsonl_rows(path: str):
     try:
         with open(path, "r", encoding="utf-8") as handle:
             for line in handle:
@@ -229,10 +258,15 @@ def _iter_jsonl(path: str) -> list[dict[str, Any]]:
                 except Exception:
                     continue
                 if isinstance(row, dict):
-                    rows.append(row)
+                    yield row
     except FileNotFoundError:
-        pass
-    return rows
+        return
+
+
+def _iter_jsonl(path: str) -> list[dict[str, Any]]:
+    # Compatibility helper for small/bounded callers. New collector/cache paths
+    # should prefer _iter_jsonl_rows() so large JSONL files are not materialized.
+    return list(_iter_jsonl_rows(path))
 
 
 def _normalize_history_row(row: dict[str, Any]) -> dict[str, Any] | None:
@@ -358,13 +392,28 @@ def _dedupe_history_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def _load_item_history_window(item_id: int, days: int, include_archive: bool = False, include_events: bool = False) -> tuple[list[dict[str, Any]], dict[str, Any]]:
-    cutoff = _utc_now() - timedelta(days=days)
+    # Graph day view should not use a rolling "now - 24h" row cutoff.
+    # That cutoff made the chart start at whatever time the current 24h window began.
+    # For day-sized windows, scan yesterday + today UTC files and preserve all real
+    # snapshot_ts rows from those files. Week/month keep the bounded rolling cutoff.
+    reference_now = _utc_now()
+    if days == 1 and not include_archive:
+        cutoff = reference_now.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=1)
+        row_cutoff = None
+        window_mode = "calendar_file_day_no_row_cutoff"
+    else:
+        cutoff = reference_now - timedelta(days=days)
+        row_cutoff = cutoff
+        window_mode = "rolling_cutoff"
     phase_timings_ms: dict[str, int] = {}
     phase_details: dict[str, Any] = {}
 
     started = time.perf_counter()
     snapshot_files = _iter_history_files(SNAPSHOT_DIR, cutoff=cutoff)
-    snapshot_rows, snapshot_stats = _load_item_rows_from_files(item_id, snapshot_files, cutoff=cutoff)
+    snapshot_rows, snapshot_stats = _load_item_rows_from_files(item_id, snapshot_files, cutoff=row_cutoff)
+    for row in snapshot_rows:
+        row["source"] = "snapshot_5m"
+        row["is_compacted"] = bool(row.get("is_compacted", False))
     phase_timings_ms["snapshots_scan"] = int(round((time.perf_counter() - started) * 1000))
     phase_details["snapshots"] = {"files": len(snapshot_files), **snapshot_stats}
 
@@ -377,7 +426,7 @@ def _load_item_history_window(item_id: int, days: int, include_archive: bool = F
     if os.path.isdir(raw_dir):
         started = time.perf_counter()
         raw_files = _iter_history_files(raw_dir, cutoff=cutoff)
-        raw_rows, raw_stats = _load_item_rows_from_files(item_id, raw_files, cutoff=cutoff)
+        raw_rows, raw_stats = _load_item_rows_from_files(item_id, raw_files, cutoff=row_cutoff)
         rows.extend(raw_rows)
         total_files += raw_stats["files_scanned"]
         total_scanned += raw_stats["rows_scanned"]
@@ -388,7 +437,10 @@ def _load_item_history_window(item_id: int, days: int, include_archive: bool = F
     if include_archive:
         started = time.perf_counter()
         archive_files = _iter_history_files(MONTH_ARCHIVE_DIR, cutoff=cutoff)
-        archive_rows, archive_stats = _load_item_rows_from_files(item_id, archive_files, cutoff=cutoff)
+        archive_rows, archive_stats = _load_item_rows_from_files(item_id, archive_files, cutoff=row_cutoff)
+        for row in archive_rows:
+            row["source"] = "archive_month"
+            row["is_compacted"] = True
         rows.extend(archive_rows)
         total_files += archive_stats["files_scanned"]
         total_scanned += archive_stats["rows_scanned"]
@@ -399,7 +451,10 @@ def _load_item_history_window(item_id: int, days: int, include_archive: bool = F
     if include_events:
         started = time.perf_counter()
         event_files = _iter_history_files(EVENT_DIR, cutoff=cutoff)
-        event_rows, event_stats = _load_item_rows_from_files(item_id, event_files, cutoff=cutoff)
+        event_rows, event_stats = _load_item_rows_from_files(item_id, event_files, cutoff=row_cutoff)
+        for row in event_rows:
+            row["source"] = "trade_event"
+            row["is_compacted"] = False
         rows.extend(event_rows)
         total_files += event_stats["files_scanned"]
         total_scanned += event_stats["rows_scanned"]
@@ -409,6 +464,7 @@ def _load_item_history_window(item_id: int, days: int, include_archive: bool = F
 
     started = time.perf_counter()
     rows = _dedupe_history_rows(rows)
+    rows.sort(key=lambda row: _parse_ts(row.get("snapshot_ts")) or datetime.min.replace(tzinfo=UTC))
     phase_timings_ms["dedupe"] = int(round((time.perf_counter() - started) * 1000))
 
     meta = {
@@ -418,6 +474,9 @@ def _load_item_history_window(item_id: int, days: int, include_archive: bool = F
         "rows_matched": total_matched,
         "phase_timings_ms": phase_timings_ms,
         "phase_details": phase_details,
+        "history_window_mode": window_mode,
+        "history_file_cutoff": cutoff.isoformat() if cutoff else None,
+        "history_row_cutoff": row_cutoff.isoformat() if row_cutoff else None,
     }
     return rows, meta
 
@@ -478,7 +537,7 @@ def _load_recent_hour_volume_map(reference_time: datetime) -> dict[int, int]:
         if not name.endswith(".jsonl"):
             continue
         path = os.path.join(SNAPSHOT_DIR, name)
-        for row in _iter_jsonl(path):
+        for row in _iter_jsonl_rows(path):
             ts = _parse_ts(row.get("snapshot_ts"))
             if not ts:
                 continue
@@ -914,26 +973,18 @@ def _repair_market_cache_payload(cache: dict[str, Any], persist: bool = True) ->
         cache.setdefault("items", [])
         return cache
 
-    items_to_repair = [item for item in items if isinstance(item, dict) and _cache_item_missing_detail_fields(item)]
-    if not items_to_repair:
-        return cache
-
-    needed_ids = {_to_int(item.get("id")) for item in items_to_repair if _to_int(item.get("id")) > 0}
-    history_by_item: dict[int, list[dict[str, Any]]] = defaultdict(list)
-    if needed_ids:
-        for record in load_history_records(days=RETENTION_DAYS):
-            record_id = _to_int(record.get("id"))
-            if record_id in needed_ids:
-                history_by_item[record_id].append(record)
-
-    now = _utc_now()
+    # Keep cache reads cheap. Older versions repaired missing detail fields by
+    # scanning the full retention history on load_market_cache(), which means an
+    # ordinary web/API read could accidentally materialize huge JSONL history.
+    # Fill safe defaults from the cached item itself and let the collector build
+    # richer detail fields during the bounded cache rebuild path.
     changed_any = False
     normalized_items: list[dict[str, Any]] = []
+    now = _utc_now()
     for item in items:
         if not isinstance(item, dict):
             continue
-        item_id = _to_int(item.get("id"))
-        normalized_item, changed = _normalize_cached_item(item, history=history_by_item.get(item_id), now=now)
+        normalized_item, changed = _normalize_cached_item(item, history=None, now=now)
         normalized_items.append(normalized_item)
         changed_any = changed_any or changed
 
@@ -1080,6 +1131,24 @@ def append_snapshot(items: list[dict[str, Any]], snapshot_bucket: str | None = N
     bucket = snapshot_bucket or _bucket_for_time()
     cache = load_market_cache()
     if cache.get("snapshot_bucket") == bucket:
+        # If this code was deployed after the market cache was already built for
+        # the current bucket, raw history is already current but graph cache may
+        # not be. Catch up exactly once per bucket using a marker maintained by
+        # graph_cache_updater; do not rewrite thousands of files every minute.
+        try:
+            from app.services.graph_cache_updater import graph_cache_incremental_current, update_graph_cache_from_snapshot
+
+            if not graph_cache_incremental_current(bucket):
+                graph_update_meta = update_graph_cache_from_snapshot(items, bucket)
+                print(
+                    f"[market_history] graph_cache_incremental_catchup "
+                    f"bucket={bucket} items={graph_update_meta.get('updated_items', 0)} "
+                    f"files={graph_update_meta.get('updated_files', 0)} "
+                    f"failures={graph_update_meta.get('failures', 0)}",
+                    flush=True,
+                )
+        except Exception as exc:
+            print(f"[market_history] graph_cache_incremental_catchup_failed bucket={bucket} error={exc}", flush=True)
         return bucket
 
     tracked_items = _update_tracking_universe(items, snapshot_bucket=bucket)
@@ -1094,6 +1163,25 @@ def append_snapshot(items: list[dict[str, Any]], snapshot_bucket: str | None = N
             continue
         rows.append(_record_from_item(item, bucket))
     _append_jsonl(path, rows)
+
+    # Keep graph-ready history current in O(new snapshot rows) time.
+    # This intentionally uses the rows already built for this snapshot, not
+    # get_item_history_payload() or any JSONL scan/rebuild path.
+    try:
+        from app.services.graph_cache_updater import update_graph_cache_from_snapshot
+
+        graph_update_meta = update_graph_cache_from_snapshot(rows, bucket)
+        print(
+            f"[market_history] graph_cache_incremental_updated "
+            f"bucket={bucket} items={graph_update_meta.get('updated_items', 0)} "
+            f"files={graph_update_meta.get('updated_files', 0)} "
+            f"failures={graph_update_meta.get('failures', 0)}",
+            flush=True,
+        )
+    except Exception as exc:
+        # Graph freshness must never prevent raw history ingestion.
+        print(f"[market_history] graph_cache_incremental_update_failed bucket={bucket} error={exc}", flush=True)
+
     _append_intraday_events(items, snapshot_bucket=bucket, tracked_items=tracked_items)
 
     prune_old_snapshots(reference_time=dt)
@@ -1313,11 +1401,216 @@ def load_history_records(days: int = RETENTION_DAYS) -> list[dict[str, Any]]:
 # cache + analytics
 # -----------------------------
 
+
+def _history_source_plan(days: int = RETENTION_DAYS) -> dict[str, Any]:
+    _ensure_dirs()
+    reference = _utc_now()
+    raw_cutoff = reference - timedelta(days=RAW_RETENTION_DAYS)
+    overall_cutoff = reference - timedelta(days=days)
+    raw_days = min(days, RAW_RETENTION_DAYS)
+    raw_file_cutoff = reference - timedelta(days=raw_days)
+    snapshot_files = _iter_history_files(SNAPSHOT_DIR, cutoff=raw_file_cutoff)
+    archive_files: list[str] = []
+    if days > RAW_RETENTION_DAYS and overall_cutoff < raw_cutoff:
+        archive_files = _iter_history_files(MONTH_ARCHIVE_DIR, cutoff=overall_cutoff)
+    return {
+        "generated_at": _utc_now().isoformat(),
+        "active_data_root": str(ACTIVE_DATA_ROOT),
+        "retention_days": days,
+        "raw_retention_days": RAW_RETENTION_DAYS,
+        "overall_cutoff": overall_cutoff.isoformat(),
+        "raw_file_cutoff": raw_file_cutoff.isoformat(),
+        "sources": {
+            "snapshots": {
+                "path": SNAPSHOT_DIR,
+                "files_considered": len(snapshot_files),
+                "rows_seen": 0,
+                "rows_used": 0,
+                "oldest_ts_used": None,
+                "newest_ts_used": None,
+            },
+            "archive_month": {
+                "path": MONTH_ARCHIVE_DIR,
+                "files_considered": len(archive_files),
+                "rows_seen": 0,
+                "rows_used": 0,
+                "oldest_ts_used": None,
+                "newest_ts_used": None,
+            },
+        },
+        "archive_month_used": False,
+    }
+
+
+def _note_provenance_row(provenance: dict[str, Any], source: str, ts: datetime | None, used: bool) -> None:
+    source_meta = (provenance.get("sources") or {}).get(source)
+    if not isinstance(source_meta, dict):
+        return
+    source_meta["rows_seen"] = _to_int(source_meta.get("rows_seen")) + 1
+    if not used:
+        return
+    source_meta["rows_used"] = _to_int(source_meta.get("rows_used")) + 1
+    if source == "archive_month":
+        provenance["archive_month_used"] = True
+    if not ts:
+        return
+    ts_text = ts.isoformat()
+    oldest = source_meta.get("oldest_ts_used")
+    newest = source_meta.get("newest_ts_used")
+    if not oldest or ts_text < oldest:
+        source_meta["oldest_ts_used"] = ts_text
+    if not newest or ts_text > newest:
+        source_meta["newest_ts_used"] = ts_text
+
+
+def _iter_history_records_with_source(days: int = RETENTION_DAYS):
+    _ensure_dirs()
+    reference = _utc_now()
+    raw_cutoff = reference - timedelta(days=RAW_RETENTION_DAYS)
+    overall_cutoff = reference - timedelta(days=days)
+
+    raw_days = min(days, RAW_RETENTION_DAYS)
+    raw_file_cutoff = reference - timedelta(days=raw_days)
+    for path in _iter_history_files(SNAPSHOT_DIR, cutoff=raw_file_cutoff):
+        for record in _iter_jsonl_rows(path):
+            ts = _parse_ts(record.get("snapshot_ts"))
+            if not ts or ts < raw_file_cutoff:
+                continue
+            yield "snapshots", record
+
+    if days > RAW_RETENTION_DAYS and overall_cutoff < raw_cutoff:
+        for path in _iter_history_files(MONTH_ARCHIVE_DIR, cutoff=overall_cutoff):
+            for record in _iter_jsonl_rows(path):
+                ts = _parse_ts(record.get("snapshot_ts"))
+                if not ts or ts < overall_cutoff:
+                    continue
+                yield "archive_month", record
+
+
+def _iter_history_records(days: int = RETENTION_DAYS):
+    for _source, record in _iter_history_records_with_source(days=days):
+        yield record
+
+
+def _empty_cache_stats() -> dict[str, Any]:
+    return {
+        "history_points": 0,
+        "high_alch": 0,
+        "volume_hour": 0,
+        "volume_day": 0,
+        "volume_week": 0,
+        "volume_month": 0,
+        "low_day_min": 0,
+        "low_day_max": 0,
+        "low_day_sum": 0.0,
+        "low_day_count": 0,
+        "high_day_min": 0,
+        "high_day_max": 0,
+        "high_day_sum": 0.0,
+        "high_day_count": 0,
+        "low_week_min": 0,
+        "low_week_max": 0,
+        "low_week_sum": 0.0,
+        "low_week_count": 0,
+        "high_week_min": 0,
+        "high_week_max": 0,
+        "high_week_sum": 0.0,
+        "high_week_count": 0,
+        "low_month_min": 0,
+        "low_month_max": 0,
+        "low_month_sum": 0.0,
+        "low_month_count": 0,
+        "high_month_min": 0,
+        "high_month_max": 0,
+        "high_month_sum": 0.0,
+        "high_month_count": 0,
+    }
+
+
+def _add_min_max(stats: dict[str, Any], min_key: str, max_key: str, value: int) -> None:
+    if value <= 0:
+        return
+    current_min = _to_int(stats.get(min_key))
+    current_max = _to_int(stats.get(max_key))
+    stats[min_key] = value if current_min <= 0 else min(current_min, value)
+    stats[max_key] = max(current_max, value)
+
+
+def _add_price_sample(stats: dict[str, Any], prefix: str, low: int, high: int) -> None:
+    if low > 0:
+        _add_min_max(stats, f"low_{prefix}_min", f"low_{prefix}_max", low)
+        stats[f"low_{prefix}_sum"] += float(low)
+        stats[f"low_{prefix}_count"] += 1
+    if high > 0:
+        _add_min_max(stats, f"high_{prefix}_min", f"high_{prefix}_max", high)
+        stats[f"high_{prefix}_sum"] += float(high)
+        stats[f"high_{prefix}_count"] += 1
+
+
+def _avg_stat(stats: dict[str, Any], key_prefix: str, fallback: float) -> float:
+    count = _to_int(stats.get(f"{key_prefix}_count"))
+    if count <= 0:
+        return float(fallback)
+    return round(float(stats.get(f"{key_prefix}_sum") or 0) / count, 3)
+
+
+def _stability_from_stats(stats: dict[str, Any], prefix: str) -> float:
+    count = _to_int(stats.get(f"low_{prefix}_count"))
+    if count <= 0:
+        return 0.0
+    avg = float(stats.get(f"low_{prefix}_sum") or 0) / count
+    if avg <= 0:
+        return 0.0
+    low_min = _to_int(stats.get(f"low_{prefix}_min"))
+    low_max = _to_int(stats.get(f"low_{prefix}_max"))
+    if low_min <= 0 or low_max <= 0:
+        return 0.0
+    return round(((low_max - low_min) / avg) * 100, 3)
+
+
+def _build_streamed_history_stats(tracked_item_ids: set[int], now: datetime) -> tuple[dict[int, dict[str, Any]], dict[str, Any]]:
+    hour_cutoff = now - timedelta(hours=1)
+    day_cutoff = now - timedelta(days=1)
+    week_cutoff = now - timedelta(days=7)
+    stats_by_item: dict[int, dict[str, Any]] = {}
+    provenance = _history_source_plan(days=RETENTION_DAYS)
+
+    for source, row in _iter_history_records_with_source(days=RETENTION_DAYS):
+        item_id = _to_int(row.get("id"))
+        ts = _parse_ts(row.get("snapshot_ts"))
+        used = item_id > 0 and item_id in tracked_item_ids and ts is not None
+        _note_provenance_row(provenance, source, ts, used)
+        if not used:
+            continue
+        stats = stats_by_item.setdefault(item_id, _empty_cache_stats())
+        low = int(round(float(row.get("low") or 0)))
+        high = int(round(float(row.get("high") or 0)))
+        volume = _to_int(row.get("recent_volume"))
+        stats["history_points"] += max(_to_int(row.get("sample_count")), 1)
+        stats["volume_month"] += volume
+        _add_price_sample(stats, "month", low, high)
+        if ts >= hour_cutoff:
+            stats["volume_hour"] += volume
+        if ts >= day_cutoff:
+            stats["volume_day"] += volume
+            _add_price_sample(stats, "day", low, high)
+        if ts >= week_cutoff:
+            stats["volume_week"] += volume
+            _add_price_sample(stats, "week", low, high)
+        high_alch = _to_int(row.get("high_alch"))
+        if high_alch > stats["high_alch"]:
+            stats["high_alch"] = high_alch
+    provenance["tracked_item_count"] = len(tracked_item_ids)
+    provenance["items_with_history_stats"] = len(stats_by_item)
+    return stats_by_item, provenance
+
+
 def build_market_cache(items: list[dict[str, Any]], snapshot_bucket: str | None = None) -> dict[str, Any]:
     bucket = snapshot_bucket or _bucket_for_time()
     seed_high_alch_cache_from_items(items)
     tracked_payload = _load_tracked_items()
     tracked_items_map = tracked_payload.get("tracked_ids", {})
+    tracked_item_ids = {_to_int(item_id) for item_id in tracked_items_map.keys() if _to_int(item_id) > 0}
     missing_high_alch_ids = [
         _to_int(item.get("id"))
         for item in items
@@ -1327,18 +1620,10 @@ def build_market_cache(items: list[dict[str, Any]], snapshot_bucket: str | None 
     ]
     if missing_high_alch_ids:
         refresh_high_alch_cache(force=False)
-    records = load_history_records(days=RETENTION_DAYS)
-    by_item: dict[int, list[dict[str, Any]]] = defaultdict(list)
-    for record in records:
-        item_id = _to_int(record.get("id"))
-        if item_id > 0:
-            by_item[item_id].append(record)
 
     tracked_items = tracked_items_map
     now = datetime.fromisoformat(bucket)
-    hour_cutoff = now - timedelta(hours=1)
-    day_cutoff = now - timedelta(days=1)
-    week_cutoff = now - timedelta(days=7)
+    history_stats_by_item, cache_provenance = _build_streamed_history_stats(tracked_item_ids, now)
 
     cached_items: list[dict[str, Any]] = []
     for item in items:
@@ -1346,70 +1631,34 @@ def build_market_cache(items: list[dict[str, Any]], snapshot_bucket: str | None 
         if item_id <= 0 or str(item_id) not in tracked_items:
             continue
 
-        history = sorted(by_item.get(item_id, []), key=lambda row: row.get("snapshot_ts", ""))
-        lows_month = [int(round(float(row.get("low") or 0))) for row in history if float(row.get("low") or 0) > 0]
-        highs_month = [int(round(float(row.get("high") or 0))) for row in history if float(row.get("high") or 0) > 0]
-
-        lows_day: list[int] = []
-        highs_day: list[int] = []
-        lows_week: list[int] = []
-        highs_week: list[int] = []
-        volumes_hour: list[int] = []
-        volumes_day: list[int] = []
-        volumes_week: list[int] = []
-        volumes_month: list[int] = []
-        for row in history:
-            ts = _parse_ts(row.get("snapshot_ts"))
-            if not ts:
-                continue
-            low = int(round(float(row.get("low") or 0)))
-            high = int(round(float(row.get("high") or 0)))
-            volume = _to_int(row.get("recent_volume"))
-            if ts >= hour_cutoff:
-                volumes_hour.append(volume)
-            if ts >= day_cutoff:
-                volumes_day.append(volume)
-                if low > 0:
-                    lows_day.append(low)
-                if high > 0:
-                    highs_day.append(high)
-            if ts >= week_cutoff:
-                volumes_week.append(volume)
-                if low > 0:
-                    lows_week.append(low)
-                if high > 0:
-                    highs_week.append(high)
-            volumes_month.append(volume)
-
+        stats = history_stats_by_item.get(item_id, _empty_cache_stats())
         low = _to_int(item.get("low"))
         high = _to_int(item.get("high"))
         snapshot_volume_5m = _to_int(item.get("recent_volume"))
-        recent_volume = sum(volumes_hour) if volumes_hour else snapshot_volume_5m
+        recent_volume = _to_int(stats.get("volume_hour")) or snapshot_volume_5m
         buy_limit = _to_int(item.get("limit"))
         spread = max(high - low, 0)
         spread_pct = round((spread / low) * 100, 3) if low > 0 else 0.0
         profit_per_item = max(high - low - min(int(high * 0.02), 5_000_000), 0)
         roi_pct = round((profit_per_item / low) * 100, 3) if low > 0 else 0.0
 
-        day_low = min(lows_day) if lows_day else low
-        day_high = max(highs_day) if highs_day else high
-        week_low = min(lows_week) if lows_week else low
-        week_high = max(highs_week) if highs_week else high
-        month_low = min(lows_month) if lows_month else low
-        month_high = max(highs_month) if highs_month else high
-        avg_day_low = round(_mean([float(v) for v in lows_day]), 3) if lows_day else float(low)
-        avg_week_low = round(_mean([float(v) for v in lows_week]), 3) if lows_week else float(low)
-        avg_month_low = round(_mean([float(v) for v in lows_month]), 3) if lows_month else float(low)
+        day_low = _to_int(stats.get("low_day_min")) or low
+        day_high = _to_int(stats.get("high_day_max")) or high
+        week_low = _to_int(stats.get("low_week_min")) or low
+        week_high = _to_int(stats.get("high_week_max")) or high
+        month_low = _to_int(stats.get("low_month_min")) or low
+        month_high = _to_int(stats.get("high_month_max")) or high
+        avg_day_low = _avg_stat(stats, "low_day", float(low))
+        avg_week_low = _avg_stat(stats, "low_week", float(low))
+        avg_month_low = _avg_stat(stats, "low_month", float(low))
 
-        day_volume = sum(volumes_day)
-        week_volume = sum(volumes_week)
-        month_volume = sum(volumes_month)
-        avg_daily_volume = _project_daily_volume(day_volume, len(volumes_day))
+        day_volume = _to_int(stats.get("volume_day"))
+        week_volume = _to_int(stats.get("volume_week"))
+        month_volume = _to_int(stats.get("volume_month"))
+        avg_daily_volume = _project_daily_volume(day_volume, _to_int(stats.get("low_day_count")))
         high_alch = get_high_alch_value(item_id, item=item, allow_refresh=False)
-        if high_alch <= 0 and history:
-            history_values = [_to_int(row.get("high_alch")) for row in history if _to_int(row.get("high_alch")) > 0]
-            if history_values:
-                high_alch = max(history_values)
+        if high_alch <= 0:
+            high_alch = _to_int(stats.get("high_alch"))
 
         cached_items.append(
             {
@@ -1441,10 +1690,10 @@ def build_market_cache(items: list[dict[str, Any]], snapshot_bucket: str | None 
                 "dip_vs_day_pct": _safe_pct(avg_day_low, float(low)),
                 "dip_vs_week_pct": _safe_pct(avg_week_low, float(low)),
                 "dip_vs_month_pct": _safe_pct(avg_month_low, float(low)),
-                "stability_day_pct": _stability_pct(lows_day),
-                "stability_week_pct": _stability_pct(lows_week),
-                "stability_month_pct": _stability_pct(lows_month),
-                "history_points": len(history),
+                "stability_day_pct": _stability_from_stats(stats, "day"),
+                "stability_week_pct": _stability_from_stats(stats, "week"),
+                "stability_month_pct": _stability_from_stats(stats, "month"),
+                "history_points": _to_int(stats.get("history_points")),
                 "tracking_reason": str(tracked_items.get(str(item_id)) or DEFAULT_TRACKING_REASON),
                 "high_alch": high_alch,
                 "high_alch_value": high_alch,
@@ -1460,12 +1709,32 @@ def build_market_cache(items: list[dict[str, Any]], snapshot_bucket: str | None 
             "raw_retention_days": RAW_RETENTION_DAYS,
             "compacted_bucket_minutes": MONTH_BUCKET_MINUTES,
             "month_points_target": 288,
+            "cache_build_mode": "streamed_history_stats",
+            "cache_provenance_version": 1,
         },
+        "cache_provenance": cache_provenance,
     }
     cache = _repair_market_cache_payload(cache, persist=False)
     save_market_cache(cache)
-    return cache
+    try:
+        from app.services.derived_market_cache import build_derived_market_cache
+        from app.services.recommendation_candidate_cache import build_recommendation_candidate_cache
 
+        derived_cache = build_derived_market_cache(cache)
+        candidate_cache = build_recommendation_candidate_cache(derived_cache)
+        cache.setdefault("derived_caches", {})["derived_market_cache"] = {
+            "path": "cache/derived_market_cache.json",
+            "item_count": derived_cache.get("item_count", 0),
+            "updated_at": derived_cache.get("updated_at"),
+        }
+        cache.setdefault("derived_caches", {})["recommendation_candidate_cache"] = {
+            "path": "cache/recommendation_candidate_cache.json",
+            "candidate_count": candidate_cache.get("candidate_count", 0),
+            "updated_at": candidate_cache.get("updated_at"),
+        }
+    except Exception as exc:
+        cache.setdefault("derived_caches", {})["error"] = str(exc)
+    return cache
 
 def ensure_history_and_cache(items: list[dict[str, Any]], snapshot_bucket: str | None = None) -> dict[str, Any]:
     bucket = append_snapshot(items, snapshot_bucket=snapshot_bucket)
@@ -1514,121 +1783,94 @@ def _normalize_history_point(row: dict[str, Any], point_mode: str = "snapshot") 
     }
 
 
-def _build_exact_window_series(rows: list[dict[str, Any]], target_points: int, window_minutes: int, point_mode: str = "snapshot") -> list[dict[str, Any]]:
-    if not rows or target_points <= 0 or window_minutes <= 0:
+
+def _bucket_key_for_point(row: dict[str, Any], bucket_minutes: int) -> str | None:
+    ts = _parse_ts(row.get("snapshot_ts"))
+    if not ts:
+        return None
+    return _bucket_start(ts, bucket_minutes).isoformat()
+
+
+def _aggregate_history_buckets(rows: list[dict[str, Any]], bucket_minutes: int, point_mode: str = "snapshot", source: str | None = None) -> list[dict[str, Any]]:
+    """Collapse duplicate rows into one real point per bucket without filling empty buckets."""
+    if not rows or bucket_minutes <= 0:
         return []
-    ordered = sorted((_normalize_history_row(row) or row for row in rows), key=lambda row: row.get("snapshot_ts", ""))
-    valid_rows = [row for row in ordered if _parse_ts(row.get("snapshot_ts"))]
-    if not valid_rows:
-        return []
 
-    bucket_seconds = window_minutes * 60
-    latest_ts = _parse_ts(valid_rows[-1].get("snapshot_ts")) or _utc_now()
-    latest_epoch = int(latest_ts.timestamp())
-    end_epoch = ((latest_epoch // bucket_seconds) + 1) * bucket_seconds
-    start_epoch = end_epoch - (target_points * bucket_seconds)
-
-    bucket_lows: list[list[float]] = [[] for _ in range(target_points)]
-    bucket_highs: list[list[float]] = [[] for _ in range(target_points)]
-    bucket_volumes = [0 for _ in range(target_points)]
-    bucket_trade_volumes = [0 for _ in range(target_points)]
-    bucket_limits = [0 for _ in range(target_points)]
-    bucket_samples = [0 for _ in range(target_points)]
-    bucket_min_low: list[list[int]] = [[] for _ in range(target_points)]
-    bucket_max_high: list[list[int]] = [[] for _ in range(target_points)]
-
-    for row in valid_rows:
-        ts = _parse_ts(row.get("snapshot_ts"))
-        if not ts:
+    grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in rows:
+        normalized = _normalize_history_row(row) or row
+        key = _bucket_key_for_point(normalized, bucket_minutes)
+        if not key:
             continue
-        index = int((int(ts.timestamp()) - start_epoch) // bucket_seconds)
-        if index < 0 or index >= target_points:
-            continue
-        low = float(row.get("low") or 0)
-        high = float(row.get("high") or 0)
-        if low > 0:
-            bucket_lows[index].append(low)
-            bucket_min_low[index].append(int(round(low)))
-        if high > 0:
-            bucket_highs[index].append(high)
-            bucket_max_high[index].append(int(round(high)))
-        bucket_volumes[index] += _to_int(row.get("recent_volume") or row.get("volume"))
-        bucket_trade_volumes[index] += _to_int(row.get("trade_volume"))
-        bucket_limits[index] = max(bucket_limits[index], _to_int(row.get("buy_limit")))
-        bucket_samples[index] += max(_to_int(row.get("sample_count")), 1)
-
-    first_low = next((float(row.get("low") or 0) for row in valid_rows if float(row.get("low") or 0) > 0), 0.0)
-    first_high = next((float(row.get("high") or 0) for row in valid_rows if float(row.get("high") or 0) > 0), 0.0)
-    carry_low = first_low
-    carry_high = first_high if first_high > 0 else first_low
-    carry_limit = next((_to_int(row.get("buy_limit")) for row in valid_rows if _to_int(row.get("buy_limit")) > 0), 0)
+        grouped[key].append(normalized)
 
     points: list[dict[str, Any]] = []
-    for index in range(target_points):
-        bucket_start = datetime.fromtimestamp(start_epoch + (index * bucket_seconds), tz=UTC)
-        lows = bucket_lows[index]
-        highs = bucket_highs[index]
-        if lows:
-            carry_low = round(sum(lows) / len(lows), 3)
-        if highs:
-            carry_high = round(sum(highs) / len(highs), 3)
-        if bucket_limits[index] > 0:
-            carry_limit = bucket_limits[index]
-        low_value = carry_low if carry_low > 0 else 0
-        high_value = carry_high if carry_high > 0 else low_value
+    for bucket_ts in sorted(grouped.keys()):
+        group = grouped[bucket_ts]
+        lows = [float(entry.get("low") or 0) for entry in group if float(entry.get("low") or 0) > 0]
+        highs = [float(entry.get("high") or 0) for entry in group if float(entry.get("high") or 0) > 0]
+        if not lows and not highs:
+            continue
+        if not highs:
+            highs = list(lows)
+        if not lows:
+            lows = list(highs)
+
+        samples = sum(max(_to_int(entry.get("sample_count")), 1) for entry in group)
+        point_source = source or ("archive_month" if any(entry.get("is_compacted") for entry in group) else "snapshot_5m")
         points.append({
-            "snapshot_ts": bucket_start.isoformat(),
-            "low": low_value,
-            "high": high_value,
-            "recent_volume": bucket_volumes[index],
-            "volume": bucket_volumes[index] or bucket_trade_volumes[index],
-            "trade_volume": bucket_trade_volumes[index],
-            "buy_limit": carry_limit,
-            "sample_count": max(bucket_samples[index], 1),
-            "min_low": min(bucket_min_low[index]) if bucket_min_low[index] else int(round(low_value)) if low_value > 0 else 0,
-            "max_high": max(bucket_max_high[index]) if bucket_max_high[index] else int(round(high_value)) if high_value > 0 else 0,
-            "is_compacted": not bool(lows or highs),
+            "snapshot_ts": bucket_ts,
+            "low": round(_mean(lows), 3),
+            "high": round(_mean(highs), 3),
+            "recent_volume": sum(_to_int(entry.get("recent_volume") or entry.get("volume")) for entry in group),
+            "volume": sum(_to_int(entry.get("trade_volume") or entry.get("recent_volume") or entry.get("volume")) for entry in group),
+            "trade_volume": sum(_to_int(entry.get("trade_volume")) for entry in group),
+            "buy_limit": max((_to_int(entry.get("buy_limit")) for entry in group), default=0),
+            "sample_count": max(samples, 1),
+            "min_low": min(int(round(value)) for value in lows),
+            "max_high": max(int(round(value)) for value in highs),
+            "is_compacted": any(bool(entry.get("is_compacted")) for entry in group),
             "point_mode": point_mode,
-            "source": f"{point_mode}_exact_288",
+            "source": point_source,
         })
     return points
 
 
-def _bucket_history(rows: list[dict[str, Any]], target_points: int, point_mode: str = "snapshot") -> list[dict[str, Any]]:
-    if not rows:
-        return []
-    if len(rows) <= target_points:
-        return [_normalize_history_point(row, point_mode=point_mode) for row in rows]
-
-    bucket_size = max(1, len(rows) // target_points)
-    if len(rows) % target_points:
-        bucket_size += 1
-
-    compacted: list[dict[str, Any]] = []
-    for start in range(0, len(rows), bucket_size):
-        group = rows[start : start + bucket_size]
-        lows = [float(entry.get("low") or 0) for entry in group if float(entry.get("low") or 0) > 0]
-        highs = [float(entry.get("high") or 0) for entry in group if float(entry.get("high") or 0) > 0]
-        if not lows or not highs:
+def _thin_points_evenly(points: list[dict[str, Any]], max_points: int) -> list[dict[str, Any]]:
+    """Thin dense snapshot buckets only; preserve first/last and chronological order."""
+    if max_points <= 0 or len(points) <= max_points:
+        return points
+    if max_points == 1:
+        return [points[-1]]
+    last_index = len(points) - 1
+    selected: list[dict[str, Any]] = []
+    seen: set[int] = set()
+    for i in range(max_points):
+        idx = round(i * last_index / (max_points - 1))
+        if idx in seen:
             continue
-        compacted.append(
-            {
-                "snapshot_ts": group[-1].get("snapshot_ts"),
-                "low": round(_mean(lows), 3),
-                "high": round(_mean(highs), 3),
-                "recent_volume": sum(_to_int(entry.get("recent_volume")) for entry in group),
-                "volume": sum(_to_int(entry.get("trade_volume") or entry.get("recent_volume")) for entry in group),
-                "trade_volume": sum(_to_int(entry.get("trade_volume")) for entry in group),
-                "buy_limit": max(_to_int(entry.get("buy_limit")) for entry in group),
-                "sample_count": sum(max(_to_int(entry.get("sample_count")), 1) for entry in group),
-                "min_low": min(int(round(value)) for value in lows),
-                "max_high": max(int(round(value)) for value in highs),
-                "is_compacted": True,
-                "point_mode": point_mode,
-                "source": f"{point_mode}_bucketed",
-            }
-        )
-    return compacted[:target_points]
+        seen.add(idx)
+        selected.append(points[idx])
+    return selected
+
+
+def _combine_sparse_segments(*segments: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    combined: dict[str, dict[str, Any]] = {}
+    for segment in segments:
+        for point in segment:
+            ts = point.get("snapshot_ts")
+            if not ts:
+                continue
+            # Prefer recent raw snapshots over archive if the same bucket exists at the boundary.
+            if ts not in combined or not point.get("is_compacted"):
+                combined[ts] = point
+    return [combined[key] for key in sorted(combined.keys())]
+
+
+def _build_exact_window_series(rows: list[dict[str, Any]], target_points: int, window_minutes: int, point_mode: str = "snapshot") -> list[dict[str, Any]]:
+    # Compatibility wrapper: aggregate real buckets only. No empty-bucket fill.
+    points = _aggregate_history_buckets(rows, bucket_minutes=window_minutes, point_mode=point_mode)
+    return _thin_points_evenly(points, target_points)
 
 
 def _build_intraday_hybrid_history(item_id: int, target_points: int = 960) -> dict[str, Any]:
@@ -1641,7 +1883,8 @@ def _build_intraday_hybrid_history(item_id: int, target_points: int = 960) -> di
     points.sort(key=lambda row: (str(row.get("snapshot_ts") or ""), 0 if row.get("point_mode") == "snapshot" else 1))
     raw_point_count = len(points)
     if raw_point_count:
-        points = _build_exact_window_series(points, target_points=target_points, window_minutes=5, point_mode="intraday_hybrid")
+        # Day view uses true 5-minute buckets only. No global reduction/fill.
+        points = _aggregate_history_buckets(points, bucket_minutes=5, point_mode="intraday_hybrid", source="intraday_5m")
 
     return {
         "points": points,
@@ -1655,44 +1898,171 @@ def _build_intraday_hybrid_history(item_id: int, target_points: int = 960) -> di
     }
 
 
-def get_item_history_payload(item_id: int, window: str = "month") -> dict[str, Any]:
+
+def _history_graph_cache_path(item_id: int, window: str) -> str:
+    safe_window = _normalize_history_window(window)
+    return str((Path(HISTORY_GRAPH_CACHE_DIR) / safe_window / f"{int(item_id)}.json").resolve())
+
+
+def _read_history_graph_cache(item_id: int, window: str) -> dict[str, Any] | None:
+    path = _history_graph_cache_path(item_id, window)
+    try:
+        with open(path, "r", encoding="utf-8") as handle:
+            payload = json.load(handle)
+        if not isinstance(payload, dict):
+            return None
+        payload = dict(payload)
+        payload["served_from_graph_cache"] = True
+        payload["graph_cache_path"] = path
+        return payload
+    except FileNotFoundError:
+        return None
+    except Exception as exc:
+        print(f"[market_history] graph_cache_read_failed item={item_id} window={window} error={exc}", flush=True)
+        return None
+
+
+def _write_history_graph_cache(item_id: int, window: str, payload: dict[str, Any]) -> None:
+    path = _history_graph_cache_path(item_id, window)
+    cached = dict(payload)
+    cached["served_from_graph_cache"] = False
+    cached["graph_cache_built_at"] = _utc_now().isoformat()
+    cached["graph_cache_path"] = path
+    _write_json(path, cached)
+
+
+def _history_cache_get(item_id: int, window: str) -> dict[str, Any] | None:
+    cached = _HISTORY_PAYLOAD_CACHE.get((int(item_id), window))
+    if not cached:
+        return None
+    ts, payload = cached
+    if time.time() - ts > _HISTORY_PAYLOAD_CACHE_TTL_SECONDS:
+        _HISTORY_PAYLOAD_CACHE.pop((int(item_id), window), None)
+        return None
+    result = dict(payload)
+    result["served_from_memory_cache"] = True
+    return result
+
+
+def _history_cache_set(item_id: int, window: str, payload: dict[str, Any]) -> None:
+    if len(_HISTORY_PAYLOAD_CACHE) >= _HISTORY_PAYLOAD_CACHE_MAX_ITEMS:
+        oldest_key = min(_HISTORY_PAYLOAD_CACHE, key=lambda key: _HISTORY_PAYLOAD_CACHE[key][0])
+        _HISTORY_PAYLOAD_CACHE.pop(oldest_key, None)
+    _HISTORY_PAYLOAD_CACHE[(int(item_id), window)] = (time.time(), dict(payload))
+
+def get_item_history_payload(item_id: int, window: str = "month", use_graph_cache: bool = True) -> dict[str, Any]:
     started = time.perf_counter()
+    window = _normalize_history_window(window)
+    if use_graph_cache:
+        # Day charts need recent trade-event extremes so item dumps do not vanish
+        # behind 5m snapshot anchors. Old day graph-cache files may be snapshot-only,
+        # so bypass them and use the bounded 24h loader below. Week/month remain
+        # cache-first to protect the Pi. 3M/year are cache-only: a browser click
+        # must never trigger archive/snapshot reconstruction for long windows.
+        if window != "day":
+            graph_cached = _read_history_graph_cache(item_id, window)
+            if graph_cached is not None:
+                return graph_cached
+            if window in {"3month", "year"}:
+                target_points = 360 if window == "3month" else 365
+                payload = {
+                    "points": [],
+                    "raw_point_count": 0,
+                    "target_points": target_points,
+                    "point_source": "graph_cache_required",
+                    "window_strategy": f"{window}_cache_only_no_request_scan",
+                    "storage_mode": "graph_cache_only",
+                    "contains_trade_events": False,
+                    "graph_cache_missing": True,
+                    "cache_miss_safe_response": True,
+                    "served_from_graph_cache": False,
+                    "served_from_memory_cache": False,
+                    "first_point_ts": None,
+                    "last_point_ts": None,
+                    "point_count": 0,
+                    "phase_timings_ms": {"total": int(round((time.perf_counter() - started) * 1000))},
+                    **get_storage_debug_meta(),
+                }
+                print(
+                    f"[market_history] history_cache_miss item={item_id} window={window} "
+                    f"safe_empty=1 total_ms={payload.get('phase_timings_ms', {}).get('total', 0)} root={ACTIVE_DATA_ROOT}",
+                    flush=True,
+                )
+                return payload
+        memory_cached = _history_cache_get(item_id, window)
+        if memory_cached is not None:
+            return memory_cached
+
     if window == "day":
-        payload = _build_intraday_hybrid_history(item_id=item_id, target_points=288)
-        if not payload.get("points"):
-            rows, debug_meta = _load_item_history_window(item_id=item_id, days=1, include_archive=False, include_events=False)
-            payload = {
-                "points": _build_exact_window_series(rows, 288, 5, point_mode="snapshot"),
-                "raw_point_count": len(rows),
-                "target_points": 288,
-                "point_source": "snapshot_5m",
-                "window_strategy": "snapshot_only_fallback",
-                "storage_mode": "snapshot_only",
-                "contains_trade_events": False,
-                **debug_meta,
-            }
+        rows, debug_meta = _load_item_history_window(item_id=item_id, days=1, include_archive=False, include_events=True)
+        snapshot_rows = [row for row in rows if not row.get("side") and row.get("source") != "latest_trade_event"]
+        event_rows = [row for row in rows if row.get("side") or row.get("source") == "latest_trade_event"]
+        hybrid_rows = snapshot_rows + event_rows
+        snapshot_points = _aggregate_history_buckets(hybrid_rows, bucket_minutes=5, point_mode="intraday_hybrid", source="intraday_5m")
+        payload = {
+            "points": snapshot_points,
+            "raw_point_count": len(rows),
+            "target_points": 288,
+            "point_source": "intraday_5m",
+            "window_strategy": "snapshot_5m_plus_trade_event_extremes",
+            "storage_mode": "snapshot+events",
+            "contains_trade_events": bool(event_rows),
+            "graph_source_counts": {
+                "snapshot_rows": len(snapshot_rows),
+                "snapshot_points": len(snapshot_points),
+                "event_rows": len(event_rows),
+            },
+            **debug_meta,
+        }
     elif window == "week":
         rows, debug_meta = _load_item_history_window(item_id=item_id, days=7, include_archive=False, include_events=False)
+        snapshot_points = _aggregate_history_buckets(rows, bucket_minutes=5, point_mode="snapshot", source="snapshot_5m")
+        points = _thin_points_evenly(snapshot_points, 288)
         payload = {
-            "points": _build_exact_window_series(rows, 288, 35, point_mode="snapshot"),
+            "points": points,
             "raw_point_count": len(rows),
             "target_points": 288,
             "point_source": "snapshot_5m",
-            "window_strategy": "raw_snapshot_rebucketed",
+            "window_strategy": "snapshot_5m_buckets_thinned_only_if_needed",
             "storage_mode": "snapshot_only",
             "contains_trade_events": False,
             **debug_meta,
         }
     else:
-        rows, debug_meta = _load_item_history_window(item_id=item_id, days=RETENTION_DAYS, include_archive=True, include_events=False)
+        long_window_config = {
+            "month": {"days": RETENTION_DAYS, "archive_bucket": 150, "snapshot_bucket": 5, "target": 288, "label": "month"},
+            "3month": {"days": 93, "archive_bucket": 1440, "snapshot_bucket": 1440, "target": 360, "label": "3month"},
+            "year": {"days": 365, "archive_bucket": 10080, "snapshot_bucket": 10080, "target": 365, "label": "year"},
+        }.get(window, {"days": RETENTION_DAYS, "archive_bucket": 150, "snapshot_bucket": 5, "target": 288, "label": "month"})
+        rows, debug_meta = _load_item_history_window(item_id=item_id, days=int(long_window_config["days"]), include_archive=True, include_events=False)
+        archive_rows = [row for row in rows if row.get("source") == "archive_month" or row.get("is_compacted")]
+        snapshot_rows = [row for row in rows if row.get("source") != "archive_month" and not row.get("is_compacted")]
+        archive_points = _aggregate_history_buckets(archive_rows, bucket_minutes=int(long_window_config["archive_bucket"]), point_mode="archive_month", source="archive_month")
+        snapshot_points = _aggregate_history_buckets(snapshot_rows, bucket_minutes=int(long_window_config["snapshot_bucket"]), point_mode="snapshot", source="snapshot_5m")
+        target_points = int(long_window_config["target"])
+        remaining_snapshot_slots = max(0, target_points - len(archive_points))
+        if remaining_snapshot_slots > 0:
+            snapshot_points = _thin_points_evenly(snapshot_points, remaining_snapshot_slots)
+        else:
+            # Preserve compacted archive exactly; recent snapshots are dropped only when the archive already fills the target.
+            snapshot_points = []
+        points = _combine_sparse_segments(archive_points, snapshot_points)
+        if len(points) > target_points and window in {"3month", "year"}:
+            points = _thin_points_evenly(points, target_points)
         payload = {
-            "points": _build_exact_window_series(rows, 288, 150, point_mode="snapshot"),
+            "points": points,
             "raw_point_count": len(rows),
-            "target_points": 288,
+            "target_points": target_points,
             "point_source": "archive_plus_snapshot",
-            "window_strategy": "compacted_archive_plus_recent_raw",
+            "window_strategy": f"{long_window_config['label']}_compressed_archive_plus_snapshot_cache_first",
             "storage_mode": "archive+snapshot",
             "contains_trade_events": False,
+            "graph_source_counts": {
+                "archive_rows": len(archive_rows),
+                "archive_points": len(archive_points),
+                "snapshot_rows": len(snapshot_rows),
+                "snapshot_points": len(snapshot_points),
+            },
             **debug_meta,
         }
 
@@ -1703,11 +2073,160 @@ def get_item_history_payload(item_id: int, window: str = "month") -> dict[str, A
     payload["last_point_ts"] = timestamps[-1] if timestamps else None
     payload["point_count"] = len(points)
     payload.setdefault("phase_timings_ms", {})["total"] = int(round((time.perf_counter() - started) * 1000))
+    payload["served_from_graph_cache"] = False
+    payload["served_from_memory_cache"] = False
+    if use_graph_cache:
+        _history_cache_set(item_id, window, payload)
     print(
         f"[market_history] history item={item_id} window={window} points={len(points)} raw={payload.get('raw_point_count', 0)} files={payload.get('files_scanned', 0)} rows={payload.get('rows_scanned', 0)} matched={payload.get('rows_matched', 0)} total_ms={payload.get('phase_timings_ms', {}).get('total', 0)} root={ACTIVE_DATA_ROOT}"
     )
     return payload
 
+
+
+def _graph_cache_candidate_item_ids() -> list[int]:
+    cache = load_market_cache()
+    items = cache.get("items", []) if isinstance(cache, dict) else []
+    scored: list[tuple[int, int]] = []
+    for item in items:
+        item_id = _to_int(item.get("id"))
+        if item_id <= 0:
+            continue
+        score = max(
+            _to_int(item.get("recent_volume")),
+            _to_int(item.get("snapshot_volume_5m")),
+            _to_int(item.get("volume_1h")),
+            _to_int(item.get("day_volume")),
+            _to_int(item.get("week_volume")),
+            _to_int(item.get("month_volume")),
+        )
+        scored.append((score, item_id))
+    scored.sort(reverse=True)
+    result: list[int] = []
+    seen: set[int] = set()
+    for _score, item_id in scored:
+        if item_id in seen:
+            continue
+        seen.add(item_id)
+        result.append(item_id)
+    return result
+
+
+def _graph_cache_progress_index(total_items: int) -> int:
+    if total_items <= 0:
+        return 0
+    progress = _read_json(HISTORY_GRAPH_CACHE_PROGRESS_PATH, {})
+    try:
+        index = int(progress.get("next_index", 0)) if isinstance(progress, dict) else 0
+    except Exception:
+        index = 0
+    if index < 0 or index >= total_items:
+        return 0
+    return index
+
+
+def _graph_cache_select_batch(item_ids: list[int], max_items: int) -> tuple[list[int], int, int, bool]:
+    total = len(item_ids)
+    if total <= 0 or max_items <= 0:
+        return [], 0, 0, False
+    batch_size = min(max_items, total)
+    start_index = _graph_cache_progress_index(total)
+    batch: list[int] = []
+    index = start_index
+    wrapped = False
+    while len(batch) < batch_size:
+        batch.append(item_ids[index])
+        index = (index + 1) % total
+        if index == 0:
+            wrapped = True
+    return batch, start_index, index, wrapped
+
+
+def _graph_cache_write_progress(*, next_index: int, total_items: int, batch_size: int, wrapped: bool) -> None:
+    progress = {
+        "updated_at": _utc_now().isoformat(),
+        "next_index": next_index,
+        "total_items": total_items,
+        "batch_size": batch_size,
+        "wrapped": wrapped,
+    }
+    _write_json(HISTORY_GRAPH_CACHE_PROGRESS_PATH, progress)
+
+
+def _build_history_graph_cache_for_item(args: tuple[int, tuple[str, ...]]) -> dict[str, Any]:
+    item_id, windows = args
+    built = 0
+    failed = 0
+    failures: list[dict[str, Any]] = []
+    for window in windows:
+        try:
+            payload = get_item_history_payload(item_id=item_id, window=window, use_graph_cache=False)
+            _write_history_graph_cache(item_id=item_id, window=window, payload=payload)
+            built += 1
+        except Exception as exc:
+            failed += 1
+            failures.append({"item_id": item_id, "window": window, "error": str(exc)})
+            print(f"[market_history] graph_cache_build_failed item={item_id} window={window} error={exc}", flush=True)
+    return {"item_id": item_id, "built": built, "failed": failed, "failures": failures}
+
+
+def build_history_graph_cache(max_items: int = HISTORY_GRAPH_CACHE_MAX_ITEMS, windows: tuple[str, ...] = HISTORY_GRAPH_CACHE_WINDOWS) -> dict[str, Any]:
+    """Build graph-ready JSON payloads during collector time.
+
+    Rotates through the full market-cache item universe in bounded batches.
+    The batch is split across a small process pool so multi-core Pis can use
+    spare CPU without launching duplicate collectors or overlapping item work.
+    """
+    _ensure_dirs()
+    started = time.perf_counter()
+    all_item_ids = _graph_cache_candidate_item_ids()
+    item_ids, start_index, next_index, wrapped = _graph_cache_select_batch(all_item_ids, max_items=max_items)
+    worker_count = max(1, min(HISTORY_GRAPH_CACHE_WORKERS, len(item_ids) or 1))
+    built = 0
+    failed = 0
+    failures: list[dict[str, Any]] = []
+
+    if worker_count <= 1 or len(item_ids) <= 1:
+        results = [_build_history_graph_cache_for_item((item_id, windows)) for item_id in item_ids]
+    else:
+        results = []
+        with ProcessPoolExecutor(max_workers=worker_count) as executor:
+            futures = [executor.submit(_build_history_graph_cache_for_item, (item_id, windows)) for item_id in item_ids]
+            for future in as_completed(futures):
+                results.append(future.result())
+
+    for result in results:
+        built += int(result.get("built", 0))
+        failed += int(result.get("failed", 0))
+        for failure in result.get("failures", []):
+            if len(failures) < 10:
+                failures.append(failure)
+
+    _graph_cache_write_progress(next_index=next_index, total_items=len(all_item_ids), batch_size=len(item_ids), wrapped=wrapped)
+    meta = {
+        "generated_at": _utc_now().isoformat(),
+        "active_data_root": str(ACTIVE_DATA_ROOT),
+        "cache_dir": HISTORY_GRAPH_CACHE_DIR,
+        "progress_path": HISTORY_GRAPH_CACHE_PROGRESS_PATH,
+        "worker_count": worker_count,
+        "total_candidate_items": len(all_item_ids),
+        "start_index": start_index,
+        "next_index": next_index,
+        "wrapped": wrapped,
+        "items_considered": len(item_ids),
+        "payloads_built": built,
+        "payloads_failed": failed,
+        "failures": failures,
+        "elapsed_ms": int(round((time.perf_counter() - started) * 1000)),
+    }
+    _write_json(str((Path(HISTORY_GRAPH_CACHE_DIR) / "latest_build.json").resolve()), meta)
+    print(
+        f"[market_history] graph_cache_built workers={worker_count} "
+        f"items={len(item_ids)}/{len(all_item_ids)} range={start_index}->{next_index} "
+        f"payloads={built} failed={failed} elapsed_ms={meta['elapsed_ms']}",
+        flush=True,
+    )
+    return meta
 
 def get_item_history(item_id: int, window: str = "month") -> list[dict[str, Any]]:
     return get_item_history_payload(item_id=item_id, window=window).get("points", [])

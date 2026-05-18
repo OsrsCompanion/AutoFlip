@@ -5,7 +5,6 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel
 
-from app.services.ai_advisor import build_ai_advice
 from app.services.player_state import (
     append_player_events,
     get_player_alerts,

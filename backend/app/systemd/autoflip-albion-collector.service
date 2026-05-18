@@ -1,0 +1,21 @@
+[Unit]
+Description=AutoFlip Albion raw market collector
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=osrscompanion
+WorkingDirectory=/home/osrscompanion/osrs-flip-assistant
+Environment=PYTHONPATH=/home/osrscompanion/osrs-flip-assistant
+Environment=AUTOFLIP_DATA_ROOT=/mnt/nvme/autoflip-data
+Environment=ALBION_SERVERS=americas
+ExecStart=/home/osrscompanion/osrs-flip-assistant/venv/bin/python3 -m app.services.albion.collector_runner --interval 1800
+Restart=always
+RestartSec=20
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+
+[Install]
+WantedBy=multi-user.target

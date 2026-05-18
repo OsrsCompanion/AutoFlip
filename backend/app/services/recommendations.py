@@ -4,6 +4,7 @@ import re
 from typing import Any
 
 from app.services.market_history import load_market_cache
+from app.services.recommendation_candidate_cache import load_recommendation_candidate_cache
 
 GE_TAX_RATE = 0.02
 GE_TAX_CAP = 5_000_000
@@ -146,6 +147,70 @@ def _candidate_from_cache_item(cache_item: dict[str, Any], allocation_budget: in
     }
 
 
+
+
+def _candidate_from_plan(plan: dict[str, Any], allocation_budget: int, total_budget: int) -> dict[str, Any] | None:
+    buy_price = _to_int(plan.get("buy_price"))
+    sell_price = _to_int(plan.get("sell_price"))
+    if buy_price <= 0 or sell_price <= 0 or total_budget <= 0 and allocation_budget <= 0:
+        return None
+    if total_budget > 0 and buy_price > total_budget:
+        return None
+
+    max_quantity = _to_int(plan.get("max_quantity") or plan.get("suggested_quantity"))
+    buy_limit = _to_int(plan.get("buy_limit"))
+    if buy_limit > 0 and max_quantity > 0:
+        max_quantity = min(max_quantity, buy_limit)
+    quantity = _affordable_quantity(allocation_budget, buy_price, max_quantity)
+    if quantity <= 0:
+        return None
+
+    profit_per_item = _to_int(plan.get("profit_after_tax_per_item")) or _profit(buy_price, sell_price)
+    if profit_per_item <= 0:
+        return None
+
+    spread = sell_price - buy_price
+    roi_pct = _to_float(plan.get("roi_pct_after_tax")) or (round((profit_per_item / buy_price) * 100, 3) if buy_price > 0 else 0.0)
+    expected_time = _to_float(plan.get("expected_time_to_liquidity_hours") or plan.get("expected_time_to_liquidity"), 1.0)
+    potential_profit = quantity * profit_per_item
+    return {
+        "id": _to_int(plan.get("item_id") or plan.get("id")),
+        "name": str(plan.get("item_name") or plan.get("name") or "Unknown item"),
+        "buy_price": buy_price,
+        "sell_price": sell_price,
+        "profit_per_item": profit_per_item,
+        "recent_volume": _to_int((plan.get("scoring_metadata") or {}).get("volume_1h")),
+        "suggested_quantity": quantity,
+        "capital_required": quantity * buy_price,
+        "potential_profit": potential_profit,
+        "spread": spread,
+        "spread_pct": round((spread / buy_price) * 100, 3) if buy_price > 0 else 0.0,
+        "roi_pct": roi_pct,
+        "buy_limit": buy_limit,
+        "expected_time_to_liquidity": expected_time,
+        "profit_per_hour": round(potential_profit / expected_time, 3) if expected_time > 0 else potential_profit,
+        "fill_probability": _to_float(plan.get("fill_probability") or plan.get("market_proxy_fill_probability")),
+        "stability_factor": _to_float(plan.get("stability_factor")),
+        "confidence_band": plan.get("confidence_band"),
+        "fill_speed_band": plan.get("fill_speed_band"),
+        "short_reason": plan.get("short_reason"),
+        "score": _to_float(plan.get("score")),
+        "day_low": buy_price,
+        "day_high": sell_price,
+        "week_low": buy_price,
+        "week_high": sell_price,
+        "month_low": buy_price,
+        "month_high": sell_price,
+        "dip_vs_day_pct": 0.0,
+        "dip_vs_week_pct": 0.0,
+        "dip_vs_month_pct": 0.0,
+        "stability_day_pct": 0.0,
+        "stability_week_pct": 0.0,
+        "stability_month_pct": 0.0,
+        "history_points": 0,
+        "updated_at": (plan.get("scoring_metadata") or {}).get("freshness_ts"),
+    }
+
 def _snapshot_candidates(market_snapshot: dict[str, Any], allocation_budget: int, total_budget: int) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     if not isinstance(market_snapshot, dict):
@@ -242,12 +307,20 @@ def build_recommendations(
     category_limit = max(1, min(50, _to_int(category_limit, DEFAULT_CATEGORY_SIZE)))
 
     cache = load_market_cache()
-    cache_items = cache.get("items", []) if isinstance(cache, dict) else []
+    candidate_cache = load_recommendation_candidate_cache()
+    candidate_plans = candidate_cache.get("items", []) if isinstance(candidate_cache, dict) else []
     candidate_pool = [
         candidate
-        for cache_item in cache_items
-        if (candidate := _candidate_from_cache_item(cache_item, allocation_budget, budget)) is not None
+        for plan in candidate_plans
+        if (candidate := _candidate_from_plan(plan, allocation_budget, budget)) is not None
     ]
+    cache_items = cache.get("items", []) if isinstance(cache, dict) else []
+    if not candidate_pool:
+        candidate_pool = [
+            candidate
+            for cache_item in cache_items
+            if (candidate := _candidate_from_cache_item(cache_item, allocation_budget, budget)) is not None
+        ]
     if not candidate_pool and market_snapshot:
         candidate_pool = _snapshot_candidates(market_snapshot, allocation_budget, budget)
 
@@ -280,6 +353,8 @@ def build_recommendations(
             "per_slot_budget": per_slot_budget,
             "snapshot_bucket": cache.get("snapshot_bucket") if isinstance(cache, dict) else None,
             "cache_updated_at": cache.get("updated_at") if isinstance(cache, dict) else None,
+            "candidate_cache_updated_at": candidate_cache.get("updated_at") if isinstance(candidate_cache, dict) else None,
+            "candidate_cache_count": candidate_cache.get("candidate_count") if isinstance(candidate_cache, dict) else None,
             "candidate_count": len(candidate_pool),
         }
 
@@ -296,5 +371,7 @@ def build_recommendations(
         "per_slot_budget": per_slot_budget,
         "snapshot_bucket": cache.get("snapshot_bucket") if isinstance(cache, dict) else None,
         "cache_updated_at": cache.get("updated_at") if isinstance(cache, dict) else None,
+        "candidate_cache_updated_at": candidate_cache.get("updated_at") if isinstance(candidate_cache, dict) else None,
+        "candidate_cache_count": candidate_cache.get("candidate_count") if isinstance(candidate_cache, dict) else None,
         "candidate_count": len(candidate_pool),
     }

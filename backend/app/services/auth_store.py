@@ -42,11 +42,11 @@ def _coerce_user_record(email: str, user: Any) -> dict[str, Any] | None:
     if not isinstance(plugin_links, list):
         plugin_links = []
 
-    return {
+    return _apply_role_fields({
         **user,
         "email": normalized_email,
         "plugin_links": plugin_links,
-    }
+    })
 
 
 def _normalize_store(data: Any) -> dict[str, Any]:
@@ -106,6 +106,31 @@ def _normalize_email(email: str) -> str:
     return str(email or "").strip().lower()
 
 
+def _is_moderator_email(email: str) -> bool:
+    normalized = _normalize_email(email)
+    if not normalized or "@" not in normalized:
+        return False
+    local_part = normalized.split("@", 1)[0]
+    return ".mod" in local_part
+
+
+def _apply_role_fields(user: dict[str, Any]) -> dict[str, Any]:
+    normalized_email = _normalize_email(user.get("email") or "")
+    is_moderator = bool(user.get("is_moderator")) or _is_moderator_email(normalized_email)
+    account_type = "moderator" if is_moderator else str(user.get("account_type") or "standard").strip().lower() or "standard"
+
+    user["email"] = normalized_email
+    user["is_moderator"] = is_moderator
+    user["account_type"] = account_type
+
+    if is_moderator:
+        user["plan_tier"] = "pro"
+        user["subscription_status"] = "active"
+        user["plugin_access_enabled"] = True
+
+    return user
+
+
 def _hash_password(password: str, salt: str) -> str:
     raw = f"{salt}:{password}".encode("utf-8")
     return hashlib.sha256(raw).hexdigest()
@@ -126,7 +151,7 @@ def get_public_plans() -> list[dict[str, Any]]:
         },
         {
             "plan_tier": "pro",
-            "price_label": "$5/mo",
+            "price_label": "$4.99/mo",
             "summary": "Plugin execution mode",
             "features": [
                 "Full 8-slot optimization",
@@ -139,9 +164,12 @@ def get_public_plans() -> list[dict[str, Any]]:
 
 
 def _public_user(user: dict[str, Any]) -> dict[str, Any]:
+    user = _apply_role_fields(dict(user or {}))
     return {
         "user_id": user.get("user_id"),
         "email": user.get("email"),
+        "account_type": user.get("account_type", "standard"),
+        "is_moderator": bool(user.get("is_moderator", False)),
         "plan_tier": user.get("plan_tier", "free"),
         "subscription_status": user.get("subscription_status", "inactive"),
         "plugin_access_enabled": bool(user.get("plugin_access_enabled", False)),
@@ -151,7 +179,7 @@ def _public_user(user: dict[str, Any]) -> dict[str, Any]:
         "linked_devices": len(user.get("plugin_links", [])),
         "billing": {
             "next_billing_at": user.get("next_billing_at", ""),
-            "price_label": "$5/mo" if user.get("plan_tier") == "pro" else "$0",
+            "price_label": "$4.99/mo" if user.get("plan_tier") == "pro" else "$0",
         },
     }
 
@@ -169,7 +197,7 @@ def create_user(email: str, password: str) -> dict[str, Any]:
         raise ValueError("Account already exists")
 
     salt = secrets.token_hex(8)
-    user = {
+    user = _apply_role_fields({
         "user_id": secrets.token_hex(8),
         "email": normalized_email,
         "password_salt": salt,
@@ -181,7 +209,7 @@ def create_user(email: str, password: str) -> dict[str, Any]:
         "created_at": _utc_now(),
         "last_login": "",
         "next_billing_at": "",
-    }
+    })
     users[normalized_email] = user
     _save_store(store)
     return _public_user(user)
@@ -193,6 +221,8 @@ def authenticate_user(email: str, password: str, client_type: str = "web", devic
     user = store.get("users", {}).get(normalized_email)
     if not isinstance(user, dict):
         raise ValueError("Invalid email or password")
+
+    user = _apply_role_fields(user)
 
     expected_hash = _hash_password(password, str(user.get("password_salt") or ""))
     if expected_hash != user.get("password_hash"):
@@ -240,6 +270,7 @@ def get_session(token: str) -> dict[str, Any]:
     if not isinstance(user, dict):
         raise ValueError("User not found")
 
+    user = _apply_role_fields(user)
     session["last_seen_at"] = _utc_now()
     _save_store(store)
     return {

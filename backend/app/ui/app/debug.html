@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Debug Workspace · Auto Flip Web</title>
+  <link rel="icon" type="image/png" href="../assets/favicon.png" />
+  <style>
+    :root {
+      --paper-light: #e8d5ad;
+      --paper-mid: #d6b57d;
+      --paper-deep: #b88752;
+      --paper-edge: #8f6338;
+      --ink: #432811;
+      --ink-soft: #6f4c25;
+      --gold: #c58b35;
+      --gold-bright: #efca77;
+      --shell-muted: #dbc8a3;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      color: #f6ead1;
+      background: linear-gradient(180deg, rgba(11,6,3,.72), rgba(11,6,3,.84)), url('../assets/background.jpg') center/cover fixed no-repeat;
+      padding: 24px 18px 56px;
+    }
+    .page-wrap { width:min(100%, 1240px); margin:0 auto; }
+    .topbar { display:flex; justify-content:space-between; align-items:flex-start; gap:18px; flex-wrap:wrap; margin-bottom:18px; }
+    .back-link, #logoutBtn { color:#f0ddb1; text-decoration:none; font-weight:700; background:rgba(37,22,13,.86); border:1px solid rgba(184,137,45,.24); border-radius:999px; min-height:42px; padding:0 16px; display:inline-flex; align-items:center; cursor:pointer; box-shadow:inset 0 1px 0 rgba(255,231,185,.06); }
+    .account-header { display:flex; align-items:center; gap:12px; margin-left:auto; flex-wrap:wrap; justify-content:flex-end; }
+    .account-card { min-width:280px; display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:24px; background:rgba(28,17,10,.86); border:1px solid rgba(184,137,45,.24); box-shadow:0 14px 28px rgba(0,0,0,.24); }
+    .profile-avatar { width:46px; height:46px; border-radius:50%; display:grid; place-items:center; background:linear-gradient(135deg,var(--gold-bright),var(--gold)); color:#2a1a0f; font-weight:900; font-size:20px; box-shadow:inset 0 1px 0 rgba(255,244,212,.5); }
+    .profile-meta { min-width:0; display:grid; gap:4px; }
+    .profile-header-name { font-size:18px; line-height:1; font-weight:900; color:#fff1d0; }
+    .profile-header-email { color:var(--shell-muted); font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:210px; }
+    .profile-role-pill { margin-left:auto; display:inline-flex; align-items:center; min-height:28px; padding:0 10px; border-radius:999px; background:rgba(255,248,226,.12); border:1px solid rgba(255,240,204,.16); color:#f1ddb3; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+    .profile-role-pill.pro { background:rgba(197,139,53,.18); color:#ffe4b0; }
+    .profile-role-pill.moderator { background:rgba(86,118,206,.18); color:#d9e6ff; }
+    .profile-role-pill.guest, .profile-role-pill.free { background:rgba(255,248,226,.08); color:#dbc8a3; }
+    #logoutBtn { border-radius:16px; padding:12px 18px; min-height:46px; }
+    .page-grid { display:grid; grid-template-columns:minmax(0,1fr) 250px; gap:24px; align-items:start; }
+    .profile-side-rail { display:grid; gap:12px; align-self:start; position:sticky; top:24px; }
+    .profile-nav-bar { display:flex; flex-direction:column; gap:10px; padding:10px; border-radius:24px; background:rgba(29,17,10,.82); border:1px solid rgba(184,137,45,.24); box-shadow:0 14px 28px rgba(0,0,0,.22); }
+    .profile-nav-bar a { display:flex; align-items:center; justify-content:center; width:100%; color:#f0ddb1; text-decoration:none; font-weight:700; background:rgba(120,78,23,.52); border:1px solid rgba(232,184,80,.28); border-radius:16px; padding:12px 18px; }
+    .profile-nav-bar a.is-active { background:linear-gradient(180deg, rgba(244,196,91,.98), rgba(214,151,39,.96)); color:#2a1a0f; border-color:rgba(255,214,124,.78); }
+    .profile-nav-bar a[hidden] { display:none !important; }
+    .scroll-shell { position:relative; width:min(100%, 860px); padding-top:22px; padding-bottom:18px; filter:drop-shadow(0 26px 36px rgba(0,0,0,.45)); }
+    .scroll-roller,.scroll-footer{ position:absolute; left:26px; right:26px; height:38px; border-radius:999px; background:linear-gradient(180deg, rgba(255,236,192,.34), rgba(255,236,192,.05) 25%, rgba(76,46,22,.18) 26%, rgba(76,46,22,.06) 40%, rgba(255,236,192,.10) 58%, rgba(76,46,22,.20) 100%),linear-gradient(90deg, #a97a46, #d2aa72 16%, #c79963 32%, #e3c18c 48%, #bf8d59 68%, #d3ac76 84%, #a46f3d); box-shadow: inset 0 2px 4px rgba(255,245,214,.26), inset 0 -6px 8px rgba(89,53,24,.22), 0 8px 14px rgba(0,0,0,.24); z-index:4; }
+    .scroll-roller{ top:0; } .scroll-footer{ bottom:0; height:34px; }
+    .scroll-roller:before,.scroll-roller:after,.scroll-footer:before,.scroll-footer:after{ content:""; position:absolute; top:50%; transform:translateY(-50%); width:36px; height:36px; border-radius:50%; background: radial-gradient(circle at 30% 30%, #f0d5a3 0, #c48d49 38%, #9e693a 68%, #70421f 100%); box-shadow: inset 0 1px 2px rgba(255,246,218,.36), 0 4px 10px rgba(0,0,0,.22); }
+    .scroll-roller:before,.scroll-footer:before{ left:-18px; } .scroll-roller:after,.scroll-footer:after{ right:-18px; }
+    .scroll-paper { position:relative; margin:0 34px; top:10px; padding:34px 34px 42px; color:var(--ink); background:linear-gradient(180deg,#ecdcb5 0%, #e1c48f 48%, #d2a96f 100%); border-left:1px solid rgba(98,65,34,.25); border-right:1px solid rgba(98,65,34,.25); box-shadow: inset 0 1px 0 rgba(255,250,238,.74), inset 0 -1px 0 rgba(120,76,37,.20); overflow:hidden; }
+    .scroll-paper-inner { position:relative; z-index:1; }
+    .scroll-ornament { position:absolute; top:28px; bottom:22px; width:16px; pointer-events:none; opacity:.46; background:radial-gradient(circle at 50% 8px, rgba(87,51,25,.48) 0 1.4px, transparent 1.6px),linear-gradient(180deg, transparent 0 14px, rgba(99,60,32,.34) 14px calc(100% - 14px), transparent calc(100% - 14px)); background-size:16px 22px,2px 100%; background-position:center top,center center; background-repeat:repeat-y,no-repeat; }
+    .scroll-ornament.left{ left:14px; } .scroll-ornament.right{ right:14px; }
+    .scroll-kicker { color:#7f5a2c; text-transform:uppercase; letter-spacing:.17em; font-size:11px; font-weight:800; }
+    .scroll-title { margin:10px 0 0; font-size:clamp(32px,5vw,62px); line-height:.96; color:#3b2410; font-weight:900; }
+    .scroll-copy { margin-top:12px; color:var(--ink-soft); line-height:1.72; max-width:60ch; }
+    .chip-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:18px; }
+    .chip { display:inline-flex; align-items:center; min-height:36px; padding:0 12px; border-radius:999px; border:1px solid rgba(233,190,103,.22); background:rgba(46,28,16,.76); color:#f1ddb3; font-weight:700; font-size:13px; }
+    .scroll-grid { display:grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap:14px; margin-top:22px; }
+    .scroll-card { background:rgba(255,248,226,.42); border:1px solid rgba(111,76,38,.14); border-radius:18px; padding:18px; box-shadow: inset 0 1px 0 rgba(255,255,255,.34); }
+    .scroll-card h2 { margin:0 0 10px; font-size:22px; color:#412913; } .scroll-card p,.scroll-card li{ margin:0; color:#674523; line-height:1.65; }
+    .scroll-card ul { margin:0; padding-left:20px; display:grid; gap:8px; }
+    .debug-embed-shell { width:100%; margin-top:16px; border-radius:18px; overflow:hidden; border:1px solid rgba(111,76,38,.18); background:rgba(52,29,13,.08); box-shadow: inset 0 1px 0 rgba(255,255,255,.24); }
+    .debug-embed-frame { display:block; width:100%; min-height:1500px; height:1500px; border:0; background:transparent; }
+    @media (max-width:980px){ .page-grid{ grid-template-columns:1fr; } .profile-side-rail{ position:static; } .account-header{ width:100%; justify-content:flex-start; } .account-card{ width:100%; min-width:0; } .profile-header-email{ max-width:none; } .scroll-grid{ grid-template-columns:1fr; } .scroll-paper{ margin:0 14px; padding:30px 22px 38px; } .scroll-roller,.scroll-footer{ left:10px; right:10px; } }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+  <div class="topbar">
+    <a class="back-link" href="/app/">← Back to Auto Flip Web</a>
+    <div class="account-header">
+      <div class="account-card">
+        <div id="profileAvatar" class="profile-avatar">G</div>
+        <div class="profile-meta">
+          <div id="profileHeaderName" class="profile-header-name">Guest mode</div>
+          <div id="profileHeaderEmail" class="profile-header-email">Sign in to load account pages</div>
+        </div>
+        <span id="profileRolePill" class="profile-role-pill guest">Guest</span>
+      </div>
+      <button id="logoutBtn" type="button">Log out</button>
+    </div>
+  </div>
+  <div class="page-grid">
+    <main class="scroll-shell">
+      <div class="scroll-roller"></div>
+      <section class="scroll-paper">
+        <div class="scroll-ornament left"></div>
+        <div class="scroll-ornament right"></div>
+        <div class="scroll-paper-inner">
+          <div class="scroll-kicker">Merchant ledger</div>
+          <h1 class="scroll-title">Debug workspace</h1>
+          <div class="scroll-copy">Moderator-only runtime traces, explorer diagnostics, graph data, trade-plan state, and AI copilot debugging live on their own ledger.</div>
+          <div class="chip-row"><span class="chip">Moderator only</span><span class="chip">Panels collapsed by default</span><span class="chip">Full-width workspace</span></div>
+          <div class="scroll-grid">
+            <div class="scroll-card"><h2>Debug routing</h2><ul><li>The main dashboard no longer shows a Debug tab.</li><li>This page keeps the real debug tools on their own ledger.</li><li>All debug panels start collapsed to save space.</li></ul></div>
+            <div class="scroll-card"><h2>Usage</h2><ul><li>Open panels only when you need them.</li><li>Copy or clear each panel from inside the workspace.</li><li>Live data stays connected to the existing app debug system.</li></ul></div>
+          </div>
+          <div class="scroll-card" style="margin-top:18px;">
+            <h2>Sidebar AI debug mirror</h2>
+            <p>This mirror shows the shared copilot state from the account sidebars, including persisted chat handoff between pages.</p>
+            <pre id="sharedAiDebugMirror" style="margin-top:12px; white-space:pre-wrap; max-height:340px; overflow:auto; background:rgba(52,29,13,.10); border:1px solid rgba(111,76,38,.18); border-radius:14px; padding:14px; color:#4d3218;">No shared sidebar AI debug yet.</pre>
+          </div>
+          <div class="scroll-card" style="margin-top:18px;">
+            <h2>Debug panels</h2>
+            <p>This workspace uses the current app debug logic, but it is isolated here on its own page.</p>
+            <div class="debug-embed-shell">
+              <iframe id="debugWorkspaceFrame" class="debug-embed-frame" src="index.html?debug_embed=1#debugTab" title="Debug Workspace" loading="lazy"></iframe>
+            </div>
+          </div>
+        </div>
+      </section>
+      <div class="scroll-footer"></div>
+    </main>
+    <aside class="profile-side-rail">
+      <nav class="profile-nav-bar" id="profilePageNav">
+        <a class="profile-nav-link" data-page="profile" href="profile.html">Profile Hub</a>
+        <a class="profile-nav-link" data-page="membership" href="membership.html">Membership</a>
+        <a class="profile-nav-link" data-page="favorites" href="favorites.html">Favorites</a>
+        <a class="profile-nav-link" data-page="security" href="security.html">Security</a>
+        <a class="profile-nav-link" data-page="settings" href="settings.html">Personal Settings</a>
+        <a class="profile-nav-link" data-page="debug" id="profileDebugNav" href="debug.html" hidden>Debug</a>
+      </nav>
+    </aside>
+  </div>
+</div>
+<script>
+  function getApiBase() {
+    return (localStorage.getItem('osrs_api_base') || '').trim().replace(/\/$/, '');
+  }
+  function getToken() { return localStorage.getItem('osrs_token') || ''; }
+  async function api(path, options = {}) {
+    const base = getApiBase();
+    const token = getToken();
+    const headers = new Headers(options.headers || {});
+    if (!headers.has('Accept')) headers.set('Accept', 'application/json');
+    if (options.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+    if (token && !headers.has('Authorization')) headers.set('Authorization', 'Bearer ' + token);
+    const response = await fetch((base || '') + path, { ...options, headers });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.detail || 'Request failed');
+    return data;
+  }
+  async function loadSession() {
+    const token = getToken();
+    if (!token) return null;
+    try { return await api('/auth/me?token=' + encodeURIComponent(token)); } catch (_) { return null; }
+  }
+  async function logoutNow(next = '/app/') {
+    const token = getToken();
+    try { if (token) await api('/auth/logout?token=' + encodeURIComponent(token), { method:'POST' }); } catch (_) {}
+    localStorage.removeItem('osrs_token');
+    window.location.href = next;
+  }
+  function resolveRoleState(user) {
+    const email = ((user && user.email) || '').toLowerCase();
+    const isModerator = !!(user && (user.is_moderator || user.account_type === 'moderator' || email.includes('.mod')));
+    const isPro = !!(user && (isModerator || user.plan_tier === 'pro' || user.subscription_status === 'active' || user.plugin_access_enabled));
+    return { isModerator, role: isModerator ? 'Moderator' : (isPro ? 'Pro' : (user ? 'Free' : 'Guest')) };
+  }
+  function syncAccountChrome(session) {
+    const user = session && session.user ? session.user : null;
+    const email = user?.email || 'Sign in to load account pages';
+    const fallbackName = email && email.includes('@') ? email.split('@')[0] : 'Guest mode';
+    const display = user?.display_name || fallbackName || 'Guest mode';
+    const initial = (display || 'G').trim().charAt(0).toUpperCase() || 'G';
+    const roleState = resolveRoleState(user);
+    document.getElementById('profileAvatar').textContent = initial;
+    document.getElementById('profileHeaderName').textContent = display;
+    document.getElementById('profileHeaderEmail').textContent = email;
+    const roleEl = document.getElementById('profileRolePill');
+    roleEl.textContent = roleState.role;
+    roleEl.className = 'profile-role-pill ' + roleState.role.toLowerCase();
+    const debugLink = document.getElementById('profileDebugNav');
+    if (debugLink) debugLink.hidden = !roleState.isModerator;
+  }
+  function syncAuthButton(session) {
+    const btn = document.getElementById('logoutBtn');
+    if (session) { btn.textContent = 'Log out'; btn.dataset.mode='logout'; }
+    else { btn.textContent = 'Log in'; btn.dataset.mode='login'; }
+  }
+  function applyProfilePageNav(session) {
+    document.querySelectorAll('.profile-nav-link').forEach((link) => {
+      const active = link.dataset.page === 'debug';
+      link.classList.toggle('is-active', active);
+      if (active) link.setAttribute('aria-current','page'); else link.removeAttribute('aria-current');
+    });
+    const user = session && session.user ? session.user : null;
+    const roleState = resolveRoleState(user);
+    const debugLink = document.getElementById('profileDebugNav');
+    if (debugLink) debugLink.hidden = !roleState.isModerator;
+  }
+  function loginRedirectForCurrentPage() {
+    const next = window.location.pathname + window.location.search + window.location.hash;
+    return '/login.html?next=' + encodeURIComponent(next || '/app/');
+  }
+  async function requireSessionOrLogin() {
+    const session = await loadSession();
+    if (session) return session;
+    localStorage.removeItem('osrs_token');
+    window.location.replace(loginRedirectForCurrentPage());
+    return null;
+  }
+  const frame = document.getElementById('debugWorkspaceFrame');
+  frame.addEventListener('load', () => {
+    try {
+      const innerDoc = frame.contentDocument || (frame.contentWindow && frame.contentWindow.document);
+      const body = innerDoc && innerDoc.body;
+      const html = innerDoc && innerDoc.documentElement;
+      const nextHeight = Math.max(1400, body ? body.scrollHeight : 0, html ? html.scrollHeight : 0);
+      frame.style.height = nextHeight + 'px';
+    } catch (_) {}
+  });
+  window.addEventListener('DOMContentLoaded', async () => {
+    const session = await requireSessionOrLogin();
+    if (!session) return;
+    syncAccountChrome(session);
+    syncAuthButton(session);
+    applyProfilePageNav(session);
+  });
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    const session = await loadSession();
+    if (session) { logoutNow('/login.html?next=/app/debug.html'); return; }
+    window.location.href = '/login.html?next=/app/debug.html';
+  });
+</script>
+
+<script src="../assets/app-shell-sidebars.js" data-app-home="index.html"></script>
+</body>
+</html>

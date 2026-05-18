@@ -31,19 +31,75 @@
         url('../assets/background.jpg') center/cover fixed no-repeat;
       padding: 24px 18px 56px;
     }
-    .page-wrap { width:min(100%, 1180px); margin:0 auto; }
-    .topbar { display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:18px; }
+    
+    .page-wrap { width:min(100%, 1240px); margin:0 auto; }
+    .topbar {
+      display:flex; justify-content:space-between; align-items:flex-start; gap:18px; flex-wrap:wrap; margin-bottom:18px;
+    }
     .back-link, .topbar-actions a, .topbar-actions button {
       color:#f0ddb1; text-decoration:none; font-weight:700; background:rgba(37,22,13,0.86); border:1px solid rgba(184,137,45,0.24);
-      border-radius:999px; min-height:40px; padding:0 14px; display:inline-flex; align-items:center; cursor:pointer;
+      border-radius:999px; min-height:42px; padding:0 16px; display:inline-flex; align-items:center; cursor:pointer;
       box-shadow:inset 0 1px 0 rgba(255,231,185,0.06);
     }
-    .topbar-actions { display:flex; gap:10px; flex-wrap:wrap; }
-    .topbar-actions .primary { background:linear-gradient(135deg,var(--gold-bright),var(--gold)); color:#2a1a0f; border:0; }
-    .topbar-actions .ghost { background:rgba(43,26,15,0.62); }
+    .account-header { display:flex; align-items:center; gap:12px; margin-left:auto; flex-wrap:wrap; justify-content:flex-end; }
+    .account-card {
+      min-width:280px; display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:24px;
+      background:rgba(28,17,10,0.86); border:1px solid rgba(184,137,45,0.24); box-shadow:0 14px 28px rgba(0,0,0,0.24);
+    }
+    .profile-avatar {
+      width:46px; height:46px; border-radius:50%; display:grid; place-items:center; flex:0 0 auto;
+      background:linear-gradient(135deg,var(--gold-bright),var(--gold)); color:#2a1a0f; font-weight:900; font-size:20px;
+      box-shadow:inset 0 1px 0 rgba(255,244,212,0.5);
+    }
+    .profile-meta { min-width:0; display:grid; gap:4px; }
+    .profile-header-name { font-size:18px; line-height:1; font-weight:900; color:#fff1d0; }
+    .profile-header-email { color:var(--shell-muted); font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:210px; }
+    .profile-role-pill {
+      margin-left:auto; display:inline-flex; align-items:center; min-height:28px; padding:0 10px; border-radius:999px;
+      background:rgba(255,248,226,0.12); border:1px solid rgba(255,240,204,0.16); color:#f1ddb3; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;
+    }
+    .profile-role-pill.pro { background:rgba(197,139,53,0.18); color:#ffe4b0; }
+    .profile-role-pill.moderator { background:rgba(86,118,206,0.18); color:#d9e6ff; }
+    .profile-role-pill.guest, .profile-role-pill.free { background:rgba(255,248,226,0.08); color:#dbc8a3; }
+    #logoutBtn {
+      color:#f0ddb1; text-decoration:none; font-weight:700; background:rgba(37,22,13,0.86); border:1px solid rgba(184,137,45,0.24);
+      border-radius:16px; padding:12px 18px; cursor:pointer; min-height:46px;
+    }
+    .page-grid { display:grid; grid-template-columns:minmax(0, 1fr) 250px; gap:24px; align-items:start; }
+    .profile-side-rail { display:grid; gap:12px; align-self:start; position:sticky; top:24px; }
+    .profile-nav-bar {
+      display:flex; flex-direction:column; gap:10px; padding:10px; border-radius:24px; background:rgba(29,17,10,0.82);
+      border:1px solid rgba(184,137,45,0.24); box-shadow:0 14px 28px rgba(0,0,0,0.22);
+    }
+    .profile-nav-bar a {
+      display:flex; align-items:center; justify-content:center; width:100%;
+      color:#f0ddb1; text-decoration:none; font-weight:700; background:rgba(120,78,23,0.52);
+      border:1px solid rgba(232,184,80,0.28); border-radius:16px; padding:12px 18px;
+      transition:transform .15s ease, box-shadow .15s ease, background .15s ease, color .15s ease;
+    }
+    .profile-nav-bar a:hover, .profile-nav-bar a:focus-visible, #logoutBtn:hover, #logoutBtn:focus-visible {
+      transform:translateY(-1px); box-shadow:0 10px 20px rgba(0,0,0,0.2);
+    }
+    .profile-nav-bar a.is-active {
+      background:linear-gradient(180deg, rgba(244,196,91,0.98), rgba(214,151,39,0.96));
+      color:#2a1a0f; border-color:rgba(255,214,124,0.78);
+      box-shadow:inset 0 1px 0 rgba(255,245,212,0.42), 0 10px 20px rgba(0,0,0,0.16);
+    }
+    .profile-nav-bar a[hidden] { display:none !important; }
+    .hero { display:grid; gap:24px; justify-items:stretch; }
+    .hero.two-col { grid-template-columns:minmax(280px,390px) minmax(420px,1fr); align-items:start; }
+    .hero.single { grid-template-columns:minmax(320px,1fr); }
+    @media (max-width: 980px) {
+      .page-grid { grid-template-columns:1fr; }
+      .profile-side-rail { position:static; }
+      .account-header { width:100%; justify-content:flex-start; }
+      .account-card { width:100%; min-width:0; }
+      .profile-header-email { max-width:none; }
+    }
+
     .hero { display:grid; gap:24px; justify-items:center; }
     .hero.two-col { grid-template-columns:minmax(280px,390px) minmax(420px,1fr); align-items:start; }
-    .hero.single { grid-template-columns:minmax(320px,780px); }
+    .hero.single { grid-template-columns:minmax(320px,780px); justify-items:start; }
     .side-copy { padding:18px 6px; max-width: 380px; }
     .eyebrow { color:#e7be72; text-transform:uppercase; letter-spacing:.16em; font-size:11px; font-weight:700; margin-bottom:12px; }
     h1.page-title { margin:0; font-size:clamp(34px,4.5vw,64px); line-height:.98; color:#fff1d0; }
@@ -171,7 +227,7 @@
 </style>
 </head>
 <body>
-<div class="page-wrap"><div class="topbar"><a class="back-link" href="profile.html">← Back to Profile Hub</a><div class="topbar-actions"><a href="settings.html">Personal Settings</a><a class="primary" href="/pro.html">Upgrade</a></div></div><div class="hero single"><main class="scroll-shell medium"><div class="scroll-roller"></div><section class="scroll-paper"><div class="scroll-ornament left"></div><div class="scroll-ornament right"></div><div class="scroll-paper-inner"><div class="scroll-kicker">Merchant ledger</div><h1 class="scroll-title">Membership</h1><div class="scroll-copy">This scroll keeps your membership state separate from profile details so the upgrade path stays clear and focused.</div><div class="stat-grid"><div class="stat"><div class="stat-label">Plan</div><div id="planValue" class="stat-value">Free Tier</div></div><div class="stat"><div class="stat-label">Plugin access</div><div id="pluginValue" class="stat-value">Locked</div></div><div class="stat"><div class="stat-label">Next billing</div><div id="billingValue" class="stat-value">No billing yet</div></div></div><div class="scroll-grid"><div class="scroll-card"><h2>Current path</h2><p id="membershipPrimary">Free tier gives you website discovery, charts, and preview planning. Upgrade when you want full slot optimization and plugin execution.</p></div><div class="scroll-card"><h2>Next step</h2><ul><li>Stay on the website for discovery and planning.</li><li>Upgrade when you want Auto Flip execution inside the plugin.</li><li>Keep the same account across both surfaces later.</li></ul><div class="action-row"><a class="btn primary" href="/pro.html">Open Membership Page</a><a class="btn" href="profile.html">Profile Hub</a></div></div></div></div></section><div class="scroll-footer"></div></main></div></div>
+<div class="page-wrap"><div class="topbar"><a class="back-link" href="/app/">← Back to Auto Flip Web</a><div class="account-header"><div class="account-card"><div id="profileAvatar" class="profile-avatar">G</div><div class="profile-meta"><div id="profileHeaderName" class="profile-header-name">Guest mode</div><div id="profileHeaderEmail" class="profile-header-email">Sign in to load account pages</div></div><span id="profileRolePill" class="profile-role-pill guest">Guest</span></div><button id="logoutBtn" type="button">Log out</button></div></div><div class="page-grid"><div class="hero single"><main class="scroll-shell medium"><div class="scroll-roller"></div><section class="scroll-paper"><div class="scroll-ornament left"></div><div class="scroll-ornament right"></div><div class="scroll-paper-inner"><div class="scroll-kicker">Merchant ledger</div><h1 class="scroll-title">Membership</h1><div class="scroll-copy">This scroll keeps your membership state separate from profile details so the upgrade path stays clear and focused.</div><div class="stat-grid"><div class="stat"><div class="stat-label">Plan</div><div id="planValue" class="stat-value">Free Tier</div></div><div class="stat"><div class="stat-label">Plugin access</div><div id="pluginValue" class="stat-value">Locked</div></div><div class="stat"><div class="stat-label">Next billing</div><div id="billingValue" class="stat-value">No billing yet</div></div></div><div class="scroll-grid"><div class="scroll-card"><h2>Current path</h2><p id="membershipPrimary">Free tier gives you website discovery, charts, and preview planning. Upgrade when you want full slot optimization and plugin execution.</p></div><div class="scroll-card"><h2>Next step</h2><ul><li>Stay on the website for discovery and planning.</li><li>Upgrade when you want Auto Flip execution inside the plugin.</li><li>Keep the same account across both surfaces later.</li></ul><div class="action-row"><a class="btn primary" href="/pro.html">Open Membership Page</a><a class="btn" href="profile.html">Profile Hub</a></div></div></div></div></section><div class="scroll-footer"></div></main></div><aside class="profile-side-rail"><nav class="profile-nav-bar" id="profilePageNav"><a class="profile-nav-link" data-page="profile" href="profile.html">Profile Hub</a><a class="profile-nav-link" data-page="membership" href="membership.html">Membership</a><a class="profile-nav-link" data-page="favorites" href="favorites.html">Favorites</a><a class="profile-nav-link" data-page="security" href="security.html">Security</a><a class="profile-nav-link" data-page="settings" href="settings.html">Personal Settings</a><a class="profile-nav-link" data-page="debug" id="profileDebugNav" href="debug.html" hidden>Debug</a></nav></aside></div></div>
 <script>
     async function api(url, options = {}) {
       const response = await fetch(url, { headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }, ...options });
@@ -191,6 +247,61 @@
       localStorage.removeItem('osrs_token');
       window.location.href = next;
     }
- loadSession().then((session) => { const user = session?.user || {}; document.getElementById('planValue').textContent = user.plan_tier === 'pro' ? 'Pro Tier' : 'Free Tier'; document.getElementById('pluginValue').textContent = user.plan_tier === 'pro' ? 'Enabled' : 'Locked'; document.getElementById('billingValue').textContent = user.plan_tier === 'pro' ? 'Subscription active' : 'No billing yet'; document.getElementById('membershipPrimary').textContent = user.plan_tier === 'pro' ? 'Your account is on Pro. Auto Flip Web stays for discovery while Auto Flip handles execution inside the plugin.' : 'Free tier gives you website discovery, charts, and preview planning. Upgrade when you want full slot optimization and plugin execution.'; });</script>
+
+    const PROFILE_PAGE_KEY = 'membership';
+    function applyProfilePageNav(session) {
+      const links = Array.from(document.querySelectorAll('.profile-nav-link'));
+      links.forEach((link) => {
+        const isActive = link.dataset.page === PROFILE_PAGE_KEY;
+        link.classList.toggle('is-active', isActive);
+        if (isActive) link.setAttribute('aria-current', 'page');
+        else link.removeAttribute('aria-current');
+      });
+      const user = session && session.user ? session.user : null;
+      const userEmail = ((user && user.email) || '').toLowerCase();
+      const isModerator = !!(user && (user.is_moderator || user.account_type === 'moderator' || userEmail.includes('.mod')));
+      const debugLink = document.getElementById('profileDebugNav');
+      if (debugLink) debugLink.hidden = !isModerator;
+    }
+
+    function syncAccountChrome(session) {
+      const user = session && session.user ? session.user : null;
+      const email = user?.email || 'Sign in to load account pages';
+      const fallbackName = email && email.includes('@') ? email.split('@')[0] : 'Guest mode';
+      const display = user?.display_name || fallbackName || 'Guest mode';
+      const initial = (display || 'G').trim().charAt(0).toUpperCase() || 'G';
+      const userEmail = ((user && user.email) || '').toLowerCase();
+      const isModerator = !!(user && (user.is_moderator || user.account_type === 'moderator' || userEmail.includes('.mod')));
+      const isPro = !!(user && (isModerator || user.plan_tier === 'pro' || user.subscription_status === 'active' || user.plugin_access_enabled));
+      const role = isModerator
+        ? 'Moderator'
+        : (isPro ? 'Pro' : (user ? 'Free' : 'Guest'));
+      const avatarEl = document.getElementById('profileAvatar');
+      const nameEl = document.getElementById('profileHeaderName');
+      const emailEl = document.getElementById('profileHeaderEmail');
+      const roleEl = document.getElementById('profileRolePill');
+      if (avatarEl) avatarEl.textContent = initial;
+      if (nameEl) nameEl.textContent = display;
+      if (emailEl) emailEl.textContent = email;
+      if (roleEl) {
+        roleEl.textContent = role;
+        roleEl.className = 'profile-role-pill ' + role.toLowerCase();
+      }
+    }
+
+    function loginRedirectForCurrentPage() {
+      const next = window.location.pathname + window.location.search + window.location.hash;
+      return '/login.html?next=' + encodeURIComponent(next || '/app/');
+    }
+    async function requireSessionOrLogin() {
+      const session = await loadSession();
+      if (session) return session;
+      localStorage.removeItem('osrs_token');
+      window.location.replace(loginRedirectForCurrentPage());
+      return null;
+    }
+ requireSessionOrLogin().then((session) => { if (!session) return; applyProfilePageNav(session); const user = session?.user || {}; document.getElementById('planValue').textContent = user.plan_tier === 'pro' ? 'Pro Tier' : 'Free Tier'; document.getElementById('pluginValue').textContent = user.plan_tier === 'pro' ? 'Enabled' : 'Locked'; document.getElementById('billingValue').textContent = user.plan_tier === 'pro' ? 'Subscription active' : 'No billing yet'; document.getElementById('membershipPrimary').textContent = user.plan_tier === 'pro' ? 'Your account is on Pro. Auto Flip Web stays for discovery while Auto Flip handles execution inside the plugin.' : 'Free tier gives you website discovery, charts, and preview planning. Upgrade when you want full slot optimization and plugin execution.'; }); document.getElementById('logoutBtn')?.addEventListener('click', () => logoutNow('/login.html?next=/app/membership.html'));</script>
+
+<script src="../assets/app-shell-sidebars.js" data-app-home="index.html"></script>
 </body>
 </html>

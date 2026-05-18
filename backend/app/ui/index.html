@@ -3,242 +3,301 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Auto Flip Web</title>
-  <link rel="icon" type="image/png" href="assets/favicon.png" />
+  <title>AutoFlip.gg - OSRS Grand Exchange Planner</title>
+  <link rel="icon" type="image/png" href="/assets/favicon.png" />
+  <link rel="stylesheet" href="/assets/autoflip-professional.css" />
   <style>
-    :root{--bg:#120905;--card:rgba(28,16,9,.82);--line:rgba(230,184,92,.22);--text:#fff2dd;--muted:#d8c3a0;--gold:#e4b55f;--gold2:#c6862a;--blue:#6b8fb5}
+    :root{
+      --bg:#020302;
+      --panel:rgba(9,12,10,.86);
+      --panel2:rgba(18,15,10,.88);
+      --line:rgba(229,183,91,.24);
+      --line2:rgba(89,255,155,.18);
+      --text:#fff2dc;
+      --muted:#d2c1a2;
+      --soft:#9f927a;
+      --gold:#e6b85c;
+      --gold2:#a86f24;
+      --green:#58ff9a;
+      --green2:#0fa65a;
+      --red:#ff6d5f;
+      --shadow:0 26px 90px rgba(0,0,0,.54);
+    }
     *{box-sizing:border-box;scroll-behavior:smooth}
-    body{margin:0;font-family:Arial,sans-serif;color:var(--text);background:#120905 url('assets/background.jpg') center/cover fixed no-repeat;min-height:100vh;overflow-x:hidden}
-    .bg-blur{position:fixed;inset:0;background:linear-gradient(180deg,rgba(16,8,4,.58),rgba(16,8,4,.78)),radial-gradient(circle at top,rgba(111,66,25,.28),transparent 44%);backdrop-filter:blur(10px);pointer-events:none}
-    .app-ghost{position:fixed;inset:88px 64px 40px 64px;border:1px solid var(--line);border-radius:28px;background:rgba(16,9,5,.34);box-shadow:0 30px 80px rgba(0,0,0,.42);overflow:hidden}
-    .app-ghost iframe{width:100%;height:100%;border:0;filter:blur(2px) saturate(.88) brightness(.72);transform:scale(1.015);transform-origin:center top;pointer-events:none;display:block}
-    .veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,7,4,.16),rgba(15,7,4,.64))}
-    .topbar{position:relative;z-index:3;display:flex;justify-content:space-between;align-items:center;padding:18px 28px;border-bottom:1px solid var(--line);background:rgba(24,13,7,.72);backdrop-filter:blur(14px)}
-    .brand{display:flex;align-items:center;gap:12px;font-weight:800}.brand-badge{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#f0be62,#b7862b);display:flex;align-items:center;justify-content:center;color:#24170d}
-    .nav{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;justify-content:center;padding:11px 16px;border-radius:12px;border:1px solid rgba(233,190,103,.22);background:linear-gradient(180deg,rgba(66,42,23,.96),rgba(38,24,15,.96));color:var(--text);text-decoration:none;font-weight:700;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}.btn:hover{transform:translateY(-1px);border-color:rgba(246,207,125,.36);box-shadow:0 10px 24px rgba(0,0,0,.24)} .btn.gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#24170d;border:0}.btn.subtle{background:rgba(57,34,18,.72)}
-    .hero{position:relative;z-index:3;max-width:1160px;margin:52px auto 0;padding:0 24px 36px;display:grid;grid-template-columns:minmax(0,1.08fr) minmax(340px,.92fr);gap:20px;align-items:start}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:26px;box-shadow:0 22px 60px rgba(0,0,0,.34)}
-    .eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#ddb064;font-weight:800}.headline{font-size:54px;line-height:.98;margin:12px 0 16px}.copy{color:var(--muted);font-size:18px;line-height:1.65;max-width:700px}.row{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}.pill-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}.pill{padding:8px 12px;border-radius:999px;background:rgba(240,190,98,.08);border:1px solid rgba(240,190,98,.2);color:#f1ddad;font-size:13px;font-weight:700}
-    .mini{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}.mini-card{padding:14px;border-radius:16px;background:rgba(24,14,8,.72);border:1px solid rgba(233,190,103,.12)}.mini-label{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em}.mini-value{margin-top:6px;font-size:22px;font-weight:800}
-    .demo-shell{margin-top:22px;border-radius:22px;border:1px solid rgba(233,190,103,.16);overflow:hidden;background:linear-gradient(180deg,rgba(26,15,9,.96),rgba(18,10,6,.96));box-shadow:inset 0 1px 0 rgba(255,230,170,.06)}
-    .demo-top{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid rgba(233,190,103,.12)}
-    .demo-label{display:flex;align-items:center;gap:10px;font-weight:800}.demo-dot{width:10px;height:10px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 4px rgba(228,181,95,.12)}
-    .demo-frame{position:relative;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;padding:22px;background:radial-gradient(circle at top,rgba(107,143,181,.18),transparent 30%),linear-gradient(180deg,rgba(47,25,14,.82),rgba(18,10,6,.98))}
-    .demo-grid{position:absolute;inset:0;background:linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);background-size:28px 28px;opacity:.22}
-    .demo-panel{position:relative;z-index:1;max-width:520px;width:100%;padding:28px;border-radius:22px;border:1px solid rgba(233,190,103,.16);background:rgba(23,13,8,.88);box-shadow:0 24px 46px rgba(0,0,0,.34)}
-    .play-ring{width:70px;height:70px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#24170d;font-size:28px;font-weight:900;margin-bottom:16px;box-shadow:0 14px 30px rgba(0,0,0,.28)}
-    .demo-title{font-size:24px;font-weight:800;margin:0 0 10px}.demo-copy{color:var(--muted);line-height:1.6;margin:0}.demo-pills{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
-    .side-title{font-size:24px;margin:0 0 8px}.side-copy{color:var(--muted);line-height:1.6}.feature-list{display:grid;gap:10px;margin:18px 0 0;padding:0;list-style:none}.feature-list li{padding:12px 14px;border-radius:14px;background:rgba(24,14,8,.68);border:1px solid rgba(233,190,103,.1)}
-    .section-shell{position:relative;z-index:3;max-width:1160px;margin:0 auto;padding:0 24px 24px}
-    .section-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
-    .trust-card,.split-card,.path-card,.cta-band{background:rgba(24,14,8,.84);border:1px solid rgba(233,190,103,.16);border-radius:22px;box-shadow:0 18px 48px rgba(0,0,0,.28)}
-    .trust-card{padding:20px}.trust-title{font-size:18px;font-weight:800;margin:0 0 8px}.trust-copy{color:var(--muted);line-height:1.6;margin:0}
-    .section-title{font-size:30px;margin:0 0 10px}.section-copy{color:var(--muted);line-height:1.65;max-width:760px;margin:0 0 18px}
-    .split-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.split-card{padding:22px}.split-card h3{margin:0 0 10px;font-size:22px}.split-card ul{margin:0;padding-left:18px;color:var(--muted);line-height:1.75}.split-card li strong{color:#fff0cf}
-    .path-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.path-card{padding:20px}.path-step{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#24170d;font-weight:900;margin-bottom:12px}.path-card h3{margin:0 0 8px;font-size:20px}.path-card p{margin:0;color:var(--muted);line-height:1.6}
-    .cta-band{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:22px 24px}.cta-band-copy{max-width:720px}.cta-band-copy strong{display:block;font-size:22px;margin-bottom:8px}.cta-band-copy span{color:var(--muted);line-height:1.6}
-    .foot{position:relative;z-index:3;max-width:1160px;margin:6px auto 0;padding:0 24px 28px;color:var(--muted)}
-    @media (max-width: 980px){body{overflow:auto}.app-ghost{inset:96px 18px 18px 18px}.hero,.split-grid,.section-grid,.path-grid,.cta-band{grid-template-columns:1fr;margin-top:34px}.headline{font-size:40px}.mini{grid-template-columns:1fr}.topbar{padding:16px 18px}.nav{gap:8px}.cta-band{display:grid;padding:20px}}
+    html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif;overflow-x:hidden}
+    body{background:#020302}
+    a{color:inherit}
+    .page{position:relative;background:#020302}
+    .topbar{
+      position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:50;
+      display:flex;justify-content:space-between;align-items:center;gap:18px;
+      width:min(1380px,calc(100% - 28px));padding:13px 20px;
+      background:rgba(3,5,4,.52);border:1px solid rgba(230,184,92,.18);
+      border-radius:24px;backdrop-filter:blur(16px);
+      box-shadow:0 14px 42px rgba(0,0,0,.34), inset 0 1px rgba(255,255,255,.05)
+    }
+    .brand{display:flex;align-items:center;gap:12px;text-decoration:none;font-weight:900;letter-spacing:.04em}
+    .brand img{width:42px;height:42px;object-fit:contain;border-radius:12px;box-shadow:0 0 30px rgba(88,255,154,.18)}
+    .brand small{display:block;font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.14em}
+    .brand span{display:block;font-size:18px}
+    .nav{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+    .nav a{font-size:13px;text-decoration:none;color:#f7e8ca;font-weight:800;padding:10px 12px;border-radius:999px;border:1px solid transparent}
+    .nav a:hover{border-color:rgba(230,184,92,.22);background:rgba(255,255,255,.04)}
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:44px;padding:12px 18px;
+      border-radius:999px;border:1px solid rgba(230,184,92,.25);background:rgba(18,14,9,.76);
+      color:var(--text);text-decoration:none;font-weight:900;box-shadow:0 12px 34px rgba(0,0,0,.26);
+      transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease,background .18s ease
+    }
+    .btn:hover{transform:translateY(-2px);border-color:rgba(88,255,154,.34);box-shadow:0 18px 46px rgba(0,0,0,.36),0 0 24px rgba(88,255,154,.08)}
+    .btn.gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1c1208;border:0}
+    .btn.green{background:linear-gradient(135deg,#76ffad,#0f9f58);color:#041007;border:0}
+    .btn.subtle{background:rgba(0,0,0,.32)}
+
+    .cinematic-hero{
+      position:relative;min-height:100svh;isolation:isolate;overflow:hidden;background:#020302;
+      display:flex;align-items:flex-end;justify-content:center;
+    }
+    .hero-art{
+      position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top;
+      z-index:-3;filter:saturate(1.04) contrast(1.02);
+    }
+    .cinematic-hero:before{
+      content:"";position:absolute;inset:0;z-index:-2;pointer-events:none;
+      background:
+        linear-gradient(180deg,rgba(0,0,0,.10) 0%,rgba(0,0,0,.02) 34%,rgba(0,0,0,.14) 60%,rgba(2,3,2,.86) 91%,#020302 100%),
+        radial-gradient(circle at 50% 6%,rgba(88,255,154,.08),transparent 34%),
+        radial-gradient(circle at 6% 48%,rgba(0,0,0,.18),transparent 35%);
+    }
+    .cinematic-hero:after{
+      content:"";position:absolute;left:0;right:0;bottom:-1px;height:34vh;z-index:-1;pointer-events:none;
+      background:linear-gradient(180deg,rgba(2,3,2,0),rgba(2,3,2,.74) 52%,#020302 100%);
+    }
+    .poster-line{
+      width:min(1280px,calc(100% - 44px));padding:0 0 54px;
+      display:flex;justify-content:space-between;align-items:flex-end;gap:28px;
+      text-shadow:0 8px 34px rgba(0,0,0,.72);
+    }
+    .poster-line h1{
+      margin:0;font-size:clamp(48px,6.6vw,108px);line-height:.86;letter-spacing:-.07em;text-transform:uppercase;
+      max-width:780px;
+    }
+    .poster-line p{margin:16px 0 0;max-width:560px;font-size:clamp(18px,2vw,25px);line-height:1.36;color:#f7dfba}
+    .scroll-cue{
+      flex:0 0 auto;text-decoration:none;color:#fff2dc;font-weight:900;font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+      padding:12px 14px;border:1px solid rgba(230,184,92,.25);border-radius:999px;background:rgba(0,0,0,.28);backdrop-filter:blur(10px)
+    }
+
+    main{position:relative;z-index:1;background:#020302}
+    .section{max-width:1220px;margin:0 auto;padding:92px 24px}
+    .section.tight{padding-top:52px}
+    .eyebrow{
+      display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid rgba(88,255,154,.24);
+      background:rgba(3,25,12,.52);border-radius:999px;color:#bffff0;font-weight:900;font-size:12px;letter-spacing:.12em;text-transform:uppercase
+    }
+    .pulse,.status-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 18px var(--green);display:inline-block;flex:0 0 auto}
+    .value-grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(420px,1.1fr);gap:52px;align-items:start}
+    h2{font-size:clamp(36px,4.4vw,66px);line-height:.94;margin:18px 0 18px;letter-spacing:-.05em;text-transform:uppercase}
+    .section-lead{font-size:18px;line-height:1.62;color:var(--muted);max-width:760px;margin:0 0 28px}
+    .hero-actions{display:flex;flex-wrap:wrap;gap:13px;margin:30px 0 0}
+    .value-points{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:28px}
+    .point{padding:14px;border:1px solid rgba(230,184,92,.18);border-radius:18px;background:rgba(255,255,255,.035);backdrop-filter:blur(10px)}
+    .point strong{display:block;color:#fff;font-size:15px}.point span{display:block;color:var(--muted);font-size:12px;margin-top:5px;line-height:1.35}
+
+    .board-card{
+      background:linear-gradient(180deg,rgba(14,18,14,.92),rgba(8,10,8,.96));
+      border:1px solid rgba(230,184,92,.24);border-radius:28px;padding:18px;
+      box-shadow:var(--shadow),inset 0 1px rgba(255,255,255,.05);backdrop-filter:blur(16px)
+    }
+    .board-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:14px}
+    .board-head h3{font-size:22px;margin:0 0 5px}.board-head p{margin:0;color:var(--muted);font-size:13px;line-height:1.35}
+    .board-score{text-align:right}.board-score strong{display:block;color:var(--green);font-size:24px}.board-score span{font-size:11px;color:var(--soft);font-weight:800;text-transform:uppercase;letter-spacing:.1em}
+    .slot-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+    .slot{position:relative;min-height:112px;padding:12px;border:1px solid rgba(230,184,92,.18);border-radius:18px;background:linear-gradient(180deg,rgba(36,25,14,.72),rgba(10,11,8,.82));overflow:hidden}
+    .slot:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 100% 0,rgba(88,255,154,.09),transparent 42%);pointer-events:none}
+    .slot-top{display:flex;justify-content:space-between;gap:10px;position:relative}
+    .tag{font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;padding:5px 7px;border-radius:999px;border:1px solid rgba(255,255,255,.12)}
+    .tag.buy{color:#cffff0;background:rgba(14,112,67,.28);border-color:rgba(88,255,154,.22)}
+    .tag.sell{color:#ffe4a6;background:rgba(151,96,28,.28);border-color:rgba(230,184,92,.24)}
+    .tag.replace{color:#ffd7d2;background:rgba(157,45,38,.3);border-color:rgba(255,109,95,.24)}
+    .tag.collect{color:#d8ffe6;background:rgba(57,150,70,.3);border-color:rgba(88,255,154,.28)}
+    .slot h4{position:relative;margin:10px 0 7px;font-size:14px}
+    .slot dl{position:relative;margin:0;display:grid;grid-template-columns:1fr 1fr;gap:5px;color:var(--muted);font-size:11px}
+    .slot dt{color:var(--soft)}.slot dd{margin:0;font-weight:900;color:#fff}
+    .reason{position:relative;margin:8px 0 0;color:#d8c8a7;font-size:11px;line-height:1.32}
+    .next-action{margin-top:14px;padding:13px;border-radius:18px;background:linear-gradient(135deg,rgba(88,255,154,.16),rgba(230,184,92,.1));border:1px solid rgba(88,255,154,.2)}
+    .next-action strong{display:block;color:#bffff0;margin-bottom:4px}.next-action span{color:#eedcbb;font-size:13px;line-height:1.35}
+    .chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+    .chip{font-size:11px;font-weight:900;color:#ecd8b8;border:1px solid rgba(230,184,92,.18);background:rgba(0,0,0,.28);border-radius:999px;padding:8px 10px}
+
+    .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.card{border:1px solid rgba(230,184,92,.18);border-radius:26px;background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.02));padding:24px;box-shadow:0 18px 60px rgba(0,0,0,.28)}.card h3{margin:0 0 10px;font-size:22px}.card p{margin:0;color:var(--muted);line-height:1.55}
+    .runbook{display:grid;gap:12px}.runbook-step{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;padding:16px;border:1px solid rgba(230,184,92,.16);border-radius:20px;background:rgba(255,255,255,.035)}.runbook-step b{color:#fff}.runbook-step span{color:var(--muted);font-size:13px}.runbook-step>span:last-child{font-weight:900;color:var(--green)}
+    .split{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+    .trust-list{display:grid;gap:12px}.trust-item{display:flex;gap:14px;align-items:flex-start;padding:16px;border-radius:20px;border:1px solid rgba(88,255,154,.15);background:rgba(4,20,12,.38)}.trust-item b{display:block}.trust-item span:last-child{display:block;color:var(--muted);font-size:13px;margin-top:4px}
+    .quote-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.quote{padding:22px;border-radius:24px;border:1px solid rgba(230,184,92,.16);background:rgba(255,255,255,.035)}.quote p{font-size:18px;line-height:1.45;color:#f8e7c7}.quote b{color:var(--green)}
+    .final-cta{text-align:center;max-width:960px;margin:0 auto;padding:96px 24px 110px}
+    .footer{padding:30px 24px;color:var(--soft);text-align:center;border-top:1px solid rgba(230,184,92,.12)}
+    @media (max-width:980px){
+      .topbar{position:absolute;align-items:flex-start;flex-direction:column;top:0;left:0;right:0;transform:none;width:100%;border-radius:0;background:rgba(3,5,4,.68)}
+      .nav{width:100%;justify-content:flex-start}.nav a[href="#pricing"],.nav a[href="#guides"]{display:none}
+      .cinematic-hero{min-height:92svh}.hero-art{object-position:center top}.poster-line{display:block;padding-bottom:42px}.poster-line h1{font-size:48px}.scroll-cue{display:inline-flex;margin-top:22px}
+      .value-grid,.grid3,.split,.quote-grid,.value-points{grid-template-columns:1fr}.slot-grid{grid-template-columns:1fr}
+      .section{padding:64px 18px}.brand span{font-size:16px}
+    }
   </style>
 </head>
 <body>
-  <div class="bg-blur"></div>
-  <div class="app-ghost"><iframe id="appPreview" src="app/index.html" title="App preview"></iframe><div class="veil"></div></div>
-  <div class="topbar">
-    <div class="brand"><div class="brand-badge">GE</div><div><div>Auto Flip Web</div><div style="font-size:12px;color:var(--muted);font-weight:400">Discovery on web. Auto Flip in RuneLite.</div></div></div>
-    <div class="nav" id="authNav"><a class="btn subtle" href="/app/index.html">Preview App</a><a class="btn subtle" href="/login.html?next=/app/">Login</a><a class="btn" href="/register.html?next=/app/">Register</a><a class="btn gold" href="/pro.html">Unlock Plugin</a></div>
-  </div>
-  <section class="hero">
-    <div class="card">
-      <div class="eyebrow">OSRS market discovery</div>
-      <div class="headline">Find good flips fast.<br/>Finish the plan in RuneLite.</div>
-      <div class="copy">Use the website to search items, compare spreads, watch momentum, and build conviction before you commit. When you want the full 8-slot board, exact quantities, and execution-ready guidance, Auto Flip takes over inside RuneLite.</div>
-      <div class="row" id="heroPrimaryRow"><a class="btn gold" href="/app/index.html">Enter Free App</a><a class="btn" href="/pro.html">See Pro Benefits</a><a class="btn subtle" href="/register.html?next=/app/">Create Account</a></div>
-      <div class="pill-row"><span class="pill">Charts + explorer</span><span class="pill">Favorites + watchlist</span><span class="pill">Preview-only AI help</span><span class="pill">Plugin owns full optimization</span></div>
-      <div class="mini"><div class="mini-card"><div class="mini-label">Website role</div><div class="mini-value">Discovery</div></div><div class="mini-card"><div class="mini-label">Plugin role</div><div class="mini-value">Execution</div></div><div class="mini-card"><div class="mini-label">Visible plan</div><div class="mini-value">3 / 8 slots</div></div></div>
-      <div class="demo-shell">
-        <div class="demo-top"><div class="demo-label"><span class="demo-dot"></span> Demo walkthrough preview</div><div class="pill">YouTube slot</div></div>
-        <div class="demo-frame">
-          <div class="demo-grid"></div>
-          <div class="demo-panel">
-            <div class="play-ring">▶</div>
-            <h3 class="demo-title">Put your demo video here</h3>
-            <p class="demo-copy">This placeholder sits in the hero where the dead space used to be. Swap this block for a YouTube embed later to show real flipping workflow, plugin handoff, and premium value.</p>
-            <div class="demo-pills"><span class="pill">Discovery → plugin flow</span><span class="pill">3-slot preview</span><span class="pill">Upgrade path</span></div>
+  <div class="page">
+    <header class="topbar">
+      <a class="brand" href="/">
+        <img src="/assets/autoflip-brand/AppIcon_Favicon1.png" alt="AutoFlip logo" />
+        <span>AutoFlip.gg<small>OSRS GE Planner</small></span>
+      </a>
+      <nav class="nav" id="authNav" aria-label="Main navigation">
+        <a href="#features">Features</a>
+        <a href="#how">How it works</a>
+        <a href="#demo">Demo board</a>
+        <a href="#trust">Trust</a>
+        <a href="/app/index.html">Preview App</a>
+        <a href="/login.html?next=/app/">Login</a>
+        <a class="btn gold" href="/register.html?next=/app/">Get Started</a>
+      </nav>
+    </header>
+
+    <section class="cinematic-hero" aria-label="AutoFlip cinematic hero">
+      <img class="hero-art" src="/assets/autoflip-brand/Landing_Page_Dragon.png" alt="AutoFlip OSRS dragon landing artwork" />
+      <div class="poster-line">
+        <div>
+          <h1>The GE is not the game.</h1>
+          <p>AutoFlip handles your GE so you can actually play the game.</p>
+        </div>
+        <a class="scroll-cue" href="#planner">See the planner ↓</a>
+      </div>
+    </section>
+
+    <main>
+      <section class="section tight" id="planner">
+        <div class="value-grid">
+          <div>
+            <span class="eyebrow"><span class="pulse"></span> Product-first board guidance</span>
+            <h2>Build a realistic 8-slot plan in under a minute.</h2>
+            <p class="section-lead">Most tools show margins and charts. AutoFlip turns your budget, slot count, and time away into a simple board plan with clear next actions.</p>
+            <div class="hero-actions" id="heroPrimaryRow">
+              <a class="btn green" href="/register.html?next=/app/">Optimize My 8 Slots</a>
+              <a class="btn gold" href="#video">Click here for 90 second demo</a>
+              <a class="btn subtle" href="#proof">See why others use this product</a>
+            </div>
+            <div class="value-points">
+              <div class="point"><strong>Less guessing</strong><span>Know what to buy, sell, wait on, replace, or collect.</span></div>
+              <div class="point"><strong>Board-first</strong><span>The whole GE board matters, not one hyped item.</span></div>
+              <div class="point"><strong>You stay in control</strong><span>Guidance only. No auto-clicking. No macros.</span></div>
+            </div>
           </div>
+
+          <aside class="board-card" aria-label="AutoFlip demo 8 slot board" id="demo">
+            <div class="board-head">
+              <div>
+                <h3>Example 8-slot plan</h3>
+                <p>Balanced mode · 42m budget · away for 3 hours</p>
+              </div>
+              <div class="board-score"><strong>+612k</strong><span>expected</span></div>
+            </div>
+            <div class="slot-grid">
+              <article class="slot"><div class="slot-top"><span class="tag collect">Collect</span><span class="tag sell">Done</span></div><h4>Super restore(4)</h4><dl><dt>Qty</dt><dd>1,200</dd><dt>Profit</dt><dd>184k</dd></dl><p class="reason">Finished. Free the slot first.</p></article>
+              <article class="slot"><div class="slot-top"><span class="tag replace">Replace</span><span class="tag sell">Slow</span></div><h4>Rune platebody</h4><dl><dt>Locked</dt><dd>5.1m</dd><dt>Action</dt><dd>Cancel</dd></dl><p class="reason">Too slow. Your GP can work harder.</p></article>
+              <article class="slot"><div class="slot-top"><span class="tag buy">Buy</span><span>Fast</span></div><h4>Shark</h4><dl><dt>Qty</dt><dd>8,000</dd><dt>Buy</dt><dd>672 gp</dd></dl><p class="reason">High volume and stable spread.</p></article>
+              <article class="slot"><div class="slot-top"><span class="tag buy">Buy</span><span>Safe</span></div><h4>Dragon dagger</h4><dl><dt>Qty</dt><dd>1,400</dd><dt>Buy</dt><dd>17,920</dd></dl><p class="reason">Good fit for your time window.</p></article>
+              <article class="slot"><div class="slot-top"><span class="tag sell">Sell</span><span>Hold</span></div><h4>Prayer potion(4)</h4><dl><dt>Qty</dt><dd>900</dd><dt>Sell</dt><dd>9,440</dd></dl><p class="reason">Still healthy. Wait before repricing.</p></article>
+              <article class="slot"><div class="slot-top"><span class="tag buy">Buy</span><span>Med</span></div><h4>Yew logs</h4><dl><dt>Qty</dt><dd>12,000</dd><dt>Buy</dt><dd>303 gp</dd></dl><p class="reason">Uses leftover budget cleanly.</p></article>
+              <article class="slot"><div class="slot-top"><span class="tag sell">Sell</span><span>Watch</span></div><h4>Diamond bolts</h4><dl><dt>Qty</dt><dd>5,000</dd><dt>Sell</dt><dd>912 gp</dd></dl><p class="reason">Revisit in 25 minutes.</p></article>
+              <article class="slot"><div class="slot-top"><span class="tag buy">Buy</span><span>Stable</span></div><h4>Coal</h4><dl><dt>Qty</dt><dd>10,000</dd><dt>Buy</dt><dd>181 gp</dd></dl><p class="reason">Low-risk filler slot.</p></article>
+            </div>
+            <div class="next-action"><strong>Next best action: Collect Super restore(4)</strong><span>It is completed. Collect first, then replace the Rune platebody slot with a faster trade.</span></div>
+            <div class="chips"><span class="chip">Post-tax view</span><span class="chip">Freshness checked</span><span class="chip">Liquidity filtered</span><span class="chip">No automation</span></div>
+          </aside>
         </div>
-      </div>
-    </div>
-    <div class="card">
-      <h2 class="side-title">Why this split works</h2>
-      <div class="side-copy">The website should feel polished, useful, and trustworthy — but intentionally incomplete. You can discover opportunities here. You upgrade when you want the tool that actually deploys your GE inside RuneLite.</div>
-      <ul class="feature-list">
-        <li><strong>Free website:</strong> market explorer, trends, watchlist, and partial planning</li>
-        <li><strong>Auto Flip Pro:</strong> full board allocation, quantity logic, and guided execution</li>
-        <li><strong>Same account:</strong> build trust on web, then continue with the same login later</li>
-      </ul>
-      <div class="row" id="sideAuthRow"><a class="btn gold" href="/pro.html">See why players upgrade</a><a class="btn subtle" href="/login.html?next=/app/">Already have an account?</a></div>
-    </div>
-  </section>
-  <section class="section-shell">
-    <div class="section-grid">
-      <div class="trust-card">
-        <div class="eyebrow">Why players trust it</div>
-        <h3 class="trust-title">Use real market context first</h3>
-        <p class="trust-copy">The website is built to help players check charts, ROI, spread, and volume before they ever think about upgrading.</p>
-      </div>
-      <div class="trust-card">
-        <div class="eyebrow">No fake all-in-one claim</div>
-        <h3 class="trust-title">The plugin owns execution</h3>
-        <p class="trust-copy">The landing page now makes the boundary obvious: discovery stays on web, while premium execution lives in RuneLite.</p>
-      </div>
-      <div class="trust-card">
-        <div class="eyebrow">Clean upgrade path</div>
-        <h3 class="trust-title">Upgrade only when it feels earned</h3>
-        <p class="trust-copy">Players can start free, revisit favorites, and learn the workflow before moving into the paid product.</p>
-      </div>
-    </div>
-  </section>
-  <section class="section-shell">
-    <div class="card">
-      <div class="eyebrow">Clear product boundary</div>
-      <h2 class="section-title">What the website gives you — and what it intentionally does not</h2>
-      <p class="section-copy">This should answer the landing-page question fast: the free website is for discovery, trust-building, and partial planning. Auto Flip Pro is for full 8-slot workflow, exact board deployment, and guided execution inside RuneLite.</p>
-      <div class="split-grid">
-        <div class="split-card">
-          <h3>Website: free discovery layer</h3>
-          <ul>
-            <li><strong>Explorer + charts:</strong> compare items, spread, trend, and liquidity context.</li>
-            <li><strong>Favorites + watchlist:</strong> keep a short list worth revisiting.</li>
-            <li><strong>Preview-only AI:</strong> enough to guide thinking, not enough to fully run the board.</li>
-            <li><strong>Partial plans:</strong> prove value without replacing the plugin.</li>
-          </ul>
+      </section>
+
+      <section class="section" id="features">
+        <h2>Most tools give you data. AutoFlip gives you a plan.</h2>
+        <p class="section-lead">The website builds trust and shows the product. The planner is designed to answer the practical question: what should I do with my GE board right now?</p>
+        <div class="grid3">
+          <div class="card"><h3>Save time</h3><p>Stop researching margins for 45 minutes. Start from a practical board plan built around your budget.</p></div>
+          <div class="card"><h3>Clear next actions</h3><p>Buy, sell, wait, replace, cancel, collect. Every slot has a simple reason and gain statement.</p></div>
+          <div class="card"><h3>Trust-first guidance</h3><p>No generated clicks, no macros, no gameplay automation. You place every offer yourself.</p></div>
         </div>
-        <div class="split-card">
-          <h3>Auto Flip Pro: premium execution layer</h3>
-          <ul>
-            <li><strong>Full 8-slot optimization:</strong> stronger coverage than the preview experience.</li>
-            <li><strong>Exact quantities:</strong> clearer slot-by-slot deployment.</li>
-            <li><strong>Budget-aware planning:</strong> your budget, timing, and risk shape the board.</li>
-            <li><strong>RuneLite workflow:</strong> continue execution where the player is already trading.</li>
-          </ul>
+      </section>
+
+      <section class="section split" id="how">
+        <div>
+          <span class="eyebrow"><span class="pulse"></span> How it works</span>
+          <h2>From budget to board without spreadsheet brain.</h2>
+          <p class="section-lead">AutoFlip should feel like a runbook: simple steps, clear tradeoffs, and one obvious next move.</p>
         </div>
-      </div>
-    </div>
-  </section>
-  <section class="section-shell">
-    <div class="card">
-      <div class="eyebrow">Simple funnel</div>
-      <h2 class="section-title">How players should move through the product</h2>
-      <p class="section-copy">Start with the free app, build confidence in the market data, then upgrade when the execution layer becomes the obvious next step.</p>
-      <div class="path-grid">
-        <div class="path-card"><div class="path-step">1</div><h3>Start free on web</h3><p>Open the app, search the market, and save favorites without being forced into a mid-page auth wall.</p></div>
-        <div class="path-card"><div class="path-step">2</div><h3>Decide if the plugin is worth it</h3><p>Use the Pro page to understand the upgrade instead of routing users into broken or invented paths.</p></div>
-        <div class="path-card"><div class="path-step">3</div><h3>Finish inside RuneLite</h3><p>When players want the full board and clearer execution help, Auto Flip becomes the paid handoff.</p></div>
-      </div>
-    </div>
-  </section>
-  <section class="section-shell">
-    <div class="cta-band">
-      <div class="cta-band-copy"><strong>Start with the free app. Upgrade when you want the full board.</strong><span>This keeps the funnel honest: web for discovery, Pro for execution. Every CTA below points only to pages that already exist in this baseline.</span></div>
-      <div class="row" style="margin-top:0"><a class="btn gold" href="app/index.html">Open Free App</a><a class="btn" href="pro.html">View Pro Page</a></div>
-    </div>
-  </section>
-  <div class="foot">Landing page stays at <strong>/</strong>, app stays at <strong>/app/</strong>, and premium CTAs route to the existing root-level <strong>/pro.html</strong> page.</div>
-  <script>
-    (function(){
-      var frame = document.getElementById('appPreview');
-      if(!frame) return;
-      function suppressNestedScroll(){
-        try {
-          var doc = frame.contentDocument || (frame.contentWindow && frame.contentWindow.document);
-          if(!doc) return;
-          var html = doc.documentElement;
-          var body = doc.body;
-          if(html){ html.style.overflow = 'hidden'; html.style.scrollbarWidth = 'none'; }
-          if(body){ body.style.overflow = 'hidden'; body.style.scrollbarWidth = 'none'; }
-          var style = doc.getElementById('landing-preview-scroll-kill');
-          if(!style){
-            style = doc.createElement('style');
-            style.id = 'landing-preview-scroll-kill';
-            style.textContent = 'html::-webkit-scrollbar, body::-webkit-scrollbar { width: 0 !important; height: 0 !important; }';
-            doc.head && doc.head.appendChild(style);
-          }
-        } catch (e) {}
-      }
-      frame.addEventListener('load', function(){
-        suppressNestedScroll();
-        setTimeout(suppressNestedScroll, 400);
-      });
-      setTimeout(suppressNestedScroll, 1200);
-    })();
-  </script>
+        <div class="runbook">
+          <div class="runbook-step"><span class="status-dot"></span><div><b>1. Enter your setup</b><br><span>Budget, slots, hours away, and risk mode.</span></div><span>30 sec</span></div>
+          <div class="runbook-step"><span class="status-dot"></span><div><b>2. Get a full board</b><br><span>Eight slots ranked by usefulness, not hype.</span></div><span>Instant</span></div>
+          <div class="runbook-step"><span class="status-dot"></span><div><b>3. Follow the next action</b><br><span>Buy, sell, wait, replace, collect, or reprice.</span></div><span>Clear</span></div>
+        </div>
+      </section>
+
+      <section class="section split" id="trust">
+        <div>
+          <h2>Built for guidance. Not automation.</h2>
+          <p class="section-lead">Trust matters. AutoFlip should guide, explain, and highlight decisions while you stay fully in control of every offer you place.</p>
+        </div>
+        <div class="trust-list">
+          <div class="trust-item"><span class="status-dot"></span><div><b>No auto-clicking</b><span>AutoFlip does not generate gameplay inputs.</span></div></div>
+          <div class="trust-item"><span class="status-dot"></span><div><b>No macros</b><span>You place every Grand Exchange offer yourself.</span></div></div>
+          <div class="trust-item"><span class="status-dot"></span><div><b>Clear confidence labels</b><span>Weak data should be labeled, not hidden behind shiny copy.</span></div></div>
+        </div>
+      </section>
+
+      <section class="section" id="proof">
+        <h2>Why players use it</h2>
+        <div class="quote-grid">
+          <div class="quote"><p>“I wanted GP, not a second job researching margins.”</p><b>Beginner flipper</b></div>
+          <div class="quote"><p>“It tells me what to do with the whole board, not just one item.”</p><b>Experienced merchant</b></div>
+          <div class="quote"><p>“The best part is knowing when to stop waiting and replace a slot.”</p><b>GE regular</b></div>
+        </div>
+      </section>
+
+      <section class="final-cta" id="video">
+        <h2>Optimize your 8 slots in under a minute.</h2>
+        <p class="section-lead" style="margin-left:auto;margin-right:auto">Stop standing at the GE wondering what to do next. Build the board, follow the runbook, and get back to playing.</p>
+        <div class="hero-actions" style="justify-content:center"><a class="btn green" href="/register.html?next=/app/">Get Started</a><a class="btn gold" href="/app/index.html">Click here for 90 second demo</a></div>
+      </section>
+    </main>
+
+    <footer class="footer">AutoFlip.gg - OSRS-first virtual economy optimization. Guidance only. You control every action.</footer>
+  </div>
 
   <script>
     (function(){
-      function getToken(){
-        try { return localStorage.getItem('osrs_token') || ''; } catch (e) { return ''; }
-      }
-      function clearToken(){
-        try { localStorage.removeItem('osrs_token'); } catch (e) {}
-      }
-      function escapeHtml(value){
-        return String(value || '').replace(/[&<>"']/g, function(ch){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]); });
-      }
-      function renderLoggedOut(){
+      function setLoggedOut(){
         var nav = document.getElementById('authNav');
         if(nav){
-          nav.innerHTML = '<a class="btn subtle" href="/app/index.html">Preview App</a><a class="btn subtle" href="/login.html?next=/app/">Login</a><a class="btn" href="/register.html?next=/app/">Register</a><a class="btn gold" href="/pro.html">Unlock Plugin</a>';
+          nav.innerHTML = '<a href="#features">Features</a><a href="#how">How it works</a><a href="#demo">Demo board</a><a href="#trust">Trust</a><a href="/app/index.html">Preview App</a><a href="/login.html?next=/app/">Login</a><a class="btn gold" href="/register.html?next=/app/">Get Started</a>';
+        }
+      }
+      function setLoggedIn(email){
+        var nav = document.getElementById('authNav');
+        if(nav){
+          nav.innerHTML = '<a href="#features">Features</a><a href="#demo">Demo board</a><a href="/app/index.html">Enter Free App</a><a href="/pro.html">See Pro Benefits</a><a class="btn green" href="/app/index.html">Continue as '+email+'</a>';
         }
         var hero = document.getElementById('heroPrimaryRow');
         if(hero){
-          hero.innerHTML = '<a class="btn gold" href="/app/index.html">Enter Free App</a><a class="btn" href="/pro.html">See Pro Benefits</a><a class="btn subtle" href="/register.html?next=/app/">Create Account</a>';
-        }
-        var side = document.getElementById('sideAuthRow');
-        if(side){
-          side.innerHTML = '<a class="btn gold" href="/pro.html">See why players upgrade</a><a class="btn subtle" href="/login.html?next=/app/">Already have an account?</a>';
+          hero.innerHTML = '<a class="btn green" href="/app/index.html">Enter Free App</a><a class="btn gold" href="/pro.html">See Pro Benefits</a><a class="btn subtle" href="#demo">View demo board</a>';
         }
       }
-      function renderLoggedIn(user){
-        var email = escapeHtml(user && user.email ? user.email : 'Account');
-        var nav = document.getElementById('authNav');
-        if(nav){
-          nav.innerHTML = '<a class="btn subtle" href="/app/index.html">Preview App</a><a class="btn subtle" href="/pro.html">Unlock Plugin</a><a class="btn" href="/app/index.html">'+email+'</a><button class="btn gold" id="logoutBtn" type="button">Log out</button>';
-        }
-        var hero = document.getElementById('heroPrimaryRow');
-        if(hero){
-          hero.innerHTML = '<a class="btn gold" href="/app/index.html">Enter Free App</a><a class="btn" href="/pro.html">See Pro Benefits</a><a class="btn subtle" href="/app/index.html">Continue as '+email+'</a>';
-        }
-        var side = document.getElementById('sideAuthRow');
-        if(side){
-          side.innerHTML = '<a class="btn gold" href="/pro.html">See why players upgrade</a><a class="btn subtle" href="/app/index.html">Continue with current account</a>';
-        }
-        var logoutBtn = document.getElementById('logoutBtn');
-        if(logoutBtn){
-          logoutBtn.addEventListener('click', async function(){
-            var token = getToken();
-            try { if(token){ await fetch('/auth/logout?token=' + encodeURIComponent(token), { method:'POST' }); } } catch (e) {}
-            clearToken();
-            window.location.reload();
-          });
-        }
-      }
-      async function syncAuthState(){
-        var token = getToken();
-        if(!token){ renderLoggedOut(); return; }
-        try {
-          var res = await fetch('/auth/me?token=' + encodeURIComponent(token), { credentials:'same-origin' });
-          if(!res.ok){ clearToken(); renderLoggedOut(); return; }
-          var data = await res.json();
-          if(!data || !data.ok || !data.user){ clearToken(); renderLoggedOut(); return; }
-          renderLoggedIn(data.user);
-        } catch (e) {
-          renderLoggedOut();
-        }
-      }
-      syncAuthState();
+      fetch('/api/auth/me',{credentials:'include'})
+        .then(function(r){return r.ok ? r.json() : null;})
+        .then(function(data){
+          if(data && data.user && data.user.email){ setLoggedIn(data.user.email); }
+          else { setLoggedOut(); }
+        })
+        .catch(setLoggedOut);
     })();
   </script>
-
 </body>
 </html>
